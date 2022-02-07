@@ -50,7 +50,7 @@
 #include <stdlib.h>
 #include <unistd.h>
 
-#include <cufile.h>
+#include <cuda.h>
 #include <nvtx3/nvToolsExt.h>
 
 #include "nvcomp.hpp"

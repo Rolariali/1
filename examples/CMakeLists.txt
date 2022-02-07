@@ -5,11 +5,13 @@ file(GLOB GDEFLATE_CPU_SOURCES *gdeflate_cpu*.cpp *gdeflate_cpu*.cu)
 # skip gdeflate CPU examples if required libraries are missing
 if (gdeflate_FOUND AND ZLIB_FOUND)
   foreach(EXAMPLE_SOURCE ${GDEFLATE_CPU_SOURCES})
+  message(WARNING "cut off suffixes !!!\n\n")
     # cut off suffixes
     string(REPLACE ".cpp" "" EXAMPLE_NAME ${EXAMPLE_SOURCE})
     string(REPLACE ".cu" "" EXAMPLE_NAME ${EXAMPLE_NAME})
     get_filename_component(BARE_NAME ${EXAMPLE_NAME} NAME)
     add_executable(${BARE_NAME} ${EXAMPLE_SOURCE})
+    message(WARNING "BARE_NAME ${BARE_NAME}!!!\n\n")
     target_link_libraries(${BARE_NAME} PRIVATE nvcomp CUDA::cudart)
     target_include_directories(${BARE_NAME} PRIVATE ${GDEFLATE_INCLUDE_DIRS})
     target_link_libraries(${BARE_NAME} PRIVATE gdeflate)
@@ -23,12 +25,13 @@ option (BUILD_GDS_EXAMPLE "Build NVCOMP + GDS example" OFF)
 if (BUILD_GDS_EXAMPLE)
   add_executable (nvcomp_gds nvcomp_gds.cu)
   target_link_libraries(nvcomp_gds PRIVATE nvcomp CUDA::cudart cufile)
+  message(WARNING "!!!\n\n")
 endif()
 
 # Add LZ4 CPU executable
 find_path(LZ4_INCLUDE_DIR NAMES lz4.h)
 find_library(LZ4_LIBRARY NAMES lz4)
-if (LZ4_INCLUDE_DIR AND LZ4_LIBRARY) 
+if (LZ4_INCLUDE_DIR AND LZ4_LIBRARY AND FALSE) 
   # lz4 CPU example requires lz4 libraries
   add_executable(lz4_cpu_compression lz4_cpu_compression.cu)
   target_link_libraries(lz4_cpu_compression PRIVATE nvcomp CUDA::cudart)
@@ -43,5 +46,9 @@ else()
 endif()
 
 # Add quickstart example
-add_executable(low_level_quickstart_example low_level_quickstart_example.cpp)
-target_link_libraries(low_level_quickstart_example PRIVATE CUDA::cudart nvcomp)
+# add_executable(low_level_quickstart_example low_level_quickstart_example.cpp)
+# target_link_libraries(low_level_quickstart_example PRIVATE CUDA::cudart nvcomp)
+
+# My
+add_executable(test test.cpp)
+target_link_libraries(test PRIVATE CUDA::cudart nvcomp)

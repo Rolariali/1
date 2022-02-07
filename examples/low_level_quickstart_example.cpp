@@ -26,7 +26,7 @@ void execute_example(char* input_data, const size_t in_bytes)
   // compute chunk sizes
   size_t* host_uncompressed_bytes;
   const size_t chunk_size = 65536;
-  const size_t batch_size = (in_bytes + chunk_size - 1) / chunk_size;
+  const size_t batch_size = (in_bytes + chunk_size - 1) / chunk_size; //16
 
   char* device_input_data;
   cudaMalloc((void**)&device_input_data, in_bytes);
@@ -35,10 +35,10 @@ void execute_example(char* input_data, const size_t in_bytes)
   cudaMallocHost((void**)&host_uncompressed_bytes, sizeof(size_t)*batch_size);
   for (size_t i = 0; i < batch_size; ++i) {
     if (i + 1 < batch_size) {
-      host_uncompressed_bytes[i] = chunk_size;
+      host_uncompressed_bytes[i] = chunk_size;  //65536
     } else {
       // last chunk may be smaller
-      host_uncompressed_bytes[i] = in_bytes - (chunk_size*i);
+      host_uncompressed_bytes[i] = in_bytes - (chunk_size*i); //1е6 - 65536*(16-1) = 16960
     }
   }
 
@@ -46,7 +46,7 @@ void execute_example(char* input_data, const size_t in_bytes)
   void ** host_uncompressed_ptrs;
   cudaMallocHost((void**)&host_uncompressed_ptrs, sizeof(size_t)*batch_size);
   for (size_t ix_chunk = 0; ix_chunk < batch_size; ++ix_chunk) {
-    host_uncompressed_ptrs[ix_chunk] = device_input_data + chunk_size*ix_chunk;
+    host_uncompressed_ptrs[ix_chunk] = device_input_data + chunk_size*ix_chunk; //0..15]
   }
 
   size_t* device_uncompressed_bytes;
@@ -166,7 +166,7 @@ int main()
   cudaMallocHost((void**)&uncompressed_data, in_bytes);
   
   std::mt19937 random_gen(42);
-  std::uniform_int_distribution<uint8_t> uniform_dist(0, 255);
+  std::uniform_int_distribution<uint8_t> uniform_dist(0, 100);
   for (size_t ix = 0; ix < in_bytes; ++ix) {
     uncompressed_data[ix] = uniform_dist(random_gen);
   }
