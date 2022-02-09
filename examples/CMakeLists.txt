@@ -46,8 +46,8 @@ else()
 endif()
 
 # Add quickstart example
-# add_executable(low_level_quickstart_example low_level_quickstart_example.cpp)
-# target_link_libraries(low_level_quickstart_example PRIVATE CUDA::cudart nvcomp)
+add_executable(low_level_quickstart_example low_level_quickstart_example.cpp)
+target_link_libraries(low_level_quickstart_example PRIVATE CUDA::cudart nvcomp)
 
 # My
 add_executable(test test.cpp)
