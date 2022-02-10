@@ -1,5 +1,10 @@
-cmake_minimum_required(VERSION 3.18)
-project(nvcomp LANGUAGES C CUDA CXX)
+cmake_minimum_required(VERSION 3.12)
+if(CLION)
+  project(nvcomp LANGUAGES C CXX)
+else()
+  project(nvcomp LANGUAGES C CUDA CXX)
+endif()
+
 
 option(BUILD_TESTS "Build unit and end-to-end tests." OFF)
 option(BUILD_BENCHMARKS "Build benchmarks." OFF)
@@ -17,7 +22,15 @@ list( APPEND CMAKE_MODULE_PATH
   ${CMAKE_SOURCE_DIR}/cmake
 )
 
-find_package(CUDAToolkit REQUIRED)
+if(CLION)
+
+else()
+  if(CMAKE_OLD_CUDA_PACKAGE)
+    find_package(CUDA REQUIRED)
+  else()
+    find_package(CUDAToolkit REQUIRED)
+  endif()
+endif()
 
 if ("${CMAKE_CXX_COMPILER_ID}" MATCHES "GNU" OR
     "${CMAKE_CXX_COMPILER_ID}" MATCHES "Clang" OR
@@ -31,6 +44,16 @@ endif()
 # and cause launch failures
 # set(CMAKE_CUDA_FLAGS_DEBUG "${CMAKE_CUDA_FLAGS_DEBUG};-G")
 set(CMAKE_CUDA_FLAGS_DEBUG "${CMAKE_CUDA_FLAGS_DEBUG} -g")
+
+execute_process (
+        COMMAND bash -c "nvidia-smi | grep 'Tesla K80'"
+        OUTPUT_VARIABLE DEVICE_GPU_K80
+)
+message("DEVICE_GPU_K80: ${DEVICE_GPU_K80}")
+if(DEVICE_GPU_K80)
+  string(APPEND CMAKE_CUDA_FLAGS_DEBUG " -gencode arch=compute_37,code=sm_37")
+  message("CMAKE_CUDA_FLAGS_DEBUG: ${CMAKE_CUDA_FLAGS_DEBUG}")
+endif()
 
 if(CMAKE_BUILD_TYPE STREQUAL "DEBUG" OR CMAKE_BUILD_TYPE STREQUAL "Debug")
   message("Debug build.")
@@ -75,20 +98,20 @@ endif()
   endif()
 
 if(NOT DEFINED CUB_DIR AND DEFINED ENV{CUB_DIR})
-  set(CUB_DIR ENV{CUB_DIR})
+  set(CUB_DIR $ENV{CUB_DIR})
 endif()
 
-message(STATUS "Finding CUB")
+message(STATUS "Finding CUB ${CUB_DIR}")
 if(CMAKE_CUDA_COMPILER_VERSION VERSION_LESS "11" AND NOT DEFINED CUB_DIR)
   message(FATAL_ERROR "When using a CUDA prior to CUDA 11, you must specify "
-      "the path of cub via the 'CUB_DIR' variable (e.g., "
-      "'cmake -DCUB_DIR=...' or 'export CUB_DIR=...'). You can download cub "
-      "from 'https://github.com/thrust/cub'.")
+          "the path of cub via the 'CUB_DIR' variable (e.g., "
+          "'cmake -DCUB_DIR=...' or 'export CUB_DIR=...'). You can download cub "
+          "from 'https://github.com/thrust/cub'.")
 endif()
 find_path(CUB_HEADER NAMES "cub/cub.cuh" PATHS "${CUB_DIR}" "${CUDAToolkit_INCLUDE_DIRS}")
 if(NOT CUB_HEADER)
   message(FATAL_ERROR "Unable to locate 'cub/cub.cuh'. Please specify a path "
-      "to cub via 'CUB_DIR'")
+          "to cub via 'CUB_DIR'")
 endif()
 
 if(NOT DEFINED NVCOMP_EXTS_ROOT AND DEFINED ENV{NVCOMP_EXTS_ROOT})
@@ -106,6 +129,9 @@ find_package(bitcomp ${NVCOMP_FIND_QUIET})
 if (bitcomp_FOUND)
   message (STATUS "Found bitcomp")
   add_definitions(-DENABLE_BITCOMP)
+else()
+  message (STATUS "FAILED bitcomp !!!")
+#  add_definitions(-DENABLE_BITCOMP)
 endif()
 
 find_package(gdeflate ${NVCOMP_FIND_QUIET})
@@ -162,6 +188,8 @@ if (BUILD_EXAMPLES)
   add_subdirectory(examples)
 endif()
 
+add_subdirectory(task)
+
 set(INSTALL_CONFIGDIR ${CMAKE_INSTALL_LIBDIR}/cmake/nvcomp)
 
 
@@ -175,7 +203,7 @@ export(TARGETS nvcomp
        FILE "${CMAKE_CURRENT_BINARY_DIR}/nvcomp-targets.cmake"
        )
 
-
+if(NOT CMAKE_OLD_CUDA_PACKAGE)
 #------
 # Install directory setup
 configure_package_config_file("${CMAKE_CURRENT_SOURCE_DIR}/cmake/nvcomp-config.cmake.in"
@@ -200,3 +228,4 @@ install(FILES ${CMAKE_CURRENT_SOURCE_DIR}/include/nvcomp.hpp
 install(FILES "${CMAKE_CURRENT_BINARY_DIR}/cmake/nvcomp-config.cmake"
               "${CMAKE_CURRENT_BINARY_DIR}/cmake/nvcompConfigVersion.cmake"
         DESTINATION "${INSTALL_CONFIGDIR}")
+endif()
