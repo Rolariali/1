@@ -495,7 +495,7 @@ void SampleFusedInternal(
   cudaMemsetAsync(d_sizeBuffer, 0, sizeof(*d_sizeBuffer) * NUM_SCHEMES, stream);
 
   const VALUE* const inTyped = static_cast<const VALUE*>(in);
-
+  printf("SampleFusedKernel %d, %d, %d, %d", grid, block, BLOCK_SIZE, SAMPLE_TILE_SIZE);
   SampleFusedKernel<VALUE, COUNT, BLOCK_SIZE, SAMPLE_TILE_SIZE>
       <<<grid, block, 0, stream>>>(inTyped, sample_ptrs, maxNum, d_sizeBuffer);
 
@@ -550,7 +550,7 @@ void SampleFusedOption_internal(
 {
 
   const size_t maxNum = in_bytes / sizeof(valT);
-
+  printf("SampleFusedOption_internal\n");
   SampleFusedInternal<valT, runT>(
       in,
       sample_ptrs,
@@ -580,7 +580,7 @@ void SamplingFastOption(
 
   const nvcompType_t countType
       = selectRunsType(sample_bytes / sizeOfnvcompType(in_type));
-
+  printf("SamplingFastOption\n");
   NVCOMP_TYPE_TWO_SWITCH(
       in_type,
       countType,
