@@ -178,7 +178,7 @@ export(TARGETS nvcomp
        FILE "${CMAKE_CURRENT_BINARY_DIR}/nvcomp-targets.cmake"
        )
 
-if(CMAKE_OLD_CUDA_PACKAGE)
+if(NOT CMAKE_OLD_CUDA_PACKAGE)
 #------
 # Install directory setup
 configure_package_config_file("${CMAKE_CURRENT_SOURCE_DIR}/cmake/nvcomp-config.cmake.in"
