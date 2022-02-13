@@ -35,10 +35,9 @@ using namespace std;
   } while (0)
 
 
-
-/// Run C API selector with NULL options (default) and return the estimated compression ratio
-template <typename T>
-double test_selector_default_c(const std::vector<T>& input, nvcompCascadedFormatOpts* opts)
+// Run C API selector and return the estimated compression ratio
+    template <typename T>
+    double test_selector_c(const std::vector<T>& input, size_t sample_size, size_t num_samples, nvcompCascadedFormatOpts* opts)
 {
   // create GPU only input buffer
   T* d_in_data;
@@ -49,9 +48,13 @@ double test_selector_default_c(const std::vector<T>& input, nvcompCascadedFormat
 
   size_t temp_bytes = 0;
   void* d_temp;
+  nvcompCascadedSelectorOpts selector_opts;
+  selector_opts.sample_size = sample_size;
+  selector_opts.num_samples = num_samples;
+  selector_opts.seed = 1;
 
   nvcompStatus_t err = nvcompCascadedSelectorConfigure(
-      NULL, nvcomp::TypeOf<T>(), in_bytes, &temp_bytes);
+      &selector_opts, TypeOf<T>(), in_bytes, &temp_bytes);
   REQUIRE(err == nvcompSuccess);
 
   CUDA_CHECK( cudaMalloc(&d_temp, temp_bytes) );
@@ -61,8 +64,8 @@ double test_selector_default_c(const std::vector<T>& input, nvcompCascadedFormat
   double est_ratio;
 
   err = nvcompCascadedSelectorRun(
-      NULL,
-      nvcomp::TypeOf<T>(),
+      &selector_opts,
+      TypeOf<T>(),
       d_in_data,
       in_bytes,
       d_temp,
@@ -80,6 +83,7 @@ double test_selector_default_c(const std::vector<T>& input, nvcompCascadedFormat
   return est_ratio;
 }
 
+
 #include "test_data.h"
 
 int main()
@@ -87,6 +91,6 @@ int main()
 
   nvcompCascadedFormatOpts opts;
   typedef uint8_t T;
-  double est_ratio = test_selector_default_c<T>(input, &opts);
+  double est_ratio = test_selector_c<T>(input, 4, 4, &opts);
 
 }
