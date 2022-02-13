@@ -22,7 +22,11 @@ list( APPEND CMAKE_MODULE_PATH
 if(CLION)
 
 else()
-  find_package(CUDAToolkit REQUIRED)
+  if(CMAKE_OLD_CUDA_PACKAGE)
+    find_package(CUDA REQUIRED)
+  else()
+    find_package(CUDAToolkit REQUIRED)
+  endif()
 endif()
 
 if ("${CMAKE_CXX_COMPILER_ID}" MATCHES "GNU" OR
