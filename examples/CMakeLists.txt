@@ -1,5 +1,15 @@
 file(GLOB GDEFLATE_CPU_SOURCES *gdeflate_cpu*.cpp *gdeflate_cpu*.cu)
 
+if(CLION)
+else()
+  set(CUDA_ART "CUDA::cudart")
+endif()
+
+if(CMAKE_OLD_CUDA_PACKAGE)
+  include_directories(/usr/local/cuda/include)
+  set(CUDA_ART "/usr/local/cuda/lib64/libcudart.so")
+endif()
+
 # Add gdeflate CPU executables 
 # gdeflate CPU examples require gdeflate and zlib libraries
 # skip gdeflate CPU examples if required libraries are missing
@@ -44,4 +54,4 @@ endif()
 
 # Add quickstart example
 add_executable(low_level_quickstart_example low_level_quickstart_example.cpp)
-target_link_libraries(low_level_quickstart_example PRIVATE CUDA::cudart nvcomp)
+target_link_libraries(low_level_quickstart_example PRIVATE ${CUDA_ART} nvcomp)
