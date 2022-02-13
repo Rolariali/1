@@ -495,7 +495,8 @@ void SampleFusedInternal(
   cudaMemsetAsync(d_sizeBuffer, 0, sizeof(*d_sizeBuffer) * NUM_SCHEMES, stream);
 
   const VALUE* const inTyped = static_cast<const VALUE*>(in);
-  printf("SampleFusedKernel %d, %d, %d, %d", grid, block, BLOCK_SIZE, SAMPLE_TILE_SIZE);
+  printf(__FILE__"-SampleFusedKernel grid %d, block %d, BLOCK_SIZE %d, SAMPLE_TILE_SIZE %d \n",
+         grid, block, BLOCK_SIZE, SAMPLE_TILE_SIZE);
   SampleFusedKernel<VALUE, COUNT, BLOCK_SIZE, SAMPLE_TILE_SIZE>
       <<<grid, block, 0, stream>>>(inTyped, sample_ptrs, maxNum, d_sizeBuffer);
 

@@ -12,7 +12,7 @@
 // Test GPU decompression with cascaded compression API //
 
 using namespace std;
-//using namespace nvcomp;
+using namespace nvcomp;
 
 #define REQUIRE(a)                                                             \
   do {                                                                         \
@@ -36,8 +36,8 @@ using namespace std;
 
 
 // Run C API selector and return the estimated compression ratio
-    template <typename T>
-    double test_selector_c(const std::vector<T>& input, size_t sample_size, size_t num_samples, nvcompCascadedFormatOpts* opts)
+template <typename T>
+double test_selector_c(const std::vector<T>& input, size_t sample_size, size_t num_samples, nvcompCascadedFormatOpts* opts)
 {
   // create GPU only input buffer
   T* d_in_data;
@@ -84,13 +84,16 @@ using namespace std;
 }
 
 
-#include "test_data.h"
+// #include "test_data.h"
 
 int main()
 {
 
   nvcompCascadedFormatOpts opts;
   typedef uint8_t T;
-  double est_ratio = test_selector_c<T>(input, 4, 4, &opts);
+  std::vector<T> input = {0, 2, 2, 3, 0, 0, 0, 0, 0, 3, 1, 1, 1, 1, 1, 2, 3, 3};
 
+  printf("--------------------------------------------\n");
+  double est_ratio = test_selector_c<T>(input, 4, 4, &opts);
+  printf("done\n");
 }
