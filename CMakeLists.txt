@@ -178,7 +178,7 @@ export(TARGETS nvcomp
        FILE "${CMAKE_CURRENT_BINARY_DIR}/nvcomp-targets.cmake"
        )
 
-
+if(CMAKE_OLD_CUDA_PACKAGE)
 #------
 # Install directory setup
 configure_package_config_file("${CMAKE_CURRENT_SOURCE_DIR}/cmake/nvcomp-config.cmake.in"
@@ -203,3 +203,4 @@ install(FILES ${CMAKE_CURRENT_SOURCE_DIR}/include/nvcomp.hpp
 install(FILES "${CMAKE_CURRENT_BINARY_DIR}/cmake/nvcomp-config.cmake"
               "${CMAKE_CURRENT_BINARY_DIR}/cmake/nvcompConfigVersion.cmake"
         DESTINATION "${INSTALL_CONFIGDIR}")
+endif()
