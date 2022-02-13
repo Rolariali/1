@@ -1399,7 +1399,7 @@ nvcompStatus_t nvcompCascadedCompressConfigure(
 
     nvcompCascadedCompressionGPU::computeWorkspaceSize(
         uncompressed_bytes, type, &temp_opts, temp_bytes);
-
+    printf("=nvcompCascadedCompressConfigure\n");
     nvcompCascadedCompressionGPU::generateOutputUpperBound(
         uncompressed_bytes,
         type,
@@ -1430,6 +1430,8 @@ nvcompStatus_t nvcompCascadedCompressAsync(
     CHECK_NOT_NULL(out_bytes);
     nvcompCascadedFormatOpts final_opts;
     if(format_opts == NULL) { // need to run auto-selector of NULL
+      printf("@ need to run auto-selector of NULL\n");
+
       nvcompCascadedSelectorOpts selector_opts;
       selector_opts.sample_size = 1024;
       selector_opts.num_samples = 100;
@@ -1439,16 +1441,17 @@ nvcompStatus_t nvcompCascadedCompressAsync(
       // Adjust sample size if input is too small
       if (in_bytes < (selector_opts.sample_size * selector_opts.num_samples * type_bytes)) {
         selector_opts.num_samples = in_bytes / (selector_opts.sample_size*type_bytes);
-
+        printf("!  Adjust sample size if input is too small\n");
         // If too small for even 1 sample of 1024, decrease sample size
         if (in_bytes < 1024*type_bytes) {
+          printf("@  If too small for even 1 sample of 1024, decrease sample size\n");
           selector_opts.num_samples = 1;
           selector_opts.sample_size = in_bytes / type_bytes;
         }
       }
 
       double est_ratio;
-
+      printf("@  nvcompCascadedSelectorRun\n");
       nvcompStatus_t err = nvcompCascadedSelectorRun(
           &selector_opts,
           in_type,

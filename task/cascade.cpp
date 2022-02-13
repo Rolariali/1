@@ -75,6 +75,12 @@ int main()
       &comp_out_bytes);
   REQUIRE(status == nvcompSuccess);
 
+  printf("nvcompCascadedCompressConfigure:\n"
+         "metadata_bytes %u\n"
+         "comp_temp_bytes %u\n"
+         "comp_out_bytes %u\n", metadata_bytes, comp_temp_bytes, comp_out_bytes
+         );
+
   void* d_comp_temp;
   void* d_comp_out;
   CUDA_CHECK(cudaMalloc(&d_comp_temp, comp_temp_bytes));
@@ -122,6 +128,12 @@ int main()
       out.data(),
       comp_out_bytes,
       cudaMemcpyDeviceToHost));
+
+
+printf("nvcompCascadedCompressAsync:\n"
+       "in_bytes %u\n"
+       "comp_out_bytes %u\n", in_bytes, comp_out_bytes
+);
 
   for(auto el: out)
     printf("%x:");

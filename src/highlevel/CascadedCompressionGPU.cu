@@ -39,6 +39,7 @@
 #include "nvcomp.h"
 #include "nvcomp.hpp"
 #include "type_macros.h"
+#include "../../include/nvcomp.h"
 
 #include <algorithm>
 #include <cassert>
@@ -510,7 +511,7 @@ void compressTypedAsync(
 
   cudaError_t* statusDevice;
   tempSpace.reserve(&statusDevice, 1);
-
+printf("configTempSpacePointers\n");
   configTempSpacePointers<<<1, 1, 0, stream>>>(
       vals_output,
       vals_output_ptr,
@@ -528,11 +529,14 @@ void compressTypedAsync(
   // A step can be RLE+Delta, RLE, or Delta, with final outputs conditionally
   // having bit packing applied
   const int numSteps = std::max(numRLEs, numDeltas);
+  printf(" A step can be RLE+Delta, RLE, or Delta, with final outputs conditionally:\n");
+  printf("numSteps: %u \n", numSteps);
   for (int r = numSteps - 1; r >= 0; r--) {
     int nextValId;
     const bool firstLayer = r == std::max(numRLEs - 1, numDeltas - 1);
     const valT* const vals_input
         = firstLayer ? static_cast<const valT*>(in_ptr) : vals_delta;
+    printf("firstLayer: %b \n", firstLayer);
 
     if (numSteps - r - 1 < numRLEs) {
       const int runId = ++vals_id;
@@ -793,7 +797,7 @@ void nvcompCascadedCompressionGPU::generateOutputUpperBound(
 
   const nvcompType_t countType
       = selectRunsType(in_bytes / sizeOfnvcompType(in_type));
-
+  printf("==generateOutputUpperBound\n");
   NVCOMP_TYPE_TWO_SWITCH(
       in_type,
       countType,
@@ -825,7 +829,7 @@ void nvcompCascadedCompressionGPU::compressAsync(
 
   const nvcompType_t countType
       = selectRunsType(in_bytes / sizeOfnvcompType(in_type));
-
+printf("nvcompCascadedCompressionGPU nvcompType_t: %d\n", countType);
   NVCOMP_TYPE_TWO_SWITCH(
       in_type,
       countType,
