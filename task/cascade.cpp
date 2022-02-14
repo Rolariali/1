@@ -165,19 +165,19 @@ printf("nvcompCascadedCompressAsync:\n"
   REQUIRE(status == nvcompSuccess);
 
   nvcomp::highlevel::CascadedMetadata * m = static_cast<nvcomp::highlevel::CascadedMetadata*>(metadata_ptr);
-  printf("getNumInputs: %u", m->getNumInputs());
-  printf("useBitPacking: %u", m->useBitPacking());
-  printf("haveAnyOffsetsBeenSet: %u", m->haveAnyOffsetsBeenSet());
+  printf("getNumInputs: %u\n", m->getNumInputs());
+  printf("useBitPacking: %u\n", m->useBitPacking());
+  printf("haveAnyOffsetsBeenSet: %u\n", m->haveAnyOffsetsBeenSet());
 
-  printf("haveAllOffsetsBeenSet: %u", m->haveAllOffsetsBeenSet());
-  printf("getNumElementsOf: %u", m->getNumElementsOf(0));
+  printf("haveAllOffsetsBeenSet: %u\n", m->haveAllOffsetsBeenSet());
+  printf("getNumElementsOf: %u\n", m->getNumElementsOf(0));
 
-  printf("getDataOffset: %u", m->getDataOffset(0));
+  printf("getDataOffset: %u\n", m->getDataOffset(0));
 
-  printf("isSaved: %u", m->isSaved(0));
-  printf("getDataType: %u", m->getDataType(0));
+  printf("isSaved: %u\n", m->isSaved(0));
+  printf("getDataType: %u\n", m->getDataType(0));
 
-  printf("getHeader: %u", m->getHeader(0).length);
+  printf("getHeader: %u\n", m->getHeader(0).length);
 
   // allocate temp buffer
   void* temp_ptr;
