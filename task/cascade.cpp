@@ -37,7 +37,7 @@ using namespace nvcomp;
   } while (0)
 
 
-// #include "test_data.h"
+ #include "test_data.h"
 
 int main()
 {
@@ -45,12 +45,12 @@ int main()
 //  typedef uint8_t T;
 
   printf("--------------------------------------------\n");
-  typedef int T;
+  typedef uint8_t T;
   const nvcompType_t type = NVCOMP_TYPE_INT;
 
-  const size_t input_size = 16;
-  T input[16] = {0, 2, 2, 3, 0, 0, 0, 0, 0, 3, 1, 1, 1, 1, 1, 1};
 
+//  T input[16] = {0, 2, 2, 3, 0, 0, 0, 0, 0, 3, 1, 1, 1, 1, 1, 1};
+  const size_t input_size = input.size();
   nvcompCascadedFormatOpts comp_opts;
   comp_opts.num_RLEs = 1;
   comp_opts.num_deltas = 0;
@@ -59,7 +59,7 @@ int main()
   void* d_in_data;
   const size_t in_bytes = sizeof(T) * input_size;
   CUDA_CHECK(cudaMalloc(&d_in_data, in_bytes));
-  CUDA_CHECK(cudaMemcpy(d_in_data, input, in_bytes, cudaMemcpyHostToDevice));
+  CUDA_CHECK(cudaMemcpy(d_in_data, input.data(), in_bytes, cudaMemcpyHostToDevice));
 
   cudaStream_t stream;
   cudaStreamCreate(&stream);
@@ -178,6 +178,13 @@ printf("nvcompCascadedCompressAsync:\n"
   printf("getDataType: %u\n", m->getDataType(0));
 
   printf("getHeader: %u\n", m->getHeader(0).length);
+
+  printf("\n===get data \n");
+  size_t gd = m->getDataOffset(0);
+  for(int i =gd;  i < comp_out_bytes; i++)
+    printf("%x:", out[i]);
+
+  printf("\n\n");
 
   // allocate temp buffer
   void* temp_ptr;
