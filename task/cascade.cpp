@@ -142,7 +142,7 @@ printf("nvcompCascadedCompressAsync:\n"
 
   for(int i = metadata_bytes; i < comp_out_bytes; i++)
     printf("%x:", out[i]);
-  printf("\n\n");
+  printf("\nmeta\n");
 
   // get temp and output size
   size_t temp_bytes;
