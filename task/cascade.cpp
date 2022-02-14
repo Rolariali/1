@@ -117,9 +117,9 @@ int main()
   CUDA_CHECK(cudaFree(d_in_data));
 
   // get temp and output size
-  size_t temp_bytes;
-  size_t output_bytes;
-  void* metadata_ptr = NULL;
+//  size_t temp_bytes;
+//  size_t output_bytes;
+//  void* metadata_ptr = NULL;
 
   vector<uint8_t> out(comp_out_bytes);
 
@@ -136,7 +136,40 @@ printf("nvcompCascadedCompressAsync:\n"
 );
 
   for(auto el: out)
-    printf("%x:");
+    printf("%x:", el);
+
+  printf("\nwithout meta:\n");
+
+  for(int i = metadata_bytes; i < comp_out_bytes; i++)
+    printf("%x:", out[i]);
+  printf("\n\n");
+
+  // get temp and output size
+  size_t temp_bytes;
+  size_t output_bytes;
+  void* metadata_ptr = NULL;
+
+   status = nvcompDecompressGetMetadata(
+      d_comp_out, comp_out_bytes, &metadata_ptr, stream);
+  REQUIRE(status == nvcompSuccess);
+
+  for(int i = 0; i < metadata_bytes; i++)
+    printf("%x:", ((uint8_t*)metadata_ptr)[i]);
+  printf("\n\n");
+
+  status = nvcompDecompressGetTempSize(metadata_ptr, &temp_bytes);
+  REQUIRE(status == nvcompSuccess);
+
+  // allocate temp buffer
+  void* temp_ptr;
+  CUDA_CHECK(cudaMalloc(&temp_ptr, temp_bytes));
+
+  status = nvcompDecompressGetOutputSize(metadata_ptr, &output_bytes);
+  REQUIRE(status == nvcompSuccess);
+
+  // allocate output buffer
+  void* out_ptr;
+  CUDA_CHECK(cudaMalloc(&out_ptr, output_bytes));
 
   printf("\n\ndone\n");
 }
