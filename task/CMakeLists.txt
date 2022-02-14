@@ -16,8 +16,8 @@ target_link_libraries(q_selector_test PRIVATE ${CUDA_ART} nvcomp)
 add_executable(q_cascade cascade.cpp)
 target_link_libraries(q_cascade PRIVATE ${CUDA_ART} nvcomp)
 
-#add_executable(q_lz4 lz4.cpp)
-#target_link_libraries(q_lz4 PRIVATE ${CUDA_ART} nvcomp)
+add_executable(q_lz4 lz4.cpp)
+target_link_libraries(q_lz4 PRIVATE ${CUDA_ART} nvcomp)
 #
 #add_executable(q_bit byte_packing.cpp)
 #target_link_libraries(q_bit PRIVATE ${CUDA_ART} nvcomp)

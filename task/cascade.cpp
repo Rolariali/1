@@ -186,6 +186,14 @@ printf("nvcompCascadedCompressAsync:\n"
 
   printf("\n\n");
 
+
+  printf("\n===get data int \n");
+  // size_t gd = m->getDataOffset(0);
+  for(int i =gd;  i < comp_out_bytes; i++)
+    printf("%d:", (char)out[i]);
+
+  printf("\n\n");
+
   // allocate temp buffer
   void* temp_ptr;
   CUDA_CHECK(cudaMalloc(&temp_ptr, temp_bytes));
