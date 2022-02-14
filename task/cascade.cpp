@@ -7,6 +7,10 @@
 #include <stdlib.h>
 #include <vector>
 
+//#include "highlevel/BitcompMetadata.h"
+//#include "highlevel/CascadedMetadata.h"
+#include "../src/highlevel/CascadedMetadata.h"
+//#include "highlevel/Metadata.h"
 // Test GPU decompression with cascaded compression API //
 
 using namespace std;
@@ -159,6 +163,21 @@ printf("nvcompCascadedCompressAsync:\n"
 
   status = nvcompDecompressGetTempSize(metadata_ptr, &temp_bytes);
   REQUIRE(status == nvcompSuccess);
+
+  nvcomp::highlevel::CascadedMetadata * m = static_cast<nvcomp::highlevel::CascadedMetadata*>(metadata_ptr);
+  printf("getNumInputs: %u", m->getNumInputs());
+  printf("useBitPacking: %u", m->useBitPacking());
+  printf("haveAnyOffsetsBeenSet: %u", m->haveAnyOffsetsBeenSet());
+
+  printf("haveAllOffsetsBeenSet: %u", m->haveAllOffsetsBeenSet());
+  printf("getNumElementsOf: %u", m->getNumElementsOf(0));
+
+  printf("getDataOffset: %u", m->getDataOffset(0));
+
+  printf("isSaved: %u", m->isSaved(0));
+  printf("getDataType: %u", m->getDataType(0));
+
+  printf("getHeader: %u", m->getHeader(0).length);
 
   // allocate temp buffer
   void* temp_ptr;
