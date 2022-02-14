@@ -124,8 +124,8 @@ int main()
   vector<uint8_t> out(comp_out_bytes);
 
   CUDA_CHECK(cudaMemcpy(
-      d_comp_out,
       out.data(),
+      d_comp_out,
       comp_out_bytes,
       cudaMemcpyDeviceToHost));
 
