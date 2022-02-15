@@ -49,7 +49,7 @@ int main()
   printf("--------------------------------------------\n");
   typedef uint8_t T;
   const nvcompType_t type = NVCOMP_TYPE_UCHAR;
-
+  size_t min_comp_out_bytes = 99999999999;
 
 //  T input[16] = {0, 2, 2, 3, 0, 0, 0, 0, 0, 3, 1, 1, 1, 1, 1, 1};
   const size_t input_size = input.size();
@@ -158,6 +158,9 @@ int main()
             in_bytes,
             comp_out_bytes);
 
+        if( min_comp_out_bytes > comp_out_bytes)
+          min_comp_out_bytes = comp_out_bytes;
+
         //  for(auto el: out)
         //    printf("%x:", el);
         //
@@ -225,6 +228,8 @@ int main()
         void* out_ptr;
         CUDA_CHECK(cudaMalloc(&out_ptr, output_bytes));
       }
+
+  printf("\"min_comp_out_bytes \" << %uz", min_comp_out_bytes);
 
   printf("\n\ndone\n");
 }
