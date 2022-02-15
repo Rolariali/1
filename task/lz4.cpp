@@ -95,5 +95,8 @@ int main()
   cudaFree(d_comp_out);
   d_comp_out = copied;
 
+  printf("input bytes : %u\n", in_bytes);
+  printf("compress bytes : %u\n", comp_out_bytes);
 
+  printf("\ndone\n");
 }
