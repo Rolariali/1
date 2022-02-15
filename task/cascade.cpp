@@ -229,7 +229,7 @@ int main()
         CUDA_CHECK(cudaMalloc(&out_ptr, output_bytes));
       }
 
-  printf("\"min_comp_out_bytes \" << %uz", min_comp_out_bytes);
+  printf("\"min_comp_out_bytes \" << %zu", min_comp_out_bytes);
 
   printf("\n\ndone\n");
 }
