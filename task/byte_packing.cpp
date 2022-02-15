@@ -142,8 +142,8 @@ int main()
             out.data(), d_comp_out, comp_out_bytes, cudaMemcpyDeviceToHost));
 
         printf(
-            "nvcompCascadedCompressAsync:  "
-            "in_bytes %u"
+            "nvcompCascadedCompressAsync:  \n"
+            "in_bytes %u\n"
             "  comp_out_bytes %u\n",
             in_bytes,
             comp_out_bytes);
@@ -208,15 +208,15 @@ int main()
         //  printf("\n\n");
 
         // allocate temp buffer
-        void* temp_ptr;
-        CUDA_CHECK(cudaMalloc(&temp_ptr, temp_bytes));
+//        void* temp_ptr;
+//        CUDA_CHECK(cudaMalloc(&temp_ptr, temp_bytes));
 
-        status = nvcompDecompressGetOutputSize(metadata_ptr, &output_bytes);
-        REQUIRE(status == nvcompSuccess);
+//        status = nvcompDecompressGetOutputSize(metadata_ptr, &output_bytes);
+//        REQUIRE(status == nvcompSuccess);
 
         // allocate output buffer
-        void* out_ptr;
-        CUDA_CHECK(cudaMalloc(&out_ptr, output_bytes));
+//        void* out_ptr;
+//        CUDA_CHECK(cudaMalloc(&out_ptr, output_bytes));
 
 
   printf("\n\ndone\n");
