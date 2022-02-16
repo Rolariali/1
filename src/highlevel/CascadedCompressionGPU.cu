@@ -297,7 +297,7 @@ void packToOutput(
   CudaUtils::copy_async(
       &(headerDPtr->length), numElementsDPtr, 1, DEVICE_TO_DEVICE, stream);
 
-  if (bitPacking) {
+  if (bitPacking) { //!!!
     TempSpaceBroker tempSpace(temp_ptr, temp_bytes);
 
     void** bitPackOutputPtr;
@@ -315,7 +315,7 @@ void packToOutput(
     const size_t packTempSize
         = temp_bytes
           - (static_cast<char*>(packTemp) - static_cast<char*>(temp_ptr));
-
+//!!
     BitPackGPU::compress(
         packTemp,
         packTempSize,
@@ -644,8 +644,8 @@ printf("configTempSpacePointers\n");
         CudaUtils::copy_async(
             numRunsDevice, &maxNum, 1, HOST_TO_DEVICE, stream);
       }
-
-      // No RLE
+      pritf("DeltaGPU::compress\n");
+      // No RLE !!
       DeltaGPU::compress(
           tempSpace.next(),
           tempSpace.spaceLeft(),
@@ -703,7 +703,7 @@ printf("configTempSpacePointers\n");
     }
   }
 
-  // If there are no RLEs or Deltas, we will do a single BP step.
+  // If there are no RLEs or Deltas, we will do a single BP step. !!!
   if (numRLEs == 0 && numDeltas == 0) {
     const int nextValId = ++vals_id;
     const valT* const vals_input = static_cast<const valT*>(in_ptr);
