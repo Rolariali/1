@@ -644,7 +644,7 @@ printf("configTempSpacePointers\n");
         CudaUtils::copy_async(
             numRunsDevice, &maxNum, 1, HOST_TO_DEVICE, stream);
       }
-      pritf("DeltaGPU::compress\n");
+      printf("DeltaGPU::compress\n");
       // No RLE !!
       DeltaGPU::compress(
           tempSpace.next(),
