@@ -21,3 +21,6 @@ target_link_libraries(q_lz4 PRIVATE ${CUDA_ART} nvcomp)
 
 add_executable(q_bp byte_packing.cpp)
 target_link_libraries(q_bp PRIVATE ${CUDA_ART} nvcomp)
+
+add_executable(q_cs cpacking.cpp)
+target_link_libraries(q_cs PRIVATE ${CUDA_ART} nvcomp)
