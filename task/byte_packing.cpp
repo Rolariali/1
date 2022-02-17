@@ -62,8 +62,8 @@ int main()
   const size_t input_size = input.size();
   nvcompCascadedFormatOpts comp_opts;
 
-  comp_opts.num_RLEs = 1;
-  comp_opts.num_deltas = 0;
+  comp_opts.num_RLEs = 0;
+  comp_opts.num_deltas = 1;
   comp_opts.use_bp = 0;
   // create GPU only input buffer
   void* d_in_data;
