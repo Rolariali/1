@@ -166,6 +166,9 @@ void show_stat(const vector<uint8_t> input, struct CompResult & res,
     printf("%x:", el);
   printf("\n");
 
+  if(stat == false)
+    return;
+
   printf("stat:\n");
   printf(
       "haveAnyOffsetsBeenSet: %d\n", res.meta_ptr->haveAnyOffsetsBeenSet());
@@ -183,7 +186,7 @@ void show_stat(const vector<uint8_t> input, struct CompResult & res,
     printf("getDataType: %d\n", res.meta_ptr->getDataType(i));
 
     printf("getHeader length: %u\n", res.meta_ptr->getHeader(i).length);
-    printf("getHeader minValue: %u\n", res.meta_ptr->getHeader(i).minValue);
+    printf("getHeader minValue: %u\n", res.meta_ptr->getHeader(i).minValue.i32);
     printf("getHeader numBits: %u\n", res.meta_ptr->getHeader(i).numBits);
   }
 
