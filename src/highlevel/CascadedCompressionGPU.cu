@@ -536,7 +536,7 @@ printf("configTempSpacePointers\n");
     const bool firstLayer = r == std::max(numRLEs - 1, numDeltas - 1);
     const valT* const vals_input
         = firstLayer ? static_cast<const valT*>(in_ptr) : vals_delta;
-    printf("firstLayer: %b \n", firstLayer);
+    printf("firstLayer: %d \n", (int)firstLayer);
 
     if (numSteps - r - 1 < numRLEs) {
       const int runId = ++vals_id;
