@@ -40,9 +40,11 @@ struct CompResult{
   size_t out_bytes;
   size_t meta_bytes;
 
+  //free after use
+  nvcomp::highlevel::CascadedMetadata* meta_ptr;
 };
 
-bool cascade(vector<uint8_t> input, CompResult & res,
+bool cascade(const vector<uint8_t> input, CompResult & res,
                        int RLE, int deltas, int use_bp){
 
   typedef uint8_t T;
@@ -51,9 +53,9 @@ bool cascade(vector<uint8_t> input, CompResult & res,
   const size_t input_size = input.size();
   nvcompCascadedFormatOpts comp_opts;
 
-  comp_opts.num_RLEs = 0;
-  comp_opts.num_deltas = 1;
-  comp_opts.use_bp = 0;
+  comp_opts.num_RLEs = RLE;
+  comp_opts.num_deltas = deltas;
+  comp_opts.use_bp = use_bp;
   // create GPU only input buffer
   void* d_in_data;
   const size_t in_bytes = sizeof(T) * input_size;
@@ -130,11 +132,12 @@ bool cascade(vector<uint8_t> input, CompResult & res,
       d_comp_out, comp_out_bytes, &metadata_ptr, stream);
   REQUIRE(status == nvcompSuccess);
 
-  nvcomp::highlevel::CascadedMetadata* m
-      = static_cast<nvcomp::highlevel::CascadedMetadata*>(metadata_ptr);
+  res.meta_ptr = static_cast<nvcomp::highlevel::CascadedMetadata*>(metadata_ptr);
 
 
-  res.meta_bytes = m->getDataOffset(0);
+  res.meta_bytes = res.meta_ptr->getDataOffset(0);
+  for(int i = 0;  i < res.meta_bytes; i++)
+    res.meta.push_back(out[i]);
 
   res.out_bytes = comp_out_bytes - res.meta_bytes;
   res.output.resize(res.out_bytes);
@@ -145,6 +148,22 @@ bool cascade(vector<uint8_t> input, CompResult & res,
    return true;
 }
 
+void show_stat(const vector<uint8_t> input, struct CompResult & res, const bool show_meta = false){
+  if(show_meta) {
+    printf("meta: %zu\t\t:", res.meta_bytes);
+    for (auto el : res.meta)
+      printf("%x:", el);
+  }
+
+  printf("input: %zu\t\t:", input.size());
+  for(auto el: input)
+    printf("%x:", el);
+
+  printf("\n compress: %zu\t\t:", res.out_bytes);
+  for(auto el: res.output)
+    printf("%x:", el);
+  printf("\n");
+}
 
 int main()
 {
@@ -152,6 +171,17 @@ int main()
   vector<uint8_t> input = {3,3, 1, 1, 1, 2, 2, 2, 3, 3, 3, 6, 6, 6, 7, 8, 8, 8, 8, 8, 8, 9, 9, 9};
   struct CompResult res;
   REQUIRE(cascade(input, res, 1, 0, 0));
+  show_stat(input, res);
+  printf("stat:\n");
+  printf("haveAnyOffsetsBeenSet: %d\n", res.meta_ptr->haveAnyOffsetsBeenSet());
+  printf("haveAllOffsetsBeenSet: %d\n", res.meta_ptr->haveAllOffsetsBeenSet());
+
+  printf("getNumInputs: %d\n", res.meta_ptr->getNumInputs());
+  printf("getNumElementsOf: %d\n", res.meta_ptr->getNumElementsOf(0));
+  printf("haveAllOffsetsBeenSet: %d\n", res.meta_ptr->isSaved(0));
+
+  printf("getTempBytes: %d\n", res.meta_ptr->isSaved(0));
+
 
   printf("--------------------------------------------\n");
   printf("\n\ndone\n");
