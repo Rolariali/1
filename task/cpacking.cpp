@@ -45,7 +45,7 @@ struct CompResult{
 };
 
 bool cascade(const vector<uint8_t> input, CompResult & res,
-                       int RLE, int deltas, int use_bp){
+             int RLE, int deltas, int use_bp){
 
   typedef uint8_t T;
   const nvcompType_t type = NVCOMP_TYPE_UCHAR;
@@ -140,80 +140,97 @@ bool cascade(const vector<uint8_t> input, CompResult & res,
     res.meta.push_back(out[i]);
 
   res.out_bytes = comp_out_bytes - res.meta_bytes;
-  res.output.resize(res.out_bytes);
+  // res.output.resize(res.out_bytes);
 
-   for(int i = res.meta_bytes;  i < comp_out_bytes; i++)
-       res.output.push_back(out[i]);
+  for(int i = res.meta_bytes;  i < comp_out_bytes; i++)
+    res.output.push_back(out[i]);
 
-   return true;
+  return true;
 }
 
-void show_stat(const vector<uint8_t> input, struct CompResult & res, const bool show_meta = false){
+void show_stat(const vector<uint8_t> input, struct CompResult & res,
+               const bool stat = true,
+               const bool show_meta = false){
   if(show_meta) {
-    printf("meta: %zu\t\t:", res.meta_bytes);
+    printf("meta: %zu \t\t:", res.meta_bytes);
     for (auto el : res.meta)
       printf("%x:", el);
   }
 
-  printf("input: %zu\t\t:", input.size());
+  printf("\ninput: %zu\t\t:", input.size());
   for(auto el: input)
     printf("%x:", el);
 
-  printf("\n compress: %zu\t\t:", res.out_bytes);
+  printf("\ncompress: %zu %zu\t\t:", res.out_bytes, res.output.size());
   for(auto el: res.output)
     printf("%x:", el);
   printf("\n");
+
+  printf("stat:\n");
+  printf(
+      "haveAnyOffsetsBeenSet: %d\n", res.meta_ptr->haveAnyOffsetsBeenSet());
+  printf(
+      "haveAllOffsetsBeenSet: %d\n", res.meta_ptr->haveAllOffsetsBeenSet());
+
+  printf("getNumInputs: %d\n", res.meta_ptr->getNumInputs());
+
+  int ii = res.meta_ptr->getNumInputs();
+  for(int i =0; i < ii; i++){
+    printf("=== i %d\n", i);
+    printf("getNumElementsOf: %d\n", res.meta_ptr->getNumElementsOf(i));
+    printf("haveAllOffsetsBeenSet: %d\n", res.meta_ptr->isSaved(i));
+    printf("getDataOffset: %d\n", res.meta_ptr->getDataOffset(i));
+    printf("getDataType: %d\n", res.meta_ptr->getDataType(i));
+
+    printf("getHeader length: %u\n", res.meta_ptr->getHeader(i).length);
+    printf("getHeader minValue: %u\n", res.meta_ptr->getHeader(i).minValue);
+    printf("getHeader numBits: %u\n", res.meta_ptr->getHeader(i).numBits);
+  }
+
+  printf("getTempBytes: %d\n", res.meta_ptr->getTempBytes());
 }
 
 int main()
 {
+  vector<uint8_t> input = {1, 1, 1, 1, 1, 2, 2, 2, 3, 3, 3, 4,
+                           4, 4, 4, 7, 7, 7, 7, 7, 7, 8, 8, 8};
   {
-    printf("--------------------RLE------------------------\n");
-    vector<uint8_t> input = {3, 3, 1, 1, 1, 2, 2, 2, 3, 3, 3, 6,
-                             6, 6, 7, 8, 8, 8, 8, 8, 8, 9, 9, 9};
+    printf("--------------------Delta------------------------\n");
+
     struct CompResult res;
-    REQUIRE(cascade(input, res, 1, 0, 0));
-    show_stat(input, res);
-    printf("stat:\n");
-    printf(
-        "haveAnyOffsetsBeenSet: %d\n", res.meta_ptr->haveAnyOffsetsBeenSet());
-    printf(
-        "haveAllOffsetsBeenSet: %d\n", res.meta_ptr->haveAllOffsetsBeenSet());
+    REQUIRE(cascade(input, res, 0, 1, 0));
+    show_stat(input, res, true, true);
 
-    printf("getNumInputs: %d\n", res.meta_ptr->getNumInputs());
-    printf("getNumElementsOf: %d\n", res.meta_ptr->getNumElementsOf(0));
-    printf("haveAllOffsetsBeenSet: %d\n", res.meta_ptr->isSaved(0));
-
-    printf("getTempBytes: %d\n", res.meta_ptr->isSaved(0));
     printf("--------------------------------------------\n");
   }
   {
-    printf("\n--------------------RLE + BP------------------------\n");
-    vector<uint8_t> input = {3, 3, 1, 1, 1, 2, 2, 2, 3, 3, 3, 6,
-                             6, 6, 7, 8, 8, 8, 8, 8, 8, 9, 9, 9};
+    printf("\n--------------------Delta + BP------------------------\n");
+    // vector<uint8_t> input = {3, 3, 1, 1, 1, 2, 2, 2, 3, 3, 3, 6,
+    //  6, 6, 7, 8, 8, 8, 8, 8, 8, 9, 9, 9};
     struct CompResult res;
-    REQUIRE(cascade(input, res, 1, 0, 1));
+    REQUIRE(cascade(input, res, 0, 1, 1));
     show_stat(input, res);
   }
   {
     printf("\n--------------------BP------------------------\n");
-    vector<uint8_t> input = {3, 3, 1, 1, 1, 2, 2, 2, 3, 3, 3, 6,
-                             6, 6, 7, 8, 8, 8, 8, 8, 8, 9, 9, 9};
+    // vector<uint8_t> input = {3, 3, 1, 1, 1, 2, 2, 2, 3, 3, 3, 6,
+    //                          6, 6, 7, 8, 8, 8, 8, 8, 8, 9, 9, 9};
     struct CompResult res;
-    REQUIRE(cascade(input, res, 1, 0, 1));
+    REQUIRE(cascade(input, res, 0, 0, 1));
     show_stat(input, res);
+
   }
 
   {
-    printf("\n--------------------RLE > BP------------------------\n");
-    vector<uint8_t> input = {3, 3, 1, 1, 1, 2, 2, 2, 3, 3, 3, 6,
-                             6, 6, 7, 8, 8, 8, 8, 8, 8, 9, 9, 9};
+    printf("\n--------------------Delta > BP------------------------\n");
+    // vector<uint8_t> input = {3, 3, 1, 1, 1, 2, 2, 2, 3, 3, 3, 6,
+    //                          6, 6, 7, 8, 8, 8, 8, 8, 8, 9, 9, 9};
     struct CompResult res;
-    REQUIRE(cascade(input, res, 1, 0, 0));
+    REQUIRE(cascade(input, res, 0, 1, 0));
     show_stat(input, res);
     struct CompResult res1;
     REQUIRE(cascade(res.output, res1, 0, 0, 1));
-    show_stat(res.output, res);
+    show_stat(res.output, res1);
   }
 
 
