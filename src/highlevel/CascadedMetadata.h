@@ -97,7 +97,7 @@ public:
 
   struct Header
   {
-    uint64_t length;
+    uint32_t length; // !!! change #define OPTIMIZATION_TASK
     MinValue minValue;
     uint8_t numBits;
   };
