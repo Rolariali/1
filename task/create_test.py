@@ -24,15 +24,21 @@ def write_h(file_name: str, s: str):
 
 d = Data()
 
-d.add(99)
+d.add(66)
 
-for _ in range(qty - 1):
+for _ in range(round(qty/3)):
     # s += f'{random.randint(1,100)},'
-    i = random.randint(0,2)
-    d.add(i)
+    d.add(67)
 
+for _ in range(round(qty/3)):
+    # s += f'{random.randint(1,100)},'
+    d.add(68)
 
-write_h("pb99", d.s)
+for _ in range(round(qty/3)):
+    # s += f'{random.randint(1,100)},'
+    d.add(69)
+
+write_h("pb66", d.s)
 # s += f'{random.randint(1,100)}'
 
 
