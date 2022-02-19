@@ -46,6 +46,7 @@
 using namespace std;
 using namespace nvcomp;
 using namespace nvcomp::highlevel;
+extern bool verbose;
 
 namespace
 {
@@ -60,7 +61,7 @@ static constexpr nvcompCascadedSelectorOpts DEFAULT_SELECTOR = {1024, 100, 1};
 template <typename T>
 void get_workspace_size_internal(const size_t num_samples, size_t* temp_size)
 {
-  printf("get_workspace_size_internal, num_samples %d, temp_size %p\n",
+  if(verbose) printf("get_workspace_size_internal, num_samples %zu, temp_size %p\n",
          num_samples, temp_size);
   size_t required_size = sizeof(size_t) * num_samples;
   required_size = roundUpTo(required_size, 8);
@@ -92,7 +93,7 @@ nvcompCascadedFormatOpts internal_select(
     throw std::runtime_error("sample size is too large, the maximum number of "
                              "elements per sample is 1024\n");
   }
-  printf("internal_select size of input_data %p, in_bytes %d, sample_ele %d, num_samples %d, workspace_size %d, max_size %d",
+  if(verbose) printf("internal_select size of input_data %p, in_bytes %zu, sample_ele %zu, num_samples %zu, workspace_size %zu, max_size %zu",
          input_data, in_bytes, sample_ele, num_samples, workspace_size, max_size );
   const size_t sample_bytes = sample_ele * sizeof(T);
 
@@ -152,16 +153,16 @@ nvcompCascadedFormatOpts internal_select(
   std::vector<size_t> outsizeVector;
   for (int i = 0; i < NUM_SCHEMES; i++) {
     outsizeVector.push_back(out_sizes[i]);
-    printf("out_sizes[%d] %d ", i, out_sizes[i]);
+    if(verbose) printf("out_sizes[%d] %zu ", i, out_sizes[i]);
   }
-  printf("\n");
+  if(verbose) printf("\n");
 
   std::vector<size_t>::iterator result;
   result = std::min_element(outsizeVector.begin(), outsizeVector.end());
   int idx = std::distance(outsizeVector.begin(), result);
   int RLEs = idx / 2;
   int Deltas = (RLEs == 2) ? 1 : (idx % 2);
-  printf("idx %d\n", idx);
+  if(verbose) printf("idx %d\n", idx);
   *comp_ratio
       = ((double)(sample_bytes * num_samples) / (double)(outsizeVector[idx]));
   nvcompCascadedFormatOpts opts = {RLEs, Deltas, 1};
@@ -282,7 +283,7 @@ nvcompStatus_t nvcompCascadedSelectorConfigure(
   if (uncompressed_bytes < (selector_opts.sample_size * selector_opts.num_samples)) {
     return nvcompErrorInvalidValue;
   }
-  printf("nvcompCascadedSelectorConfigure\n");
+  if(verbose) printf("nvcompCascadedSelectorConfigure\n");
   NVCOMP_TYPE_ONE_SWITCH(
       type,
       get_workspace_size_internal,
@@ -306,7 +307,7 @@ nvcompCascadedFormatOpts callSelectorSelectConfig(
 
   size_t required_bytes;
   nvcompCascadedSelectorConfigure(&opts, in_type, in_bytes, &required_bytes);
-  printf("callSelectorSelectConfig\n");
+  if(verbose) printf("callSelectorSelectConfig\n");
   NVCOMP_TYPE_ONE_SWITCH_RETURN(
       in_type,
       internal_select,
@@ -344,7 +345,7 @@ nvcompStatus_t nvcompCascadedSelectorRun(
     selector_opts.num_samples = opts->num_samples;
     selector_opts.seed = opts->seed;
   }
-  printf("nvcompCascadedSelectorRun\n");
+  if(verbose) printf("nvcompCascadedSelectorRun\n");
 
   *format_opts = callSelectorSelectConfig(
       uncompressed_ptr,

@@ -551,7 +551,7 @@ void SampleFusedOption_internal(
 {
 
   const size_t maxNum = in_bytes / sizeof(valT);
-  printf("SampleFusedOption_internal\n");
+//  printf("SampleFusedOption_internal\n");
   SampleFusedInternal<valT, runT>(
       in,
       sample_ptrs,
@@ -581,7 +581,7 @@ void SamplingFastOption(
 
   const nvcompType_t countType
       = selectRunsType(sample_bytes / sizeOfnvcompType(in_type));
-  printf("SamplingFastOption\n");
+//  printf("SamplingFastOption\n");
   NVCOMP_TYPE_TWO_SWITCH(
       in_type,
       countType,

@@ -40,6 +40,7 @@
 #include <cassert>
 #include <stdexcept>
 #include <string>
+extern bool verbose;
 
 namespace nvcomp
 {
@@ -391,7 +392,7 @@ void compressInternal(
   VALUE* const outValuesTyped = static_cast<VALUE*>(outValues);
   COUNT* const outCountsTyped = static_cast<COUNT*>(outCounts);
   const VALUE* const inTyped = static_cast<const VALUE*>(in);
-  printf("@ compressInternal\n");
+  if(verbose) printf("@ compressInternal\n");
   const size_t reqWorkspaceSize = RunLengthEncodeGPU::requiredWorkspaceSize(
       num, TypeOf<VALUE>(), TypeOf<COUNT>());
   if (workspaceSize < reqWorkspaceSize) {
@@ -432,7 +433,7 @@ void compressDownstreamInternal(
   VALUE** const outValuesTypedPtr = reinterpret_cast<VALUE**>(outValuesPtr);
   COUNT** const outCountsTypedPtr = reinterpret_cast<COUNT**>(outCountsPtr);
   const VALUE* const inTyped = static_cast<const VALUE*>(in);
-  printf("@ compressDownstreamInternal\n");
+  if(verbose) printf("@ compressDownstreamInternal\n");
   const size_t reqWorkspaceSize = downstreamWorkspaceSize<COUNT>(maxNum);
   if (workspaceSize < reqWorkspaceSize) {
     throw std::runtime_error(
