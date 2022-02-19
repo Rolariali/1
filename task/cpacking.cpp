@@ -284,5 +284,17 @@ int main()
 
     }
 
+
+    {
+#include "pb96-1.h"
+      printf("\n--------------------BP 96 1------------------------\n");
+      struct CompResult res;
+
+      REQUIRE(cascade(input, res, 0, 0, 1));
+      //    show_stat(input, res);
+      short_stat(input, res);
+
+    }
+
   printf("\n\ndone\n");
 }

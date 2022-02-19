@@ -29,7 +29,7 @@ d.add(96)
 for _ in range(round(qty/3)):
     # s += f'{random.randint(1,100)},'
     d.add(97)
-
+d.add(1)
 for _ in range(round(qty/3)):
     # s += f'{random.randint(1,100)},'
     d.add(98)
@@ -38,7 +38,7 @@ for _ in range(round(qty/3)):
     # s += f'{random.randint(1,100)},'
     d.add(99)
 
-write_h("pb96", d.s)
+write_h("pb96-1", d.s)
 # s += f'{random.randint(1,100)}'
 
 
