@@ -46,7 +46,7 @@ int main()
   }
 
   {
-    #include "pb99.h"
+    #include "data/pb99.h"
     printf("\n--------------------BP 99------------------------\n");
     struct CompResult res;
 
@@ -58,7 +58,7 @@ int main()
 
 
   {
-#include "pb66.h"
+#include "data/pb66.h"
     printf("\n--------------------BP 66------------------------\n");
     struct CompResult res;
 
@@ -69,7 +69,7 @@ int main()
   }
 
     {
-  #include "pb96.h"
+  #include "data/pb96.h"
       printf("\n--------------------BP 96------------------------\n");
       struct CompResult res;
 
@@ -81,7 +81,7 @@ int main()
 
 
     {
-#include "pb96-1.h"
+#include "data/pb96-1.h"
       printf("\n--------------------BP 96 1------------------------\n");
       struct CompResult res;
 

@@ -39,7 +39,7 @@ using namespace nvcomp;
 
 
 
- #include "test_data.h"
+ #include "data/test_data.h"
 
 int main()
 {

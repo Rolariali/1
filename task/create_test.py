@@ -18,7 +18,7 @@ def _set_vector(s: str) -> str:
 
 def write_h(file_name: str, s: str):
     input = _set_vector(s)
-    with open(f'task/{file_name}.h', 'w') as f:
+    with open(f'task/data/{file_name}.h', 'w') as f:
         f.write(input)
 
 
