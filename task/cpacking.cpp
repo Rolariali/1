@@ -275,7 +275,7 @@ int main()
 
     {
   #include "pb96.h"
-      printf("\n--------------------BP 66------------------------\n");
+      printf("\n--------------------BP 96------------------------\n");
       struct CompResult res;
 
       REQUIRE(cascade(input, res, 0, 0, 1));
