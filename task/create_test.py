@@ -25,11 +25,11 @@ def write_h(file_name: str, s: str):
 d = Data()
 
 d.add(96)
-
+d.add(1)
 for _ in range(round(qty/3)):
     # s += f'{random.randint(1,100)},'
     d.add(97)
-d.add(1)
+
 for _ in range(round(qty/3)):
     # s += f'{random.randint(1,100)},'
     d.add(98)
