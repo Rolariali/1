@@ -24,21 +24,39 @@ def write_h(file_name: str, s: str):
 
 d = Data()
 
-d.add(96)
-d.add(1)
-for _ in range(round(qty/3)):
-    # s += f'{random.randint(1,100)},'
-    d.add(97)
+for _ in range(14):
+    d.add(11)
 
-for _ in range(round(qty/3)):
-    # s += f'{random.randint(1,100)},'
-    d.add(98)
+d.add(0)
+d.add(0)
+d.add(0)
+d.add(0)
 
-for _ in range(round(qty/3)):
-    # s += f'{random.randint(1,100)},'
-    d.add(99)
+for _ in range(33):
+    d.add(2)
 
-write_h("pb96-1", d.s)
+for _ in range(22):
+    d.add(12)
+
+for _ in range(33):
+    d.add(8)
+
+for _ in range(22):
+    d.add(7)
+
+
+for _ in range(11):
+    d.add(5)
+# for _ in range(round(qty/3)):
+#     d.add(97)
+#
+# for _ in range(round(qty/3)):
+#     d.add(98)
+#
+# for _ in range(round(qty/3)):
+#     d.add(99)
+
+write_h("rlebp", d.s)
 # s += f'{random.randint(1,100)}'
 
 

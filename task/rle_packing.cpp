@@ -7,7 +7,9 @@ bool verbose = false;
 
 int main()
 {
-  vector<uint8_t> input = {1,1,1,1, 2, 2, 2, 3, 4, 5, 6, 6, 6, 7, 8, 8, 8, 8, 8, 8};
+//  vector<uint8_t> input = {1,1,1,1, 2, 2, 2, 3, 4, 5, 6, 6, 6, 7, 8, 8, 8, 8, 8, 8};
+
+#include "data/rlebp.h"
   {
     printf("--------------------RLE------------------------\n");
 
