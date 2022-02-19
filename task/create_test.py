@@ -8,8 +8,8 @@ class Data:
 
     s = ""
 
-    def add(self, s: int):
-        self.s += str(s)
+    def add(self, i: int):
+        self.s += f"{i},"
 
 
 def _set_vector(s: str) -> str:

@@ -171,27 +171,41 @@ void show_stat(const vector<uint8_t> input, struct CompResult & res,
 
   printf("stat:\n");
   printf(
-      "haveAnyOffsetsBeenSet: %d\n", res.meta_ptr->haveAnyOffsetsBeenSet());
+      "haveAnyOffsetsBeenSet: %u\n", res.meta_ptr->haveAnyOffsetsBeenSet());
   printf(
-      "haveAllOffsetsBeenSet: %d\n", res.meta_ptr->haveAllOffsetsBeenSet());
+      "haveAllOffsetsBeenSet: %u\n", res.meta_ptr->haveAllOffsetsBeenSet());
 
   printf("getNumInputs: %d\n", res.meta_ptr->getNumInputs());
 
   int ii = res.meta_ptr->getNumInputs();
   for(int i =0; i < ii; i++){
     printf("=== i %d\n", i);
-    printf("getNumElementsOf: %d\n", res.meta_ptr->getNumElementsOf(i));
-    printf("haveAllOffsetsBeenSet: %d\n", res.meta_ptr->isSaved(i));
-    printf("getDataOffset: %d\n", res.meta_ptr->getDataOffset(i));
-    printf("getDataType: %d\n", res.meta_ptr->getDataType(i));
+    printf("getNumElementsOf: %lu\n", res.meta_ptr->getNumElementsOf(i));
+    printf("haveAllOffsetsBeenSet: %lu\n", res.meta_ptr->isSaved(i));
+    printf("getDataOffset: %lu\n", res.meta_ptr->getDataOffset(i));
+    printf("getDataType: %lu\n", res.meta_ptr->getDataType(i));
 
-    printf("getHeader length: %u\n", res.meta_ptr->getHeader(i).length);
-    printf("getHeader minValue: %u\n", res.meta_ptr->getHeader(i).minValue.i32);
+    printf("getHeader length: %lu\n", res.meta_ptr->getHeader(i).length);
+    printf("getHeader minValue: %ld\n", res.meta_ptr->getHeader(i).minValue.i32);
     printf("getHeader numBits: %u\n", res.meta_ptr->getHeader(i).numBits);
   }
 
-  printf("getTempBytes: %d\n", res.meta_ptr->getTempBytes());
+  printf("getTempBytes: %ld\n", res.meta_ptr->getTempBytes());
 }
+
+void short_stat(const vector<uint8_t> input, const struct CompResult & res,
+                size_t qty = 32)
+{
+  printf("\ninput: %zu\t\t: ", input.size());
+  for(int i = 0; i < input.size() && i < qty; i++)
+    printf("%x:", input[i]);
+
+
+  printf("\ncompress: %zu\t\t: ", res.out_bytes);
+  for(int i = 0; i < res.output.size() && i < qty; i++)
+    printf("%x:", res.output[i]);
+}
+
 
 int main()
 {
@@ -236,6 +250,16 @@ int main()
     show_stat(res.output, res1);
   }
 
+  {
+    #include "pb99.h"
+    printf("\n--------------------BP 99------------------------\n");
+    struct CompResult res;
+
+    REQUIRE(cascade(input, res, 0, 0, 1));
+//    show_stat(input, res);
+    short_stat(input, res);
+
+  }
 
   printf("\n\ndone\n");
 }
