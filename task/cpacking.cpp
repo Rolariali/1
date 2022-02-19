@@ -209,8 +209,7 @@ void short_stat(const vector<uint8_t> input, const struct CompResult & res,
 
 int main()
 {
-  vector<uint8_t> input = {1, 1, 1, 1, 1, 2, 2, 2, 3, 3, 3, 4,
-                           4, 4, 4, 7, 7, 7, 7, 7, 7, 8, 8, 8};
+  vector<uint8_t> input = { 96,97,97,97,97,97,97,97,98,98,98,98,98,98,98,98,98,98,98,98,98,99,99,99,99,99,99,99,99,99,99,99,99 };
   {
     printf("--------------------Delta------------------------\n");
 
