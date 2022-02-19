@@ -196,6 +196,7 @@ void show_stat(const vector<uint8_t> input, struct CompResult & res,
 void short_stat(const vector<uint8_t> input, const struct CompResult & res,
                 size_t qty = 32)
 {
+  printf("\nmeta %u\n", res.meta_bytes);
   printf("\ninput: %zu\t\t: ", input.size());
   for(int i = 0; i < input.size() && i < qty; i++)
     printf("%x:", input[i]);
