@@ -34,6 +34,7 @@
 
 #include <cassert>
 #include <limits>
+extern bool verbose;
 
 namespace nvcomp
 {
@@ -98,7 +99,6 @@ __global__ void deltaKernel(
 /******************************************************************************
  * HELPER FUNCTIONS ***********************************************************
  *****************************************************************************/
-
 namespace
 {
 
@@ -112,7 +112,7 @@ void deltaLaunch(
 {
   VALUE** const outTypedPtr = reinterpret_cast<VALUE**>(outPtr);
   const VALUE* const inTyped = static_cast<const VALUE*>(in);
-  printf("deltaLaunch\n");
+  if(verbose) printf("deltaLaunch\n");
   const dim3 block(BLOCK_SIZE);
   const dim3 grid(roundUpDiv(maxNum, BLOCK_SIZE));
   deltaKernel<<<grid, block, 0, stream>>>(

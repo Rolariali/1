@@ -181,12 +181,12 @@ void show_stat(const vector<uint8_t> input, struct CompResult & res,
   for(int i =0; i < ii; i++){
     printf("=== i %d\n", i);
     printf("getNumElementsOf: %lu\n", res.meta_ptr->getNumElementsOf(i));
-    printf("haveAllOffsetsBeenSet: %lu\n", res.meta_ptr->isSaved(i));
+    printf("haveAllOffsetsBeenSet: %d\n", res.meta_ptr->isSaved(i));
     printf("getDataOffset: %lu\n", res.meta_ptr->getDataOffset(i));
-    printf("getDataType: %lu\n", res.meta_ptr->getDataType(i));
+    printf("getDataType: %d\n", res.meta_ptr->getDataType(i));
 
-    printf("getHeader length: %lu\n", res.meta_ptr->getHeader(i).length);
-    printf("getHeader minValue: %ld\n", res.meta_ptr->getHeader(i).minValue.i32);
+    printf("getHeader length: %llu\n", res.meta_ptr->getHeader(i).length);
+    printf("getHeader minValue: %d\n", res.meta_ptr->getHeader(i).minValue.i32);
     printf("getHeader numBits: %u\n", res.meta_ptr->getHeader(i).numBits);
   }
 
@@ -196,7 +196,7 @@ void show_stat(const vector<uint8_t> input, struct CompResult & res,
 void short_stat(const vector<uint8_t> input, const struct CompResult & res,
                 size_t qty = 32)
 {
-  printf("\nmeta %u\n", res.meta_bytes);
+  printf("\nmeta %zu\n", res.meta_bytes);
   printf("\ninput: %zu\t\t: ", input.size());
   for(int i = 0; i < input.size() && i < qty; i++)
     printf("%x:", input[i]);
@@ -207,6 +207,7 @@ void short_stat(const vector<uint8_t> input, const struct CompResult & res,
     printf("%x:", res.output[i]);
 }
 
+bool verbose = false;
 
 int main()
 {
