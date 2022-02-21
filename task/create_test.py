@@ -25,38 +25,27 @@ def write_h(file_name: str, s: str):
 d = Data()
 
 for _ in range(14):
-    d.add(11)
+    d.add(99)
 
-d.add(0)
-d.add(0)
-d.add(0)
-d.add(0)
+for _ in range(1111):
+    d.add(101)
 
-for _ in range(33):
-    d.add(2)
+for _ in range(1111):
+    d.add(103)
 
-for _ in range(22):
-    d.add(12)
+for _ in range(1111):
+    d.add(105)
 
-for _ in range(33):
-    d.add(8)
+for _ in range(11111):
+    d.add(106)
 
-for _ in range(22):
-    d.add(7)
+for _ in range(111111):
+    d.add(106)
 
+for _ in range(1111111):
+    d.add(108)
 
-for _ in range(11):
-    d.add(5)
-# for _ in range(round(qty/3)):
-#     d.add(97)
-#
-# for _ in range(round(qty/3)):
-#     d.add(98)
-#
-# for _ in range(round(qty/3)):
-#     d.add(99)
-
-write_h("rlebp", d.s)
+write_h("big_delta", d.s)
 # s += f'{random.randint(1,100)}'
 
 
