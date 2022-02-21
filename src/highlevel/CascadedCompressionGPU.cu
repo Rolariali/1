@@ -448,12 +448,12 @@ void generateTypedOutputUpperBound(
                + roundUpTo(sizeof(runT) * outputSize, wordSize) * numRLEs
                + roundUpTo(sizeof(valT) * outputSize, wordSize);
 }
-
+// valT - uint8_t type of value // runT -size type - uint32 for 1000000
 template <typename valT, typename runT>
 void compressTypedAsync(
     const void* const in_ptr,
     const size_t in_bytes,
-    const nvcompCascadedFormatOpts* const format_opts,
+    const nvcompCascadedFormatOpts* const format_opts,  //cascadedOpts
     void* const temp_ptr,
     const size_t temp_bytes,
     void* const out_ptr,
@@ -532,18 +532,18 @@ void compressTypedAsync(
   const int numSteps = std::max(numRLEs, numDeltas);
   if(verbose) printf(" A step can be RLE+Delta, RLE, or Delta, with final outputs conditionally:\n");
   if(verbose) printf("numSteps: %u \n", numSteps);
-  for (int r = numSteps - 1; r >= 0; r--) {
+  for (int round = numSteps - 1; round >= 0; round--) {
     int nextValId;
-    const bool firstLayer = r == std::max(numRLEs - 1, numDeltas - 1);
+    const bool firstLayer = round == std::max(numRLEs - 1, numDeltas - 1);
     const valT* const vals_input
         = firstLayer ? static_cast<const valT*>(in_ptr) : vals_delta;
     if(verbose) printf("firstLayer: %d \n", (int)firstLayer);
 
-    if (numSteps - r - 1 < numRLEs) {
+    if (numSteps - round - 1 < numRLEs) {
       const int runId = ++vals_id;
       const int valId = ++vals_id;
 
-      // rle always first
+      // rle always first  //RLE
       if (firstLayer) {
         RunLengthEncodeGPU::compress(
             tempSpace.next(),
@@ -585,7 +585,7 @@ void compressTypedAsync(
           &(runHdr->length), numRunsDevice, 1, DEVICE_TO_DEVICE, stream);
 
       // store vals (apply delta if necessary)
-      if (numRLEs - 1 - r < numDeltas) {
+      if (numRLEs - 1 - round < numDeltas) {
         DeltaGPU::compress(
             tempSpace.next(),
             tempSpace.spaceLeft(),
@@ -677,7 +677,7 @@ void compressTypedAsync(
           &(hdr->length), numRunsDevice, 1, DEVICE_TO_DEVICE, stream);
       metadataOnGPU.saveOffset(id, offsetDevice, stream);
     }
-    if (r == 0) {
+    if (round == 0) {
       offsetAndAlignPointerAsync<<<1, 1, 0, stream>>>(
           out_ptr, bit_out_ptr, offsetDevice);
       CudaUtils::check_last_error("Failed to launch "
@@ -830,7 +830,9 @@ void nvcompCascadedCompressionGPU::compressAsync(
 
   const nvcompType_t countType
       = selectRunsType(in_bytes / sizeOfnvcompType(in_type));
-  if(verbose) printf("nvcompCascadedCompressionGPU nvcompType_t: %d\n", countType);
+  if(verbose)
+    printf("nvcompCascadedCompressionGPU countType: %d countType: %d\n",
+           countType, in_type);
   NVCOMP_TYPE_TWO_SWITCH(
       in_type,
       countType,

@@ -1470,7 +1470,7 @@ nvcompStatus_t nvcompCascadedCompressAsync(
       final_opts.num_deltas = format_opts->num_deltas;
       final_opts.use_bp = format_opts->use_bp;
     }
-
+    if (verbose) printf("nvcompCascadedCompressionGPU::compressAsync\n");
     nvcompCascadedCompressionGPU::compressAsync(
         in_ptr,
         in_bytes,

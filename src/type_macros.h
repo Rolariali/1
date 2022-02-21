@@ -67,6 +67,8 @@
     }                                                                          \
   } while (0)
 
+// type1_var - in_type uint8_t // second_type - uint32_t for 10000 -size type
+// func - compressTypedAsync
 #define NVCOMP_TYPE_TWO_SWITCH_FIRST_ONLY(type_var, second_type, func, ...)    \
   do {                                                                         \
     switch (type_var) {                                                        \
@@ -99,6 +101,7 @@
     }                                                                          \
   } while (0)
 
+//type1_var - in_type // type2_var - count type =>> in_bytes / sizeOfnvcompType(in_type)
 #define NVCOMP_TYPE_TWO_SWITCH(type1_var, type2_var, func, ...)                \
   do {                                                                         \
     switch (type2_var) {                                                       \
