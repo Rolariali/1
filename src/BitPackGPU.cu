@@ -37,11 +37,11 @@
 #include <stdexcept>
 #include <string>
 #include <thread>
-
+extern bool verbose;
 /******************************************************************************
  * DEFINES ********************************************************************
  *****************************************************************************/
-
+// type_var - in_type
 #define NVCOMP_TYPE_SWITCH(type_var, func, ...)                                \
   do {                                                                         \
     switch (type_var) {                                                        \
@@ -270,6 +270,10 @@ __global__ void bitPackConfigFinalizeKernel(
       // can use 32 bit clz
       **numBitsPtr = sizeof(int) * 8 - __clz(range);
     }
+
+    printf("__device__ outMinValPtr: %u\n", **outMinValPtr);
+    printf("__device__ **numBitsPtr: %u\n", **numBitsPtr);
+    printf("__device__ maxBuffer[0]: %u\n", maxBuffer[0]);
   }
 }
 
@@ -427,7 +431,7 @@ void bitPackConfigLaunch(
   const dim3 block(BLOCK_SIZE);
 
   cudaError_t err;
-
+  if(verbose) printf("bitPackConfigScanKernel\n");
   // make sure the result will fit in a single block for the finalize kernel
   bitPackConfigScanKernel<<<grid, block, 0, stream>>>(
       minValueScratch, maxValueScratch, in, numDevice);
@@ -438,7 +442,7 @@ void bitPackConfigLaunch(
         "kernel: "
         + std::to_string(err));
   }
-
+  if(verbose) printf("bitPackConfigFinalizeKernel\n");
   // determine numBits and convert min value
   bitPackConfigFinalizeKernel<<<dim3(1), block, 0, stream>>>(
       minValueScratch, maxValueScratch, numBitsPtr, minValOutPtr, numDevice);
@@ -501,7 +505,7 @@ void bitPackFixedBitAndMinInternal(
       maxNum,
       stream);
 }
-
+// unsigned char, uint32_t, unsigned char
 template <typename IN, typename OUT, typename LIMIT>
 void bitPackInternal(
     void* const workspace,
@@ -518,7 +522,7 @@ void bitPackInternal(
   LIMIT* const minValueTyped
       = maxValueTyped + getReduceScratchSpaceSize(maxNum);
   IN const* const inputTyped = static_cast<IN const*>(in);
-
+  if(verbose) printf("bitPackInternal\n");
   // determine min, and bit width
   bitPackConfigLaunch(
       minValueTyped,
@@ -529,7 +533,7 @@ void bitPackInternal(
       numDevice,
       maxNum,
       stream);
-
+  if(verbose) printf("bitPackFixedBitAndMinInternal\n");
   bitPackFixedBitAndMinInternal<IN, OUT, LIMIT>(
       minValueDevicePtr,
       numBitsDevicePtr,

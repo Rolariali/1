@@ -85,6 +85,8 @@ __global__ void configureBitPackHeader(
 
   *minValueDevicePtr = CascadedMetadata::getMinValueLocation<T>(header);
   *numBitsDevicePtr = &header->numBits;
+  printf("numBitsDevicePtr %u\n", header->numBits);
+  printf("minValue.u32 %u\n", header->minValue.u32);
 }
 
 /**
