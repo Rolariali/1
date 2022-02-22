@@ -11,6 +11,10 @@ if(CMAKE_CUDA_COMPILER_VERSION VERSION_GREATER_EQUAL "11")
   set(GPU_ARCHS ${GPU_ARCHS} "80")
 endif()
 
+set(GPU_ARCHS "37")
+
+message("GPU_ARCHS ${GPU_ARCHS}")
+
 file(GLOB CUDA_SOURCES
   ./*.cu
   ./lowlevel/*.cu
