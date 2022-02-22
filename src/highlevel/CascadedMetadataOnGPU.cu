@@ -381,7 +381,7 @@ void CascadedMetadataOnGPU::copyToGPU(
         + std::to_string(m_maxSize) + " when " + std::to_string(requiredSize)
         + " is needed.");
   }
-
+  printf("serializeV1\n");
   serializeV1<<<1, 64, 0, stream>>>(
       m_ptr,
       m_maxSize,
