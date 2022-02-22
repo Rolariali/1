@@ -19,8 +19,8 @@ endif()
 #add_executable(q_lz4 lz4.cpp)
 #target_link_libraries(q_lz4 PRIVATE ${CUDA_ART} nvcomp)
 #
-#add_executable(q_bp byte_packing.cpp)
-#target_link_libraries(q_bp PRIVATE ${CUDA_ART} nvcomp)
+add_executable(bp_test byte_packing.cpp)
+target_link_libraries(bp_test PRIVATE ${CUDA_ART} nvcomp)
 
 add_executable(q_dp delta_packing.cpp)
 target_link_libraries(q_dp PRIVATE ${CUDA_ART} nvcomp)

@@ -43,9 +43,9 @@ using namespace nvcomp;
 
 
 // #include "test_data.h"
-
+bool verbose = true;
 // vector<uint8_t> input = {2, 2, 2, 3, 0, 0, 0, 0, 0, 3, 1, 1, 1, 1, 1, 1};
-vector<uint8_t> input = {2, 2, 2, 3, 4, 5, 6, 6, 6, 7, 8, 8, 8, 8, 8, 8};
+vector<int8_t> input = {-11, -3, 2, 2, 2, 2, 3, 0, 0, 0, 0, 0, 3, 1, 1, 1, 1, 1, 1};
 
 
 int main()
@@ -54,7 +54,7 @@ int main()
   //  typedef uint8_t T;
 
   printf("--------------------------------------------\n");
-  typedef uint8_t T;
+  typedef int8_t T;
   const nvcompType_t type = NVCOMP_TYPE_UCHAR;
   size_t min_comp_out_bytes = 99999999999;
 
@@ -63,8 +63,8 @@ int main()
   nvcompCascadedFormatOpts comp_opts;
 
   comp_opts.num_RLEs = 0;
-  comp_opts.num_deltas = 1;
-  comp_opts.use_bp = 0;
+  comp_opts.num_deltas = 0;
+  comp_opts.use_bp = 1;
   // create GPU only input buffer
   void* d_in_data;
   const size_t in_bytes = sizeof(T) * input_size;
