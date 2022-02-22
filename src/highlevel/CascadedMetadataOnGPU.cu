@@ -163,8 +163,7 @@ __global__ void serializeV1(
 {
   using Chunk = uint32_t;
 
-//  printf("work\n\n");
-  return ;
+  printf("serializeV1\n\n");
 
   __shared__ uint8_t localBuffer[serializedMetadataSize(MAX_NUM_RLES + 1)];
 
