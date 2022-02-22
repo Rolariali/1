@@ -163,6 +163,9 @@ __global__ void serializeV1(
 {
   using Chunk = uint32_t;
 
+  printf("work\n\n");
+  return ;
+
   __shared__ uint8_t localBuffer[serializedMetadataSize(MAX_NUM_RLES + 1)];
 
   assert(blockIdx.x == 0);
