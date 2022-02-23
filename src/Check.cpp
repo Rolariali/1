@@ -27,7 +27,7 @@
  */
 
 #include "Check.h"
-
+bool verbose = false;
 namespace nvcomp
 {
 

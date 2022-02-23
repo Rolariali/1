@@ -3,7 +3,7 @@
 
 #include "FCascade.h"
 
-bool verbose = false;
+//bool verbose = false;
 
 int main()
 {

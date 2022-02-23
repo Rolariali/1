@@ -4,7 +4,7 @@
 
 #include "FCascade.h"
 
-bool verbose = true;
+//bool verbose = true;
 
 #include "data/big_delta.h"
 

@@ -43,7 +43,7 @@ using namespace nvcomp;
 
 
 // #include "test_data.h"
-bool verbose = true;
+//bool verbose = true;
 // vector<uint8_t> input = {2, 2, 2, 3, 0, 0, 0, 0, 0, 3, 1, 1, 1, 1, 1, 1};
 vector<int8_t> input = {-11, -3, 2, 2, 2, 2, 3, 0, 0, 0, 0, 0, 3, 1, 1, 1, 1, 1, 1};
 
