@@ -41,8 +41,16 @@ endif()
 # and cause launch failures
 # set(CMAKE_CUDA_FLAGS_DEBUG "${CMAKE_CUDA_FLAGS_DEBUG};-G")
 set(CMAKE_CUDA_FLAGS_DEBUG "${CMAKE_CUDA_FLAGS_DEBUG} -g")
-string(APPEND CMAKE_CUDA_FLAGS_DEBUG " -gencode arch=compute_37,code=sm_37")
 
+execute_process (
+        COMMAND bash -c "nvidia-smi | grep 'Tesla K80'"
+        OUTPUT_VARIABLE DEVICE_GPU_K80
+)
+message("DEVICE_GPU_K80: ${DEVICE_GPU_K80}")
+if(DEVICE_GPU_K80)
+  string(APPEND CMAKE_CUDA_FLAGS_DEBUG " -gencode arch=compute_37,code=sm_37")
+  message("CMAKE_CUDA_FLAGS_DEBUG: ${CMAKE_CUDA_FLAGS_DEBUG}")
+endif()
 
 if(CMAKE_BUILD_TYPE STREQUAL "DEBUG" OR CMAKE_BUILD_TYPE STREQUAL "Debug")
   message("Debug build.")
