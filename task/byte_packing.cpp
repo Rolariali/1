@@ -55,7 +55,7 @@ int main()
 
   printf("--------------------------------------------\n");
   typedef int8_t T;
-  const nvcompType_t type = NVCOMP_TYPE_UCHAR;
+  const nvcompType_t type = NVCOMP_TYPE_CHAR;
   size_t min_comp_out_bytes = 99999999999;
 
   //  T input[16] = {0, 2, 2, 3, 0, 0, 0, 0, 0, 3, 1, 1, 1, 1, 1, 1};
