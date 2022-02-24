@@ -246,8 +246,8 @@ __global__ void bitPackConfigFinalizeKernel(
 
   // each block processes it's chunk, updates min/max, and the calculates
   // the bitwidth based on the last update
-  __shared__ LIMIT minBuffer[BLOCK_SIZE];
-  __shared__ LIMIT maxBuffer[BLOCK_SIZE];
+  __shared__ INPUT minBuffer[BLOCK_SIZE];
+  __shared__ INPUT maxBuffer[BLOCK_SIZE];
 
   // load data
   readMinAndMax(inMin, inMax, minBuffer, maxBuffer, 0, num);
@@ -417,8 +417,8 @@ size_t getReduceScratchSpaceSize(size_t const num)
  */
 template <typename LIMIT, typename INPUT>
 void bitPackConfigLaunch(
-    LIMIT* const minValueScratch,
-    LIMIT* const maxValueScratch,
+    INPUT* const minValueScratch,
+    INPUT* const maxValueScratch,
     INPUT* const* const minValOutPtr,
     unsigned char* const* const numBitsPtr,
     INPUT const* const in,
@@ -518,8 +518,8 @@ void bitPackInternal(
     cudaStream_t stream)
 {
   // cast voids to known types
-  LIMIT* const maxValueTyped = static_cast<LIMIT*>(workspace);
-  LIMIT* const minValueTyped
+  IN* const maxValueTyped = static_cast<IN*>(workspace);
+  IN* const minValueTyped
       = maxValueTyped + getReduceScratchSpaceSize(maxNum);
   IN const* const inputTyped = static_cast<IN const*>(in);
   if(verbose) printf("bitPackInternal\n");
