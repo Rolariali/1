@@ -38,8 +38,8 @@ using namespace nvcomp;
   } while (0)
 
 struct CompResult{
-  vector<uint8_t> output;
-  vector<uint8_t> meta;
+  vector<int8_t> output;
+  vector<int8_t> meta;
   size_t out_bytes;
   size_t meta_bytes;
 
@@ -50,11 +50,11 @@ struct CompResult{
 
 struct FCascade
 {
-  static bool cascade(const vector<uint8_t> input, CompResult & res,
+  static bool cascade(const vector<int8_t> input, CompResult & res,
                int RLE, int deltas, int use_bp){
 
-    typedef uint8_t T;
-    const nvcompType_t type = NVCOMP_TYPE_UCHAR;
+    typedef int8_t T;
+    const nvcompType_t type = NVCOMP_TYPE_CHAR;
 
     const size_t input_size = input.size();
     nvcompCascadedFormatOpts comp_opts;
@@ -154,7 +154,7 @@ struct FCascade
     return true;
   }
 
-  static void show_stat(const vector<uint8_t> input, struct CompResult & res,
+  static void show_stat(const vector<int8_t> input, struct CompResult & res,
                  const bool stat = true,
                  const bool show_meta = false){
     if(show_meta) {
