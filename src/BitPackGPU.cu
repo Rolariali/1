@@ -37,6 +37,9 @@
 #include <stdexcept>
 #include <string>
 #include <thread>
+
+#include <type_traits>
+#include <typeinfo>
 extern bool verbose;
 /******************************************************************************
  * DEFINES ********************************************************************
@@ -432,6 +435,11 @@ void bitPackConfigLaunch(
   const dim3 grid(
       min(BLOCK_WIDTH, static_cast<int>(roundUpDiv(maxNum, BLOCK_SIZE))));
   const dim3 block(BLOCK_SIZE);
+
+  LIMIT a; INPUT b;
+
+  printf("type LIMIT: %s", typeid(a).name());
+  printf("type INPUT: %s", typeid(b).name());
 
   cudaError_t err;
   if(verbose) printf("bitPackConfigScanKernel\n");
