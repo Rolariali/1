@@ -271,9 +271,9 @@ __global__ void bitPackConfigFinalizeKernel(
       **numBitsPtr = sizeof(int) * 8 - __clz(range);
     }
 
-    printf("__device__ outMinValPtr: %u\n", **outMinValPtr);
+    printf("__device__ outMinValPtr: %d\n", **outMinValPtr);
     printf("__device__ **numBitsPtr: %u\n", **numBitsPtr);
-    printf("__device__ maxBuffer[0]: %u\n", maxBuffer[0]);
+    printf("__device__ maxBuffer[0]: %d\n", maxBuffer[0]);
   }
 }
 
