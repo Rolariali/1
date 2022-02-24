@@ -195,13 +195,16 @@ __global__ void bitPackConfigScanKernel(
 
       if (threadIdx.x < blockEnd) {
         LIMIT const val = in[blockOffset + threadIdx.x];
+        printf("val: %d\n", val);
         if (block == blockIdx.x) {
           // first iteration just set values
           localMax = val;
           localMin = val;
+          printf("first iteration just set values\n" );
         } else {
           localMin = min(val, localMin);
           localMax = max(val, localMax);
+          printf("localMin %d localMax %d\n", localMin, localMax);
         }
       }
     }
@@ -506,6 +509,7 @@ void bitPackFixedBitAndMinInternal(
       stream);
 }
 // unsigned char, uint32_t, unsigned char
+//char, uint32_t, char
 template <typename IN, typename OUT, typename LIMIT>
 void bitPackInternal(
     void* const workspace,
