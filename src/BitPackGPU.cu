@@ -437,9 +437,11 @@ void bitPackConfigLaunch(
   const dim3 block(BLOCK_SIZE);
 
   LIMIT a; INPUT b;
-
   printf("type LIMIT: %s\n", typeid(a).name());
   printf("type INPUT: %s\n", typeid(b).name());
+  int8_t c; uint8_t d;
+  printf("type c: %s\n", typeid(c).name());
+  printf("type d: %s\n", typeid(d).name());
 
   cudaError_t err;
   if(verbose) printf("bitPackConfigScanKernel\n");
