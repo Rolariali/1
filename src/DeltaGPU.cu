@@ -92,6 +92,8 @@ __global__ void deltaKernel(
 
     if (idx < num) {
       output[idx] = buffer[threadIdx.x + 1] - buffer[threadIdx.x];
+      printf("%d = %d - %d\n",
+             output[idx] , buffer[threadIdx.x + 1] , buffer[threadIdx.x]);
     }
   }
 }
