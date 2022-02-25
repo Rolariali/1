@@ -171,11 +171,11 @@ struct FCascade
 
     printf("\ninput: %zu\t\t:", input.size());
     for(auto el: input)
-      printf("%x:", el);
+      printf("%d:", el);
 
     printf("\ncompress: %zu %zu\t\t:", res.out_bytes, res.output.size());
     for(auto el: res.output)
-      printf("%x:", el);
+      printf("%d:", el);
     printf("\n");
 
     if(stat == false)
