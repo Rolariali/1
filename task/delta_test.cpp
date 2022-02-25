@@ -4,12 +4,14 @@
 
 #include "FCascade.h"
 
-//bool verbose = true;
+extern bool verbose;
 
 //#include "data/big_delta.h"
 
 int main()
 {
+  verbose = true;
+
   vector<int8_t> input
       = {96, 97, 97, 97, 97, 97, 97, 97, 98, 98, 98, 98, 98, 98, 98, 98, 98,
          98, 98, 98, 98, 99, 99, 99, 99, 99, 99, 99, 99, 99, 99, 99, 99};

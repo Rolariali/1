@@ -1392,6 +1392,7 @@ nvcompStatus_t nvcompCascadedCompressConfigure(
       temp_opts.num_RLEs = format_opts->num_RLEs;
       temp_opts.num_deltas = format_opts->num_deltas;
       temp_opts.use_bp = format_opts->use_bp;
+      temp_opts.delta_opts.delta_mode = format_opts->delta_opts.delta_mode;
     }
 
     if(metadata_bytes) {
