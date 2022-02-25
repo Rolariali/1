@@ -1470,6 +1470,8 @@ nvcompStatus_t nvcompCascadedCompressAsync(
       final_opts.num_RLEs = format_opts->num_RLEs;
       final_opts.num_deltas = format_opts->num_deltas;
       final_opts.use_bp = format_opts->use_bp;
+      final_opts.delta_opts.delta_mode =
+          format_opts->delta_opts.delta_mode;
     }
     if (verbose) printf("nvcompCascadedCompressionGPU::compressAsync\n");
     nvcompCascadedCompressionGPU::compressAsync(
