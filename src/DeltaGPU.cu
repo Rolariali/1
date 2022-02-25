@@ -178,7 +178,7 @@ void deltaLaunch(
     const size_t* const numDevice,
     const size_t maxNum,
     cudaStream_t stream,
-    const nvcompCascadedFormatOpts::DeltaOpts * deltaOpts,
+    const nvcompCascadedFormatOpts::DeltaOpts::DeltaMode deltaMode,
     void* const* const minValueDevicePtr,
     void* const* const maxValueDevicePtr
     )
@@ -192,7 +192,7 @@ void deltaLaunch(
   const dim3 grid(roundUpDiv(maxNum, BLOCK_SIZE));
   bool error_flag = false;
 
-  switch (deltaOpts->delta_mode) {
+  switch (deltaMode) {
   case nvcompCascadedFormatOpts::DeltaOpts::DeltaMode::NORMAL_DELTA:
     deltaKernel<<<grid, block, 0, stream>>>(
         outTypedPtr, inTyped, numDevice, maxNum);
@@ -237,12 +237,12 @@ void DeltaGPU::compress(
     const void* const in,
     const size_t* const numDevice,
     const size_t maxNum,
-    cudaStream_t stream,
-    const nvcompCascadedFormatOpts::DeltaOpts * deltaOpts
+    const nvcompCascadedFormatOpts::DeltaOpts::DeltaMode deltaMode,
+    cudaStream_t stream
     )
 {
-  if(verbose) printf("DeltaGPU::compress, mode %d inType %d\n", (int)deltaOpts->delta_mode, (int)inType);
-  if(deltaOpts->delta_mode == nvcompCascadedFormatOpts::DeltaOpts::DeltaMode::OVERFLOW_DELTA_FOR_INTERVAL){
+  if(verbose) printf("DeltaGPU::compress, mode %d inType %d\n", (int)deltaMode, (int)inType);
+  if(deltaMode == nvcompCascadedFormatOpts::DeltaOpts::DeltaMode::OVERFLOW_DELTA_FOR_INTERVAL){
     if(inType != NVCOMP_TYPE_CHAR)
       throw std::runtime_error("Implement only for NVCOMP_TYPE_CHAR");
 
@@ -272,11 +272,11 @@ void DeltaGPU::compress(
                            minValueDevicePtr, maxValueDevicePtr,
                            numBitsDevicePtr, stream);
     NVCOMP_TYPE_ONE_SWITCH(
-        inType, deltaLaunch, outPtr, in, numDevice, maxNum, stream, deltaOpts,
+        inType, deltaLaunch, outPtr, in, numDevice, maxNum, stream, deltaMode,
         minValueDevicePtr, maxValueDevicePtr);
   }
   NVCOMP_TYPE_ONE_SWITCH(
-      inType, deltaLaunch, outPtr, in, numDevice, maxNum, stream, deltaOpts, NULL, NULL);
+      inType, deltaLaunch, outPtr, in, numDevice, maxNum, stream, deltaMode, NULL, NULL);
 }
 
 size_t DeltaGPU::requiredWorkspaceSize(

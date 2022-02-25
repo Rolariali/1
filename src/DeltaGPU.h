@@ -62,8 +62,8 @@ public:
       const void* inValues,
       const size_t* numDevice,
       const size_t maxNum,
-      cudaStream_t stream,
-      const nvcompCascadedFormatOpts::DeltaOpts * deltaOpts = NULL
+      const nvcompCascadedFormatOpts::DeltaOpts::DeltaMode deltaMode,
+      cudaStream_t stream
   );
 
   /**

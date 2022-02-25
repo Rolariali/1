@@ -469,6 +469,8 @@ void compressTypedAsync(
   const int numRLEs = metadata.getNumRLEs();
   const int numDeltas = metadata.getNumDeltas();
   const bool bitPacking = metadata.useBitPacking();
+  const nvcompCascadedFormatOpts::DeltaOpts::DeltaMode deltaMode =  // todo inject to metadata
+      format_opts->delta_opts.delta_mode;
 
   // assume single chunk for now
   // TODO: implement a multi-chunk version
@@ -596,6 +598,7 @@ void compressTypedAsync(
             vals_output,
             numRunsDevice,
             maxNum,
+            deltaMode,
             stream);
 
         const int id = ++vals_id;
@@ -657,6 +660,7 @@ void compressTypedAsync(
           vals_input,
           numRunsDevice,
           maxNum,
+          deltaMode,
           stream);
 
       // we need to copy the delta to final delta buffer
