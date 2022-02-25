@@ -268,6 +268,7 @@ __global__ void bitPackConfigFinalizeKernel(
       roundUpDiv(*numDevice, BLOCK_SIZE), static_cast<size_t>(BLOCK_WIDTH));
 
   assert(num > 0);
+//  printf("@1\n");
 
   // each block processes it's chunk, updates min/max, and the calculates
   // the bitwidth based on the last update
@@ -278,21 +279,25 @@ __global__ void bitPackConfigFinalizeKernel(
   readMinAndMax(inMin, inMax, minBuffer, maxBuffer, 0, num);
 
   __syncthreads();
-
+//  printf("@2\n");
   // cooperatively compute min and max
   reduceMinAndMax(minBuffer, maxBuffer, min(BLOCK_SIZE, (int)num));
 
   if (threadIdx.x == 0) {
+    printf("@3 %p - %p\n", outMinValPtr, outMaxValPtr);
     **outMinValPtr = static_cast<INPUT>(minBuffer[0]);
     if(outMaxValPtr != NULL)
       **outMaxValPtr = static_cast<INPUT>(maxBuffer[0]);
     // we need to update the number of bits
+    printf("@5\n");
     if (sizeof(LIMIT) > sizeof(int)) {
       const long long int range = static_cast<uint64_t>(maxBuffer[0]) - static_cast<uint64_t>(minBuffer[0]);
       // need 64 bit clz
+      printf("@6\n");
       **numBitsPtr = sizeof(long long int) * 8
                      - __clzll(range);
     } else {
+      printf("@4\n");
       const int range = static_cast<uint32_t>(maxBuffer[0]) - static_cast<uint32_t>(minBuffer[0]);
       // can use 32 bit clz
       **numBitsPtr = sizeof(int) * 8 - __clz(range);
