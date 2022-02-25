@@ -223,6 +223,27 @@ void deltaLaunch(
   }
 }
 
+
+template <typename T>
+__global__ void setHeader(
+    T* data,
+    T** const minValueDevicePtr,
+    T** const maxValueDevicePtr,
+    unsigned char** const numBitsDevicePtr)
+{
+  // setup the header and pointers into it
+  assert(blockIdx.x == 0);
+  assert(threadIdx.x == 0);
+
+  *minValueDevicePtr = data;
+  data++;
+  *maxValueDevicePtr = data;
+  data++;
+  *numBitsDevicePtr = reinterpret_cast<unsigned char*>(data);
+
+  printf("setHeader\n");
+}
+
 } // namespace
 
 /******************************************************************************
@@ -260,6 +281,15 @@ void DeltaGPU::compress(
     tempSpace.reserve(&minValueDevicePtr, 1);
     tempSpace.reserve(&maxValueDevicePtr, 1);
     tempSpace.reserve(&numBitsDevicePtr, 1);
+    using T = char;
+    T* valueDeviceDtr;
+    cudaMalloc((void**)&valueDeviceDtr, 10);
+
+    setHeader<<<1, 1, 0, stream>>>( valueDeviceDtr,
+                                  reinterpret_cast<T**>(minValueDevicePtr),
+                                   reinterpret_cast<T**>(maxValueDevicePtr),
+                                   numBitsDevicePtr);
+
 
     //todo setup header
 
