@@ -28,8 +28,8 @@ target_link_libraries(bp_test PRIVATE ${CUDA_ART} nvcomp)
 #add_executable(q_rlep rle_packing.cpp)
 #target_link_libraries(q_rlep PRIVATE ${CUDA_ART} nvcomp)
 #
-#add_executable(delta delta_test.cpp )
-#target_link_libraries(delta PRIVATE ${CUDA_ART} nvcomp)
+add_executable(delta delta_test.cpp )
+target_link_libraries(delta PRIVATE ${CUDA_ART} nvcomp)
 
 #
 add_executable(bp byte_packing_test.cpp )
