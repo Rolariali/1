@@ -34,3 +34,6 @@ target_link_libraries(delta PRIVATE ${CUDA_ART} nvcomp)
 #
 add_executable(bp byte_packing_test.cpp )
 target_link_libraries(bp PRIVATE ${CUDA_ART} nvcomp)
+
+add_executable(delta_check delta_check.cpp)
+target_link_libraries(delta_check PRIVATE ${CUDA_ART} nvcomp)
