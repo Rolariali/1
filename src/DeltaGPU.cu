@@ -274,6 +274,7 @@ void DeltaGPU::compress(
     NVCOMP_TYPE_ONE_SWITCH(
         inType, deltaLaunch, outPtr, in, numDevice, maxNum, stream, deltaMode,
         minValueDevicePtr, maxValueDevicePtr);
+    return;
   }
   NVCOMP_TYPE_ONE_SWITCH(
       inType, deltaLaunch, outPtr, in, numDevice, maxNum, stream, deltaMode, NULL, NULL);
