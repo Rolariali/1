@@ -29,8 +29,10 @@
 #include "highlevel/CascadedCommon.h"
 
 #include "DeltaGPU.h"
+#include "BitPackGPU.h"
 #include "common.h"
 #include "type_macros.h"
+#include "TempSpaceBroker.h"
 
 #include <cassert>
 #include <limits>
@@ -94,6 +96,73 @@ __global__ void deltaKernel(
   }
 }
 
+template <typename VALUE, typename EXTEND_VALUE>
+__global__ void deltaKernelOverflowMode(
+    VALUE** const outputPtr,
+    const VALUE* const input,
+    const size_t* const numDevice,
+    const size_t /* maxNum */,
+    VALUE* const* const minValOutPtr,
+    VALUE* const* const maxValOutPtr
+    )
+{
+  const size_t num = *numDevice;
+
+  if (BLOCK_SIZE * blockIdx.x < num) {
+    VALUE* const output = *outputPtr;
+
+    const int idx = threadIdx.x + BLOCK_SIZE * blockIdx.x;
+
+    __shared__ VALUE buffer[BLOCK_SIZE + 1];
+
+    if (idx < num) {
+      buffer[threadIdx.x + 1] = input[idx];
+    }
+
+    if (threadIdx.x == 0) {
+      // first thread must do something special
+      if (idx > 0) {
+        buffer[0] = input[idx - 1];
+      } else {
+        buffer[0] = 0;
+      }
+    }
+
+    const VALUE maxValue = **maxValOutPtr;
+    const VALUE minValue = **minValOutPtr;
+
+    assert(maxValue >= minValue);
+    assert(sizeof(EXTEND_VALUE) > sizeof(VALUE));
+    const EXTEND_VALUE sizeOfInterval =
+        static_cast<EXTEND_VALUE>(maxValue) -
+        static_cast<EXTEND_VALUE>(minValue) + 1;
+    __syncthreads();
+
+    if (idx < num) {
+      const VALUE next = buffer[threadIdx.x + 1];
+      const VALUE prev = buffer[threadIdx.x];
+
+      EXTEND_VALUE way = std::abs(
+          static_cast<EXTEND_VALUE>(next) -
+          static_cast<EXTEND_VALUE>(prev)
+          );
+
+      if(way > sizeOfInterval/2) { // overflow way
+        if(prev < next)
+          way = (minValue - prev) + (next - maxValue) - 1; // 2 < 99 : 1 - 2 + 99 - 100 -1
+        else
+          way = (next - minValue) + (maxValue - prev) + 1; // 99 < 2 : 2-1 + 100-99 +1
+      } else {  //common way
+        way = next - prev;
+      }
+
+      output[idx] = static_cast<VALUE>(way);
+    }
+
+  }
+}
+
+
 } // namespace
 
 /******************************************************************************
@@ -108,19 +177,49 @@ void deltaLaunch(
     void const* const in,
     const size_t* const numDevice,
     const size_t maxNum,
-    cudaStream_t stream)
+    cudaStream_t stream,
+    const nvcompCascadedFormatOpts::DeltaOpts * deltaOpts,
+    void* const* const minValueDevicePtr,
+    void* const* const maxValueDevicePtr
+    )
 {
   VALUE** const outTypedPtr = reinterpret_cast<VALUE**>(outPtr);
+  VALUE* const* const minValueDP = reinterpret_cast<VALUE* const*>(minValueDevicePtr);
+  VALUE* const* const maxValueDP = reinterpret_cast<VALUE* const*>(maxValueDevicePtr);
   const VALUE* const inTyped = static_cast<const VALUE*>(in);
   if(verbose) printf("deltaLaunch\n");
   const dim3 block(BLOCK_SIZE);
   const dim3 grid(roundUpDiv(maxNum, BLOCK_SIZE));
-  deltaKernel<<<grid, block, 0, stream>>>(
-      outTypedPtr, inTyped, numDevice, maxNum);
+  bool error_flag = false;
+
+  switch (deltaOpts->delta_mode) {
+  case nvcompCascadedFormatOpts::DeltaOpts::DeltaMode::NORMAL_DELTA:
+    deltaKernel<<<grid, block, 0, stream>>>(
+        outTypedPtr, inTyped, numDevice, maxNum);
+    break;
+
+  case nvcompCascadedFormatOpts::DeltaOpts::DeltaMode::OVERFLOW_DELTA_FOR_INTERVAL:
+    switch (sizeof(VALUE)) {
+    case sizeof (int8_t):
+      deltaKernelOverflowMode<VALUE, int16_t><<<grid, block, 0, stream>>>(
+          outTypedPtr, inTyped, numDevice, maxNum, minValueDP, maxValueDP);
+      break;
+    default:
+      printf("only implement for 8bit\n");
+      error_flag = true;
+      break;
+    }
+    break;
+  default:
+    printf("unknown delta mode option\n");
+    error_flag = true;
+  }
+
   cudaError_t err = cudaGetLastError();
-  if (err != cudaSuccess) {
+  if (err != cudaSuccess || error_flag) {
     throw std::runtime_error(
-        "Failed to launch deltaKernel kernel: " + std::to_string(err));
+        "Failed to launch deltaKernel kernel: " + std::to_string(err)
+        + " error flag: " + std::to_string(error_flag) );
   }
 }
 
@@ -131,23 +230,62 @@ void deltaLaunch(
  *****************************************************************************/
 
 void DeltaGPU::compress(
-    void* const /* workspace */,
-    const size_t /* workspaceSize*/,
+    void* const  workspace ,
+    const size_t workspaceSize,
     const nvcompType_t inType,
     void** const outPtr,
     const void* const in,
     const size_t* const numDevice,
     const size_t maxNum,
-    cudaStream_t stream)
+    cudaStream_t stream,
+    const nvcompCascadedFormatOpts::DeltaOpts * deltaOpts
+    )
 {
+  if(verbose) printf("DeltaGPU::compress, mode %d inType %d\n", (int)deltaOpts->delta_mode, (int)inType);
+  if(deltaOpts->delta_mode == nvcompCascadedFormatOpts::DeltaOpts::DeltaMode::OVERFLOW_DELTA_FOR_INTERVAL){
+    if(inType != NVCOMP_TYPE_CHAR)
+      throw std::runtime_error("Implement only for NVCOMP_TYPE_CHAR");
+
+    const size_t reqWorkSize = requiredWorkspaceSize(maxNum, inType);
+    if (workspaceSize < reqWorkSize) {
+      throw std::runtime_error(
+          "Insufficient workspace size: " + std::to_string(workspaceSize)
+          + ", need " + std::to_string(reqWorkSize));
+    }
+    TempSpaceBroker tempSpace(workspace, workspaceSize);
+
+    void** minValueDevicePtr;
+    void** maxValueDevicePtr;
+    unsigned char** numBitsDevicePtr;
+    tempSpace.reserve(&minValueDevicePtr, 1);
+    tempSpace.reserve(&maxValueDevicePtr, 1);
+    tempSpace.reserve(&numBitsDevicePtr, 1);
+
+    //todo setup header
+
+    void* const next_free_ptr = reinterpret_cast<void*>(numBitsDevicePtr + 1);
+    const size_t tempSize
+      = workspaceSize
+        - (static_cast<char*>(next_free_ptr) - static_cast<char*>(workspace)); // -2*sizeof(void*)
+
+    bitpack_helper::calcMinMax(next_free_ptr, tempSize, inType, in, numDevice, maxNum,
+                           minValueDevicePtr, maxValueDevicePtr,
+                           numBitsDevicePtr, stream);
+    NVCOMP_TYPE_ONE_SWITCH(
+        inType, deltaLaunch, outPtr, in, numDevice, maxNum, stream, deltaOpts,
+        minValueDevicePtr, maxValueDevicePtr);
+  }
   NVCOMP_TYPE_ONE_SWITCH(
-      inType, deltaLaunch, outPtr, in, numDevice, maxNum, stream);
+      inType, deltaLaunch, outPtr, in, numDevice, maxNum, stream, deltaOpts, NULL, NULL);
 }
 
 size_t DeltaGPU::requiredWorkspaceSize(
-    const size_t /*num*/, const nvcompType_t /* type */)
+    const size_t num, const nvcompType_t  type)
 {
-  return 0;
+  // we need a space for min values, and a space for maximum values
+  const size_t bytes = sizeOfnvcompType(type) * bitpack_helper::getReduceScratchSpaceSize(num) * 2;
+
+  return bytes;
 }
 
 } // namespace nvcomp

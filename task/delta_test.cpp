@@ -22,4 +22,17 @@ int main()
 
     printf("--------------------------------------------\n");
   }
+  {
+    printf("--------------------Delta ------------------------\n");
+
+    struct CompResult res;
+    nvcompCascadedFormatOpts opts = {0,1,
+                                     0, nvcompCascadedFormatOpts::DeltaOpts::DeltaMode::NORMAL_DELTA};
+    opts.delta_opts.delta_mode = nvcompCascadedFormatOpts::DeltaOpts::DeltaMode::OVERFLOW_DELTA_FOR_INTERVAL;
+    nvcompCascadedFormatOpts::DeltaOpts::DeltaMode t;
+    REQUIRE(FCascade::cascade(input, res, 0, 1, 0, &opts));
+    FCascade::show_stat(input, res, true, true);
+
+    printf("--------------------------------------------\n");
+  }
 }

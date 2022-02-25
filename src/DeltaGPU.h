@@ -62,7 +62,9 @@ public:
       const void* inValues,
       const size_t* numDevice,
       const size_t maxNum,
-      cudaStream_t stream);
+      cudaStream_t stream,
+      const nvcompCascadedFormatOpts::DeltaOpts * deltaOpts = NULL
+  );
 
   /**
    * @brief Get the required size of the workspace in bytes.

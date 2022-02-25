@@ -57,6 +57,15 @@ typedef struct
    * @brief Whether or not to bitpack the final layers.
    */
   int use_bp;
+
+  struct DeltaOpts{
+      enum DeltaMode {
+        NORMAL_DELTA = 0x00,
+        OVERFLOW_DELTA_FOR_INTERVAL = 0x01,
+      };
+      DeltaMode delta_mode = NORMAL_DELTA;
+  } delta_opts;
+
 } nvcompCascadedFormatOpts;
 
 /**

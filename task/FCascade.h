@@ -51,7 +51,9 @@ struct CompResult{
 struct FCascade
 {
   static bool cascade(const vector<int8_t> input, CompResult & res,
-               int RLE, int deltas, int use_bp){
+               const int RLE, const int deltas, const int use_bp,
+                      nvcompCascadedFormatOpts * opts = NULL)
+  {
 
     typedef int8_t T;
     const nvcompType_t type = NVCOMP_TYPE_CHAR;
@@ -59,9 +61,13 @@ struct FCascade
     const size_t input_size = input.size();
     nvcompCascadedFormatOpts comp_opts;
 
-    comp_opts.num_RLEs = RLE;
-    comp_opts.num_deltas = deltas;
-    comp_opts.use_bp = use_bp;
+    if(opts == NULL) {
+      comp_opts.num_RLEs = RLE;
+      comp_opts.num_deltas = deltas;
+      comp_opts.use_bp = use_bp;
+    } else {
+      comp_opts = *opts;
+    }
     // create GPU only input buffer
     void* d_in_data;
     const size_t in_bytes = sizeof(T) * input_size;
