@@ -275,11 +275,11 @@ void DeltaGPU::compress(
     void** minValueDevicePtr;
     void** maxValueDevicePtr;
     unsigned char** numBitsDevicePtr;
+    tempSpace.reserve(&minValueDevicePtr, 1);
+    tempSpace.reserve(&maxValueDevicePtr, 1);
+
     tempSpace.reserve(minValueDevicePtr, 1);
     tempSpace.reserve(maxValueDevicePtr, 1);
-
-//    tempSpace.reserve(minValueDevicePtr, 1);
-//    tempSpace.reserve(maxValueDevicePtr, 1);
 
     tempSpace.reserve(&numBitsDevicePtr, 1);
 
