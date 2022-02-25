@@ -84,7 +84,7 @@ namespace nvcomp
  * CONSTANTS ******************************************************************
  *****************************************************************************/
 
-namespace
+namespace bitpack_helper
 {
 
 constexpr int const BLOCK_SIZE = 256;
@@ -92,8 +92,29 @@ constexpr int const BLOCK_SIZE = 256;
 // only used for min/max
 constexpr int const BLOCK_WIDTH = 4096;
 
-} // namespace
+/**
+ * @brief Get the maximum number of scratch space items that will be needed to
+ * to perform reduction on the input.
+ *
+ * @param num The number of items in the input.
+ *
+ * @return The number of elements required.
+ */
+size_t getReduceScratchSpaceSize(size_t const num)
+{
+  // in the first round, each block will write one value, and then the next
+  // round will launch and write one value per block. After that the spaces
+  // will be re-used
+  size_t const base
+      = std::min(BLOCK_WIDTH, static_cast<int>(roundUpDiv(num, BLOCK_SIZE)))
+        * sizeof(uint64_t);
 
+  return base;
+}
+
+} // namespace bitpack_helper
+
+using namespace bitpack_helper;
 /******************************************************************************
  * DEVICE FUNCTIONS ***********************************************************
  *****************************************************************************/
@@ -230,6 +251,7 @@ __global__ void bitPackConfigFinalizeKernel(
     LIMIT const* const inMax,
     unsigned char* const* const numBitsPtr,
     INPUT* const* const outMinValPtr,
+    INPUT* const* const outMaxValPtr,
     const size_t* const numDevice)
 {
   static_assert(
@@ -262,6 +284,8 @@ __global__ void bitPackConfigFinalizeKernel(
 
   if (threadIdx.x == 0) {
     **outMinValPtr = static_cast<INPUT>(minBuffer[0]);
+    if(outMaxValPtr != NULL)
+      **outMaxValPtr = static_cast<INPUT>(maxBuffer[0]);
     // we need to update the number of bits
     if (sizeof(LIMIT) > sizeof(int)) {
       const long long int range = static_cast<uint64_t>(maxBuffer[0]) - static_cast<uint64_t>(minBuffer[0]);
@@ -381,26 +405,6 @@ namespace
 {
 
 /**
- * @brief Get the maximum number of scratch space items that will be needed to
- * to perform reduction on the input.
- *
- * @param num The number of items in the input.
- *
- * @return The number of elements required.
- */
-size_t getReduceScratchSpaceSize(size_t const num)
-{
-  // in the first round, each block will write one value, and then the next
-  // round will launch and write one value per block. After that the spaces
-  // will be re-used
-  size_t const base
-      = std::min(BLOCK_WIDTH, static_cast<int>(roundUpDiv(num, BLOCK_SIZE)))
-        * sizeof(uint64_t);
-
-  return base;
-}
-
-/**
  * @brief Launch of all of the kernels necessary for the configuration step of
  * bit packing.
  *
@@ -423,6 +427,7 @@ void bitPackConfigLaunch(
     LIMIT* const minValueScratch,
     LIMIT* const maxValueScratch,
     INPUT* const* const minValOutPtr,
+    INPUT* const* const maxValOutPtr,
     unsigned char* const* const numBitsPtr,
     INPUT const* const in,
     const size_t* const numDevice,
@@ -433,16 +438,19 @@ void bitPackConfigLaunch(
       min(BLOCK_WIDTH, static_cast<int>(roundUpDiv(maxNum, BLOCK_SIZE))));
   const dim3 block(BLOCK_SIZE);
 
-  LIMIT a; INPUT b;
+  LIMIT a;
+  INPUT b;
   printf("type LIMIT: %s\n", typeid(a).name());
   printf("type INPUT: %s\n", typeid(b).name());
-  int8_t c; uint8_t d;
-  printf("type int8_t: %s\n", typeid(c).name()); //a
-  printf("type uint8_t: %s\n", typeid(d).name()); //h
+  int8_t c;
+  uint8_t d;
+  printf("type int8_t: %s\n", typeid(c).name());  // a
+  printf("type uint8_t: %s\n", typeid(d).name()); // h
 
-  char e; unsigned char f;
-  printf("type char: %s\n", typeid(e).name()); //a
-  printf("type unsigned char: %s\n", typeid(f).name()); //h
+  char e;
+  unsigned char f;
+  printf("type char: %s\n", typeid(e).name());          // a
+  printf("type unsigned char: %s\n", typeid(f).name()); // h
 
   cudaError_t err;
   if(verbose) printf("bitPackConfigScanKernel\n");
@@ -459,7 +467,7 @@ void bitPackConfigLaunch(
   if(verbose) printf("bitPackConfigFinalizeKernel\n");
   // determine numBits and convert min value
   bitPackConfigFinalizeKernel<<<dim3(1), block, 0, stream>>>(
-      minValueScratch, maxValueScratch, numBitsPtr, minValOutPtr, numDevice);
+      minValueScratch, maxValueScratch, numBitsPtr, minValOutPtr, maxValOutPtr, numDevice);
   err = cudaGetLastError();
   if (err != cudaSuccess) {
     throw std::runtime_error(
@@ -543,6 +551,7 @@ void bitPackInternal(
       minValueTyped,
       maxValueTyped,
       reinterpret_cast<IN* const*>(minValueDevicePtr),
+      reinterpret_cast<IN* const*>(NULL),
       numBitsDevicePtr,
       inputTyped,
       numDevice,
@@ -606,6 +615,73 @@ BitPackGPU::requiredWorkspaceSize(size_t const num, const nvcompType_t type)
       = sizeOfnvcompType(type) * getReduceScratchSpaceSize(num) * 2;
 
   return bytes;
+}
+
+namespace bitpack_helper
+{
+
+template <typename LIMIT, typename INPUT>
+  void calcMinMaxInternal(
+      void* const  workspace ,
+      const size_t workspaceSize,
+      const nvcompType_t inType,
+      /*void** const outPtr,*/
+      const void* const in,
+      const size_t* const numDevice,
+      const size_t maxNum,
+      void* const* const minValueDevicePtr,
+      void* const* const maxValueDevicePtr,
+      unsigned char* const* const numBitsDevicePtr,
+      cudaStream_t stream)
+  {
+    // cast voids to known types
+    LIMIT* const maxValueTyped = static_cast<LIMIT*>(workspace);
+    LIMIT* const minValueTyped
+        = maxValueTyped + getReduceScratchSpaceSize(maxNum);
+    INPUT const* const inputTyped = static_cast<INPUT const*>(in);
+
+    bitPackConfigLaunch(minValueTyped,
+                        maxValueTyped,
+                        reinterpret_cast<INPUT* const*>(minValueDevicePtr),
+                        reinterpret_cast<INPUT* const*>(maxValueDevicePtr),
+                        numBitsDevicePtr,
+                        inputTyped,
+                        numDevice,
+                        maxNum,
+                        stream);
+  }
+
+  void calcMinMax(
+      void* const  workspace ,
+      const size_t workspaceSize,
+      const nvcompType_t inType,
+      /*void** const outPtr,*/
+      const void* const in,
+      const size_t* const numDevice,
+      const size_t maxNum,
+      void* const* const minValueDevicePtr,
+      void* const* const maxValueDevicePtr,
+      unsigned char* const* const numBitsDevicePtr,
+      cudaStream_t stream)
+  {
+    if(inType == NVCOMP_TYPE_CHAR){
+      calcMinMaxInternal<char, char>(workspace,
+                                     workspaceSize,
+                                     inType,
+                                     in,
+                                     numDevice,
+                                     maxNum,
+                                     minValueDevicePtr,
+                                     maxValueDevicePtr,
+                                     numBitsDevicePtr,
+                                     stream);
+    }
+    else
+    {
+      throw std::runtime_error("Implement only for NVCOMP_TYPE_CHAR");
+    }
+  }
+
 }
 
 } // namespace nvcomp

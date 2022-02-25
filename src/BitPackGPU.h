@@ -83,4 +83,22 @@ public:
   static size_t requiredWorkspaceSize(size_t num, nvcompType_t type);
 };
 
+namespace bitpack_helper
+{
+size_t getReduceScratchSpaceSize(size_t const num);
+
+void calcMinMax(
+    void* const  workspace ,
+    const size_t workspaceSize,
+    const nvcompType_t inType,
+    /*void** const outPtr,*/
+    const void* const in,
+    const size_t* const numDevice,
+    const size_t maxNum,
+    void* const* const minValueDevicePtr,
+    void* const* const maxValueDevicePtr,
+    unsigned char* const* const numBitsDevicePtr,
+    cudaStream_t stream);
+}
+
 } // namespace nvcomp
