@@ -144,7 +144,7 @@ __global__ void deltaKernelOverflowMode(
       const VALUE next = buffer[threadIdx.x + 1];
       const VALUE prev = buffer[threadIdx.x];
 
-      printf("next %d prev %d\n", next, prev);
+      printf("next %d prev %d idx %d\n", next, prev, idx);
 
       EXTEND_VALUE way = std::abs(
           static_cast<EXTEND_VALUE>(next) -
