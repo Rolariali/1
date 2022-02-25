@@ -285,6 +285,7 @@ __global__ void bitPackConfigFinalizeKernel(
 
   if (threadIdx.x == 0) {
     printf("@3 %p - %p\n", outMinValPtr, outMaxValPtr);
+    printf("@31 %p - %p\n", *outMinValPtr, *outMaxValPtr);
     **outMinValPtr = static_cast<INPUT>(minBuffer[0]);
     if(outMaxValPtr != NULL)
       **outMaxValPtr = static_cast<INPUT>(maxBuffer[0]);
