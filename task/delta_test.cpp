@@ -25,7 +25,7 @@ int main()
     printf("--------------------------------------------\n");
   }
   {
-    printf("--------------------Delta ------------------------\n");
+    printf("--------------------Delta OVERFLOW_DELTA_FOR_INTERVAL------------------------\n");
 
     struct CompResult res;
     nvcompCascadedFormatOpts opts = {0,1,
