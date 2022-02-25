@@ -222,7 +222,25 @@ void deltaLaunch(
         + " error flag: " + std::to_string(error_flag) );
   }
 }
+/*
+template <typename T>
+__global__ void setHeader(
+//    CascadedMetadata::Header* const header,
 
+    T** const minValueDevicePtr,
+    T** const maxValueDevicePtr,
+    unsigned char** const numBitsDevicePtr)
+{
+  // setup the header and pointers into it
+  assert(blockIdx.x == 0);
+  assert(threadIdx.x == 0);
+
+  *minValueDevicePtr = CascadedMetadata::getMinValueLocation<T>(header);
+  *numBitsDevicePtr = &header->numBits;
+
+  printf("setHeader\n");
+}
+*/
 } // namespace
 
 /******************************************************************************
@@ -259,6 +277,10 @@ void DeltaGPU::compress(
     unsigned char** numBitsDevicePtr;
     tempSpace.reserve(&minValueDevicePtr, 1);
     tempSpace.reserve(&maxValueDevicePtr, 1);
+
+    tempSpace.reserve(minValueDevicePtr, 1);
+    tempSpace.reserve(maxValueDevicePtr, 1);
+
     tempSpace.reserve(&numBitsDevicePtr, 1);
 
     //todo setup header
