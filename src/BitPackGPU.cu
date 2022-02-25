@@ -306,7 +306,7 @@ __global__ void bitPackConfigFinalizeKernel(
 
     printf("__device__ outMinValPtr: %d\n", **outMinValPtr);
     printf("__device__ **numBitsPtr: %u\n", **numBitsPtr);
-    printf("__device__ maxBuffer[0]: %d\n", maxBuffer[0]);
+    printf("__device__ outMaxValPtr: %d\n", **outMaxValPtr);
   }
 }
 
