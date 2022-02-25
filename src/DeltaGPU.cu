@@ -160,7 +160,10 @@ __global__ void deltaKernelOverflowMode(
         way = next - prev;
       }
 
-      output[idx] = static_cast<VALUE>(way);
+      if (idx > 0)
+        output[idx] = static_cast<VALUE>(way);
+      else
+        output[idx] = next - prev;
     }
 
   }
