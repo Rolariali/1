@@ -32,6 +32,7 @@
 //#include "catch.hpp"
 #include "nvcomp.hpp"
 #include "nvcomp/cascaded.hpp"
+#include "CudaUtils.h"
 #include <cuda_runtime.h>
 
 #include <cstdint>
@@ -822,6 +823,13 @@ void test_out_of_bound(const std::vector<data_type> input_host, const nvcompBatc
      test_compressed_bytes_host.data(),
      sizeof(size_t) * num_cases,
      cudaMemcpyHostToDevice));
+ printf("is d_ptr %d\n", nvcomp::CudaUtils::is_device_pointer(test_compressed_ptrs_host[0]));
+ printf("is d_ptr %d\n", nvcomp::CudaUtils::is_device_pointer(test_compressed_ptrs_host[1]));
+ printf("is d_ptr %d\n", nvcomp::CudaUtils::is_device_pointer(test_compressed_ptrs_host[2]));
+ printf("is d_ptr %d\n", nvcomp::CudaUtils::is_device_pointer(test_compressed_ptrs_host[3]));
+ printf("\ntest_compressed_bytes_host:\n", num_cases);
+ for(auto a: test_compressed_bytes_host)
+   printf("%u:", a);
 
  void** test_decompressed_ptrs_device;
  CUDA_CHECK(
