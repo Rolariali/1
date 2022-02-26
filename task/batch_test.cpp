@@ -910,11 +910,11 @@ int main()
   std::vector<data_type> input_host = generate_predefined_input_host(
       std::vector<data_type>{1, 2, 3, 4, 5, 6},
       std::vector<size_t>{10, 6, 15, 1, 13, 9});
-  printf("\n===\ninput_host: ");
+  const size_t batch_size = input_host.size();
+  printf("\n===\ninput_host <%u> : ", batch_size);
   for(auto a: input_host)
     printf("%d:", a);
   printf("\n===\n");
-  const size_t batch_size = input_host.size();
 
   nvcompBatchedCascadedOpts_t comp_opts
       = {batch_size, nvcomp::TypeOf<data_type>(), 0, 1, 0};
