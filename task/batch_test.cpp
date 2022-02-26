@@ -827,10 +827,10 @@ void test_out_of_bound(const std::vector<data_type> input_host, const nvcompBatc
  printf("is d_ptr %d\n", nvcomp::CudaUtils::is_device_pointer(test_compressed_ptrs_host[1]));
  printf("is d_ptr %d\n", nvcomp::CudaUtils::is_device_pointer(test_compressed_ptrs_host[2]));
  printf("is d_ptr %d\n", nvcomp::CudaUtils::is_device_pointer(test_compressed_ptrs_host[3]));
- printf("\ntest_compressed_bytes_host:\n", num_cases);
+ printf("\nsize test_compressed_bytes_host:\n", num_cases);
  int i = 0;
  for(auto a: test_compressed_bytes_host) {
-   printf("test_compressed_bytes_host %u\n:", a);
+   printf("\ntest_compressed_bytes_host %u\n:", a);
    std::vector<uint8_t> t(a);
    CUDA_CHECK(cudaMemcpy(
        test_compressed_ptrs_host[i],
@@ -838,7 +838,7 @@ void test_out_of_bound(const std::vector<data_type> input_host, const nvcompBatc
        a,
        cudaMemcpyHostToDevice));
    i++;
-   printf("===test_compressed_ptrs_host[%d]\n", i);
+   printf("\n===test_compressed_ptrs_host[%d]\n", i);
    for(auto b: t)
            printf("%d:", b);
  }
