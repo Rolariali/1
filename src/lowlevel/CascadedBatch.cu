@@ -1598,8 +1598,8 @@ nvcompStatus_t nvcompBatchedCascadedCompressAsync(
     const size_t* device_uncompressed_bytes,
     size_t max_uncompressed_chunk_bytes, // not used
     size_t batch_size,
-    void* device_temp_ptr, // not used
-    size_t temp_bytes,     // not used
+    void* /* device_temp_ptr */, // not used
+    size_t /* temp_bytes */,     // not used
     void* const* device_compressed_ptrs,
     size_t* device_compressed_bytes,
     const nvcompBatchedCascadedOpts_t format_opts,
