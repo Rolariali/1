@@ -88,7 +88,7 @@ int main()
     // Verify correctness
     printf("\n==== decompress data: ");
     for (size_t i = 0; i < input.size(); ++i) {
-      printf("%d:", decomp[i]);
+      printf("(%d)%d:", i, decomp[i]);
       REQUIRE(decomp[i] == input[i]);
     }
 
