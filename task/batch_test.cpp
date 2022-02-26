@@ -917,7 +917,7 @@ int main()
   printf("\n===\n");
 
   nvcompBatchedCascadedOpts_t comp_opts
-      = {batch_size, nvcomp::TypeOf<data_type>(), 0, 1, 0};
+      = {batch_size, nvcomp::TypeOf<data_type>(), 0, 0, 0};
 
   test_out_of_bound<data_type>(input_host, comp_opts);
 }
