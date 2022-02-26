@@ -109,6 +109,11 @@ int CascadedMetadata::getNumDeltas() const
   return m_formatOpts.num_deltas;
 }
 
+nvcompCascadedFormatOpts::DeltaOpts::DeltaMode CascadedMetadata::getModeDeltas() const
+{
+  return m_formatOpts.delta_opts.delta_mode;
+}
+
 unsigned int CascadedMetadata::getNumInputs() const
 {
   // Determine the number of unique data id's that will be present in the

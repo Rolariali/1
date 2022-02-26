@@ -92,8 +92,8 @@ __global__ void deltaKernel(
 
     if (idx < num) {
       output[idx] = buffer[threadIdx.x + 1] - buffer[threadIdx.x];
-      printf("%d = %d - %d\n",
-             output[idx] , buffer[threadIdx.x + 1] , buffer[threadIdx.x]);
+//      printf("%d = %d - %d\n",
+//             output[idx] , buffer[threadIdx.x + 1] , buffer[threadIdx.x]);
     }
   }
 }
@@ -144,7 +144,7 @@ __global__ void deltaKernelOverflowMode(
       const VALUE next = buffer[threadIdx.x + 1];
       const VALUE prev = buffer[threadIdx.x];
 
-      printf("next %d prev %d idx %d\n", next, prev, idx);
+//      printf("next %d prev %d idx %d\n", next, prev, idx);
 
       EXTEND_VALUE way = std::abs(
           static_cast<EXTEND_VALUE>(next) -

@@ -470,7 +470,8 @@ void compressTypedAsync(
   const int numDeltas = metadata.getNumDeltas();
   const bool bitPacking = metadata.useBitPacking();
   const nvcompCascadedFormatOpts::DeltaOpts::DeltaMode deltaMode =  // todo inject to metadata
-      format_opts->delta_opts.delta_mode;
+//      format_opts->delta_opts.delta_mode;
+      metadata.getModeDeltas();
   if(verbose) printf("deltaMode: %u\n", deltaMode);
   // assume single chunk for now
   // TODO: implement a multi-chunk version

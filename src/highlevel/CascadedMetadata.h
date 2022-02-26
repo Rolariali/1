@@ -99,6 +99,7 @@ public:
   {
     uint64_t length;
     MinValue minValue;
+    MinValue maxValue;
     uint8_t numBits;
   };
 
@@ -130,6 +131,7 @@ public:
    */
   int getNumDeltas() const;
 
+  nvcompCascadedFormatOpts::DeltaOpts::DeltaMode getModeDeltas() const;
   /**
    * @brief Get the number inputs/layers in the scheme.
    *
