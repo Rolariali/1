@@ -43,6 +43,10 @@ struct CompResult{
   size_t out_bytes;
   size_t meta_bytes;
 
+  size_t metadata_bytes_orig;
+  void* d_ptr_compress_data;
+  size_t compress_out_bytes;
+
   //free after use
   nvcomp::highlevel::CascadedMetadata* meta_ptr;
 };
@@ -134,6 +138,10 @@ struct FCascade
 
     CUDA_CHECK(cudaMemcpy(
         out.data(), d_comp_out, comp_out_bytes, cudaMemcpyDeviceToHost));
+
+    res.d_ptr_compress_data = d_comp_out;
+    res.compress_out_bytes = comp_out_bytes;
+    res.metadata_bytes_orig = metadata_bytes;
 
     // get temp and output size
     size_t temp_bytes;
