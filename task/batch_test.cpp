@@ -479,7 +479,7 @@ void test_predefined_cases(int use_bp)
 template <typename data_type>
 void test_fallback_path()
 {
- std::vector<int> uncompressed_num_elements = {10, 100 }; //, 1000, 10000, 1000};
+ std::vector<int> uncompressed_num_elements = {32, 32 }; //, 1000, 10000, 1000};
  const size_t batch_size = uncompressed_num_elements.size();
 
  // Generate random integers as input data in the host memory
@@ -489,14 +489,16 @@ void test_fallback_path()
  std::uniform_int_distribution<data_type> dist;
 
  std::vector<std::vector<data_type>> inputs_data(batch_size);
+ printf("input: ");
  for (size_t input_idx = 0; input_idx < batch_size; input_idx++) {
    inputs_data[input_idx].resize(uncompressed_num_elements[input_idx]);
    for (int element_idx = 0;
         element_idx < uncompressed_num_elements[input_idx];
         element_idx++) {
      inputs_data[input_idx][element_idx] = dist(random_generator);
+     printf("%d:", inputs_data[input_idx][element_idx]);
    }
-   printf("size %u : %u ", input_idx, inputs_data[input_idx].size());
+   printf("\nsize %u : %u \ninput :", input_idx, inputs_data[input_idx].size());
  }
   printf("\n");
  // Copy the input data and sizes to the device memory
