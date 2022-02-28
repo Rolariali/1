@@ -479,7 +479,7 @@ void test_predefined_cases(int use_bp)
 template <typename data_type>
 void test_fallback_path()
 {
- std::vector<int> uncompressed_num_elements = {32, 32 }; //, 1000, 10000, 1000};
+ std::vector<data_type> uncompressed_num_elements = {32, 32 }; //, 1000, 10000, 1000};
  const size_t batch_size = uncompressed_num_elements.size();
 
  // Generate random integers as input data in the host memory
