@@ -236,7 +236,7 @@ void test_predefined_cases(int use_bp)
      = {input0_host.size() * sizeof(data_type),
         input1_host.size() * sizeof(data_type),
         input0_host.size() * sizeof(data_type)};
- const size_t batch_size = uncompressed_ptrs_host.size();
+ const size_t batch_size = uncompressed_ptrs_host.size();  //3
 
  void** uncompressed_ptrs_device;
  CUDA_CHECK(cudaMalloc(&uncompressed_ptrs_device, sizeof(void*) * batch_size));
@@ -280,7 +280,7 @@ void test_predefined_cases(int use_bp)
  // Launch batched compression
 
  nvcompBatchedCascadedOpts_t comp_opts
-     = {batch_size, nvcomp::TypeOf<data_type>(), 2, 1, use_bp};
+     = {batch_size, nvcomp::TypeOf<data_type>(), 0, 1, 0};
 
  auto status = nvcompBatchedCascadedCompressAsync(
      uncompressed_ptrs_device,
@@ -479,7 +479,7 @@ void test_predefined_cases(int use_bp)
 template <typename data_type>
 void test_fallback_path()
 {
- std::vector<int> uncompressed_num_elements = {10, 100, 1000, 10000, 1000};
+ std::vector<int> uncompressed_num_elements = {10, 100 }; //, 1000, 10000, 1000};
  const size_t batch_size = uncompressed_num_elements.size();
 
  // Generate random integers as input data in the host memory
@@ -513,6 +513,8 @@ void test_fallback_path()
      uncompressed_bytes_host.data(),
      sizeof(size_t) * batch_size,
      cudaMemcpyHostToDevice));
+
+ printf("inputs_data size: %u\n", inputs_data.size());
 
  std::vector<void*> uncompressed_ptrs_host;
  for (size_t input_idx = 0; input_idx < batch_size; input_idx++) {
@@ -561,7 +563,7 @@ void test_fallback_path()
  // Launch batched cascaded compression
 
  nvcompBatchedCascadedOpts_t comp_opts
-     = {batch_size, nvcomp::TypeOf<data_type>(), 2, 1, true};
+     = {batch_size, nvcomp::TypeOf<data_type>(), 0, 1, 0};
 
  auto status = nvcompBatchedCascadedCompressAsync(
      uncompressed_ptrs_device,
@@ -578,9 +580,22 @@ void test_fallback_path()
  REQUIRE(status == nvcompSuccess);
  CUDA_CHECK(cudaStreamSynchronize(0));
 
+ std::vector<size_t> compressed_bytes(batch_size);
+
+ CUDA_CHECK(cudaMemcpy(
+     compressed_bytes.data(),
+     compressed_bytes_device,
+     sizeof(size_t) * batch_size,
+     cudaMemcpyDeviceToHost));
+
+ printf("compressed_bytes: ");
+ for(auto s: compressed_bytes)
+   printf("%u,", s);
+ printf("\n");
  // Check the metadata in the compressed buffers. It should indicate no
  // compression is used
  for (size_t partition_idx = 0; partition_idx < batch_size; partition_idx++) {
+   printf("partition_idx: %u\n", partition_idx);
    uint32_t metadata;
    CUDA_CHECK(cudaMemcpy(
        &metadata,
@@ -590,6 +605,9 @@ void test_fallback_path()
    REQUIRE(
        metadata == (static_cast<uint32_t>(nvcomp::TypeOf<data_type>()) << 24));
  }
+
+ printf("\n------------------------- Decompress ---------------------------\n");
+ // ========================================================================
 
  // Check uncompressed bytes stored in the compressed buffer
 
@@ -700,7 +718,7 @@ void test_out_of_bound(const std::vector<data_type> input_host, const nvcompBatc
 {
 
  const size_t uncompressed_byte = input_host.size() * sizeof(data_type);
- const size_t batch_size = input_host.size();
+ const size_t chunk_size = comp_opts.chunk_size;//input_host.size();
 
  void* uncompressed_data;
  CUDA_CHECK(cudaMalloc(&uncompressed_data, uncompressed_byte));
@@ -743,7 +761,6 @@ void test_out_of_bound(const std::vector<data_type> input_host, const nvcompBatc
 
  // ======================================================================================================
 
-
  auto status = nvcompBatchedCascadedCompressAsync(
      uncompressed_ptrs_device,
      uncompressed_bytes_device,
@@ -766,37 +783,26 @@ void test_out_of_bound(const std::vector<data_type> input_host, const nvcompBatc
      sizeof(size_t),
      cudaMemcpyDeviceToHost));
 
+ printf("compressed_byte: %u\n", compressed_byte);
+
  std::vector<size_t> test_compressed_bytes_host;
  std::vector<size_t> test_decompressed_bytes_host;
  std::vector<nvcompStatus_t> expected_statuses;
 
- // Case 1: the compressed buffer is truncated
-
- test_compressed_bytes_host.push_back(compressed_byte / 2);
- test_decompressed_bytes_host.push_back(uncompressed_byte);
- expected_statuses.push_back(nvcompErrorCannotDecompress);
-
- // Case 2: the decompressed buffer is too small
-
- test_compressed_bytes_host.push_back(compressed_byte);
- test_decompressed_bytes_host.push_back(uncompressed_byte / 2);
- expected_statuses.push_back(nvcompErrorCannotDecompress);
-
- test_compressed_bytes_host.push_back(compressed_byte);
- test_decompressed_bytes_host.push_back(uncompressed_byte - 1);
- expected_statuses.push_back(nvcompErrorCannotDecompress);
-
- // Case 3: correct decompression
-
- test_compressed_bytes_host.push_back(compressed_byte);
- test_decompressed_bytes_host.push_back(uncompressed_byte);
- expected_statuses.push_back(nvcompSuccess);
-
- const size_t num_cases = expected_statuses.size();
  std::vector<void*> test_compressed_ptrs_host;
  std::vector<void*> test_decompressed_ptrs_host;
 
- for (size_t partition_idx = 0; partition_idx < num_cases; partition_idx++) {
+ void** test_compressed_ptrs_device;
+ CUDA_CHECK(
+     cudaMalloc(&test_compressed_ptrs_device, sizeof(void*) * chunk_size));
+ CUDA_CHECK(cudaMemcpy(
+     test_compressed_ptrs_device,
+     test_compressed_ptrs_host.data(),
+     sizeof(void*) * chunk_size,
+     cudaMemcpyHostToDevice));
+ printf("chunk_size: %u\n", chunk_size);
+
+ for (size_t partition_idx = 0; partition_idx < chunk_size; partition_idx++) {
    test_compressed_ptrs_host.push_back(compressed_data);
 
    void* decompressed_ptr;
@@ -805,76 +811,61 @@ void test_out_of_bound(const std::vector<data_type> input_host, const nvcompBatc
    test_decompressed_ptrs_host.push_back(decompressed_ptr);
  }
 
- void** test_compressed_ptrs_device;
- CUDA_CHECK(
-     cudaMalloc(&test_compressed_ptrs_device, sizeof(void*) * num_cases));
- CUDA_CHECK(cudaMemcpy(
-     test_compressed_ptrs_device,
-     test_compressed_ptrs_host.data(),
-     sizeof(void*) * num_cases,
-     cudaMemcpyHostToDevice));
- printf("num_cases: %u\n", num_cases);
-
  size_t* test_compressed_bytes_device;
  CUDA_CHECK(
-     cudaMalloc(&test_compressed_bytes_device, sizeof(size_t) * num_cases));
+     cudaMalloc(&test_compressed_bytes_device, sizeof(size_t) * chunk_size));
  CUDA_CHECK(cudaMemcpy(
      test_compressed_bytes_device,
      test_compressed_bytes_host.data(),
-     sizeof(size_t) * num_cases,
+     sizeof(size_t) * chunk_size,
      cudaMemcpyHostToDevice));
- printf("is d_ptr %d\n", nvcomp::CudaUtils::is_device_pointer(test_compressed_ptrs_host[0]));
- printf("is d_ptr %d\n", nvcomp::CudaUtils::is_device_pointer(test_compressed_ptrs_host[1]));
- printf("is d_ptr %d\n", nvcomp::CudaUtils::is_device_pointer(test_compressed_ptrs_host[2]));
- printf("is d_ptr %d\n", nvcomp::CudaUtils::is_device_pointer(test_compressed_ptrs_host[3]));
- printf("\nsize test_compressed_bytes_host:\n", num_cases);
- int i = 0;
- for(auto a: test_compressed_bytes_host) {
-   printf("\ntest_compressed_bytes_host %u\n:", a);
-   std::vector<uint8_t> t(a);
-   CUDA_CHECK(cudaMemcpy(
-       test_compressed_ptrs_host[i],
-       t.data(),
-       a,
-       cudaMemcpyHostToDevice));
-   i++;
-   printf("\n===test_compressed_ptrs_host[%d]\n", i);
-   for(auto b: t)
-           printf("%d:", b);
- }
+
+// for(auto a: test_compressed_bytes_host) {
+//   printf("\ntest_compressed_bytes_host %u\n:", a);
+//   std::vector<uint8_t> t(a);
+//   CUDA_CHECK(cudaMemcpy(
+//       test_compressed_ptrs_host[i],
+//       t.data(),
+//       a,
+//       cudaMemcpyHostToDevice));
+//   i++;
+//   printf("\n===test_compressed_ptrs_host[%d]\n", i);
+//   for(auto b: t)
+//           printf("%d:", b);
+// }
 
  void** test_decompressed_ptrs_device;
  CUDA_CHECK(
-     cudaMalloc(&test_decompressed_ptrs_device, sizeof(void*) * num_cases));
+     cudaMalloc(&test_decompressed_ptrs_device, sizeof(void*) * chunk_size));
  CUDA_CHECK(cudaMemcpy(
      test_decompressed_ptrs_device,
      test_decompressed_ptrs_host.data(),
-     sizeof(void*) * num_cases,
+     sizeof(void*) * chunk_size,
      cudaMemcpyHostToDevice));
 
  size_t* test_decompressed_bytes_device;
  CUDA_CHECK(
-     cudaMalloc(&test_decompressed_bytes_device, sizeof(size_t) * num_cases));
+     cudaMalloc(&test_decompressed_bytes_device, sizeof(size_t) * chunk_size));
  CUDA_CHECK(cudaMemcpy(
      test_decompressed_bytes_device,
      test_decompressed_bytes_host.data(),
-     sizeof(size_t) * num_cases,
+     sizeof(size_t) * chunk_size,
      cudaMemcpyHostToDevice));
 
  size_t* actual_decompressed_bytes;
  CUDA_CHECK(
-     cudaMalloc(&actual_decompressed_bytes, sizeof(size_t) * num_cases));
+     cudaMalloc(&actual_decompressed_bytes, sizeof(size_t) * chunk_size));
 
  nvcompStatus_t* decompression_statuses;
  CUDA_CHECK(
-     cudaMalloc(&decompression_statuses, sizeof(nvcompStatus_t) * num_cases));
+     cudaMalloc(&decompression_statuses, sizeof(nvcompStatus_t) * chunk_size));
 
  status = nvcompBatchedCascadedDecompressAsync(
      test_compressed_ptrs_device,
      test_compressed_bytes_device,
      test_decompressed_bytes_device,
      actual_decompressed_bytes,
-     num_cases,
+     chunk_size,
      nullptr, // not used
      0,       // not used
      test_decompressed_ptrs_device,
@@ -884,14 +875,14 @@ void test_out_of_bound(const std::vector<data_type> input_host, const nvcompBatc
  REQUIRE(status == nvcompSuccess);
  CUDA_CHECK(cudaStreamSynchronize(0));
 
- std::vector<nvcompStatus_t> decompression_statuses_host(num_cases);
+ std::vector<nvcompStatus_t> decompression_statuses_host(chunk_size);
  CUDA_CHECK(cudaMemcpy(
      decompression_statuses_host.data(),
      decompression_statuses,
-     sizeof(nvcompStatus_t) * num_cases,
+     sizeof(nvcompStatus_t) * chunk_size,
      cudaMemcpyDeviceToHost));
 
- for (size_t partition_idx = 0; partition_idx < num_cases; partition_idx++) {
+ for (size_t partition_idx = 0; partition_idx < chunk_size; partition_idx++) {
    REQUIRE(
        decompression_statuses_host[partition_idx]
        == expected_statuses[partition_idx]);
@@ -917,19 +908,22 @@ void test_out_of_bound(const std::vector<data_type> input_host, const nvcompBatc
 
 int main()
 {
-  using data_type = int;
+  /*
+    using data_type = int;
 
-  std::vector<data_type> input_host = generate_predefined_input_host(
-      std::vector<data_type>{1, 2, 3, 4, 5, 6},
-      std::vector<size_t>{10, 6, 15, 1, 13, 9});
-  const size_t batch_size = input_host.size();
-  printf("\n===\ninput_host <%u> : ", batch_size);
-  for(auto a: input_host)
-    printf("%d:", a);
-  printf("\n===\n");
+    std::vector<data_type> input_host = generate_predefined_input_host(
+        std::vector<data_type>{1, 2, 3, 4, 5, 6},
+        std::vector<size_t>{10, 6, 15, 1, 13, 9});
+    const size_t batch_size = input_host.size();
+    printf("\n===\ninput_host <%u> : ", batch_size);
+    for (auto a : input_host)
+      printf("%d:", a);
+    printf("\n===\n");
 
-  nvcompBatchedCascadedOpts_t comp_opts
-      = {batch_size, nvcomp::TypeOf<data_type>(), 0, 0, 0};
+    nvcompBatchedCascadedOpts_t comp_opts
+        = {batch_size, nvcomp::TypeOf<data_type>(), 0, 0, 0};
 
-  test_out_of_bound<data_type>(input_host, comp_opts);
+    test_out_of_bound<data_type>(input_host, comp_opts);
+  */
+  test_fallback_path<int8_t>();
 }
