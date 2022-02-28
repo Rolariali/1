@@ -496,8 +496,9 @@ void test_fallback_path()
         element_idx++) {
      inputs_data[input_idx][element_idx] = dist(random_generator);
    }
+   printf("size %u : %u ", input_idx, inputs_data[input_idx].size());
  }
-
+  printf("\n");
  // Copy the input data and sizes to the device memory
 
  std::vector<size_t> uncompressed_bytes_host;
