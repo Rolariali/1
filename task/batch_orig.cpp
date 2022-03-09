@@ -321,18 +321,20 @@ void test_predefined_cases(int use_bp)
     printf("uncompressed_byte %zu\n", uncompressed_byte);
   }
 
-  std::vector<data_type> compressed_data_host(compressed_bytes_host[0]*2);
-  CUDA_CHECK(cudaMemcpy(
-      compressed_data_host.data(),
-      compressed_ptrs_host[0],
-      compressed_bytes_host[0],
-      cudaMemcpyDeviceToHost));
+  for(int i=0; i < batch_size; i++) {
+    std::vector<data_type> compressed_data_host(compressed_bytes_host[i]);
+    CUDA_CHECK(cudaMemcpy(
+        compressed_data_host.data(),
+        compressed_ptrs_host[i],
+        compressed_bytes_host[i],
+        cudaMemcpyDeviceToHost));
 
-  printf("compressed_data_host: ");
-  for(auto el: compressed_data_host){
-    printf("%d:", el);
+    printf("compressed_data_host: ");
+    for (auto el : compressed_data_host) {
+      printf("%d:", el);
+    }
+    printf("\n");
   }
-  printf("\n");
 
   // Check compression output
 
