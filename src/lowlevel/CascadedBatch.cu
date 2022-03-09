@@ -949,6 +949,7 @@ __global__ void cascaded_compression_kernel(
           // Number of elements is decreased by 1 since the first element is
           // excluded for the subsequent operations.
           num_elements_current_chunk -= 1;
+          printf("delta num_elements_current_chunk %zu\n", num_elements_current_chunk);
 
           delta_remaining--;
         }
@@ -1027,6 +1028,14 @@ __global__ void cascaded_compression_kernel(
         compressed_bytes[partition_idx]
             = roundUpTo(partition_metadata_size, sizeof(data_type))
               + roundUpTo(num_input_elements * sizeof(data_type), 4);
+        printf("compressed_bytes[%u]: %u",
+               partition_idx,
+               compressed_bytes[partition_idx]);
+
+        printf(" = %u @ %u + %u\n",
+               partition_metadata_size,
+               roundUpTo(partition_metadata_size, sizeof(data_type)),
+               num_input_elements );
       }
       output_buffer[1]
           = static_cast<uint32_t>(num_input_elements * sizeof(data_type));
