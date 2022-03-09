@@ -595,7 +595,7 @@ void test_fallback_path()
  printf("compressed_bytes: ");
  for(auto s: compressed_bytes)
    printf("%u,", s);
- printf("\n");
+ printf("\n--\n");
 
  REQUIRE(!nvcomp::CudaUtils::is_device_pointer(compressed_ptrs_device[0]));
  printf("nvcomp::CudaUtils::is_device_pointer(compressed_ptrs_device[0] %d\n",
