@@ -983,6 +983,7 @@ __global__ void cascaded_compression_kernel(
         use_compression = false;
         break;
       }
+      printf("use_compression %d\n", (int)use_compression);
 
       current_output_ptr = final_output_ptr + roundUpDiv(out_bytes, 4);
       current_output_ptr = reinterpret_cast<uint32_t*>(
