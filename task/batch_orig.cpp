@@ -281,7 +281,7 @@ printf("\n");
     void* compressed_ptr;
     CUDA_CHECK(cudaMalloc(
         &compressed_ptr,
-        max_compressed_size(uncompressed_bytes_host[partition_idx])));
+        max_compressed_size(uncompressed_bytes_host[partition_idx])+12));
     compressed_ptrs_host.push_back(compressed_ptr);
   }
 
@@ -299,7 +299,7 @@ printf("\n");
   // Launch batched compression
 
   nvcompBatchedCascadedOpts_t comp_opts
-      = {batch_size, nvcomp::TypeOf<data_type>(), 0, 0, 0};
+      = {batch_size, nvcomp::TypeOf<data_type>(), 0, 1, 0};
 
   auto status = nvcompBatchedCascadedCompressAsync(
       uncompressed_ptrs_device,
