@@ -952,7 +952,7 @@ __global__ void cascaded_compression_kernel(
           shared_output_buffer = shared_input_buffer;
           shared_input_buffer = temp_ptr;
 
-          printf("> %d, %d, %d, %d\n",
+          printf("< %d, %d, %d, %d\n",
                  (int)shared_input_buffer[0], (int)shared_input_buffer[1],
                  (int)shared_input_buffer[2], (int)shared_input_buffer[3]);
 
