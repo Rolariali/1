@@ -173,6 +173,7 @@ void verify_decompressed_output(
     const std::vector<size_t>& uncompressed_bytes_host)
 {
 
+  printf("check =============\n");
   for (size_t partition_idx = 0; partition_idx < batch_size; partition_idx++) {
     const size_t num_elements
         = uncompressed_bytes_host[partition_idx] / sizeof(data_type);
@@ -183,12 +184,15 @@ void verify_decompressed_output(
         decompressed_ptrs_host[partition_idx],
         uncompressed_bytes_host[partition_idx],
         cudaMemcpyDeviceToHost));
-
+    printf("num_elements %zu:\n", num_elements);
     for (size_t element_idx = 0; element_idx < num_elements; element_idx++) {
+      printf("%d/%d:",decompressed_data_host[element_idx],
+             uncompressed_data_host[partition_idx][element_idx]);
       REQUIRE(
           decompressed_data_host[element_idx]
           == uncompressed_data_host[partition_idx][element_idx]);
     }
+    printf("\n");
   }
 }
 
@@ -335,14 +339,16 @@ printf("\n");
   }
 
   for(int i=0; i < batch_size; i++) {
-    std::vector<data_type> compressed_data_host(compressed_bytes_host[i]);
+    size_t _size = compressed_bytes_host[i];
+    printf("%d compressed_data_host %zu: ", i, _size);
+
+    std::vector<data_type> compressed_data_host(_size);
     CUDA_CHECK(cudaMemcpy(
         compressed_data_host.data(),
         compressed_ptrs_host[i],
-        compressed_bytes_host[i],
+        _size - 0,
         cudaMemcpyDeviceToHost));
 
-    printf("%d compressed_data_host: ", i);
     for (auto el : compressed_data_host) {
       printf("%d:", el);
     }
