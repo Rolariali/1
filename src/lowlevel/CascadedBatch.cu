@@ -948,7 +948,7 @@ __global__ void cascaded_compression_kernel(
 
           // Number of elements is decreased by 1 since the first element is
           // excluded for the subsequent operations.
-//          num_elements_current_chunk -= 1;
+          num_elements_current_chunk -= 1;
 
           delta_remaining--;
         }
