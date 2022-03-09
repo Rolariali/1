@@ -598,7 +598,7 @@ void test_fallback_path()
  // Check the metadata in the compressed buffers. It should indicate no
  // compression is used
  for (size_t partition_idx = 0; partition_idx < batch_size; partition_idx++) {
-   printf("partition_idx: %u\n", partition_idx);
+   printf("\npartition_idx: %u\n", partition_idx);
    uint32_t metadata;
    CUDA_CHECK(cudaMemcpy(
        &metadata,
@@ -607,6 +607,16 @@ void test_fallback_path()
        cudaMemcpyDeviceToHost));
    REQUIRE(
        metadata == (static_cast<uint32_t>(nvcomp::TypeOf<data_type>()) << 24));
+
+   const size_t size_comp = 40;
+   std::vector<data_type> compressed_el(size_comp);
+   CUDA_CHECK(cudaMemcpy(
+       compressed_el.data(),
+       compressed_ptrs_device[partition_idx],
+       size_comp,
+       cudaMemcpyDeviceToHost));
+   for(auto el: compressed_el)
+     printf("%d:", el);
  }
 
  printf("\n------------------------- Decompress ---------------------------\n");
