@@ -1035,6 +1035,11 @@ __global__ void cascaded_compression_kernel(
                compressed_bytes[partition_idx],
                partition_metadata_size,
                num_input_elements );
+        printf("k: %d %d == %d + %d\n",
+               partition_idx,
+               compressed_bytes[partition_idx],
+               partition_metadata_size,
+               num_input_elements );
       }
       output_buffer[1]
           = static_cast<uint32_t>(num_input_elements * sizeof(data_type));
