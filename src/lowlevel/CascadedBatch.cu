@@ -1028,13 +1028,10 @@ __global__ void cascaded_compression_kernel(
         compressed_bytes[partition_idx]
             = roundUpTo(partition_metadata_size, sizeof(data_type))
               + roundUpTo(num_input_elements * sizeof(data_type), 4);
-        printf("compressed_bytes[%u]: %u",
+        printf("k: %u %u == %u + %u\n",
                partition_idx,
-               compressed_bytes[partition_idx]);
-
-        printf(" = %u @ %u + %u\n",
+               compressed_bytes[partition_idx],
                partition_metadata_size,
-               roundUpTo(partition_metadata_size, sizeof(data_type)),
                num_input_elements );
       }
       output_buffer[1]
