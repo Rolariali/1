@@ -600,14 +600,6 @@ void test_fallback_path()
  printf("is_device_pointer %d\n",
         nvcomp::CudaUtils::is_device_pointer(compressed_ptrs_device));
 
- std::vector<void *> compressed_ptrs_dev(batch_size);
- CUDA_CHECK(cudaMemcpy(
-     compressed_ptrs_dev.data(),
-     compressed_ptrs_device,
-     batch_size,
-     cudaMemcpyDeviceToHost));
-
-
  // Check the metadata in the compressed buffers. It should indicate no
  // compression is used
  for (size_t partition_idx = 0; partition_idx < batch_size; partition_idx++) {
@@ -625,7 +617,7 @@ void test_fallback_path()
    std::vector<data_type> compressed_el(size_comp);
    CUDA_CHECK(cudaMemcpy(
        compressed_el.data(),
-       compressed_ptrs_dev[partition_idx],
+       compressed_ptrs_host[partition_idx],
        size_comp,
        cudaMemcpyDeviceToHost));
    printf("\ncompressed_el: ");
