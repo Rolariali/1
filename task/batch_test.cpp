@@ -597,19 +597,15 @@ void test_fallback_path()
    printf("%u,", s);
  printf("\n--+\n");
 
- REQUIRE(!nvcomp::CudaUtils::is_device_pointer(compressed_ptrs_device[0]));
  printf("is_device_pointer %d\n",
-        nvcomp::CudaUtils::is_device_pointer(compressed_ptrs_device[0]));
- const size_t size_comp = 40;
- std::vector<data_type> compressed_el(size_comp);
+        nvcomp::CudaUtils::is_device_pointer(compressed_ptrs_device));
+
+ std::vector<void *> compressed_ptrs_dev(batch_size);
  CUDA_CHECK(cudaMemcpy(
-     compressed_el.data(),
-     compressed_ptrs_device[0],
-     4,
+     compressed_ptrs_dev.data(),
+     compressed_ptrs_device,
+     batch_size,
      cudaMemcpyDeviceToHost));
- printf("\ncompressed_el: ");
- for(auto el: compressed_el)
-   printf("%d:", el);
 
 
  // Check the metadata in the compressed buffers. It should indicate no
@@ -625,6 +621,16 @@ void test_fallback_path()
    REQUIRE(
        metadata == (static_cast<uint32_t>(nvcomp::TypeOf<data_type>()) << 24));
 
+   const size_t size_comp = compressed_bytes[partition_idx];
+   std::vector<data_type> compressed_el(size_comp);
+   CUDA_CHECK(cudaMemcpy(
+       compressed_el.data(),
+       compressed_ptrs_dev[partition_idx],
+       size_comp,
+       cudaMemcpyDeviceToHost));
+   printf("\ncompressed_el: ");
+   for(auto el: compressed_el)
+     printf("%d:", el);
  }
 
 
