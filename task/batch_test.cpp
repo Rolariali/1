@@ -35,6 +35,7 @@
 #include "CudaUtils.h"
 #include <cuda_runtime.h>
 
+
 #include <cstdint>
 #include <random>
 #include <vector>
@@ -595,6 +596,21 @@ void test_fallback_path()
  for(auto s: compressed_bytes)
    printf("%u,", s);
  printf("\n");
+
+ REQUIRE(!nvcomp::CudaUtils::is_device_pointer(compressed_ptrs_device[0]));
+
+ const size_t size_comp = 40;
+ std::vector<data_type> compressed_el(size_comp);
+ CUDA_CHECK(cudaMemcpy(
+     compressed_el.data(),
+     compressed_ptrs_device[0],
+     4,
+     cudaMemcpyDeviceToHost));
+ printf("\ncompressed_el: ");
+ for(auto el: compressed_el)
+   printf("%d:", el);
+
+
  // Check the metadata in the compressed buffers. It should indicate no
  // compression is used
  for (size_t partition_idx = 0; partition_idx < batch_size; partition_idx++) {
@@ -610,16 +626,7 @@ void test_fallback_path()
 
  }
 
- const size_t size_comp = 40;
- std::vector<data_type> compressed_el(size_comp);
- CUDA_CHECK(cudaMemcpy(
-     compressed_el.data(),
-     compressed_ptrs_device[0],
-     4,
-     cudaMemcpyDeviceToHost));
- printf("\ncompressed_el: ");
- for(auto el: compressed_el)
-   printf("%d:", el);
+
 
  printf("\n------------------------- Decompress ---------------------------\n");
  // ========================================================================
