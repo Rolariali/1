@@ -956,6 +956,10 @@ __global__ void cascaded_compression_kernel(
                  (int)shared_input_buffer[0], (int)shared_input_buffer[1],
                  (int)shared_input_buffer[2], (int)shared_input_buffer[3]);
 
+          printf("<> %d, %d, %d, %d\n",
+                 (int)shared_output_buffer[0], (int)shared_output_buffer[1],
+                 (int)shared_output_buffer[2], (int)shared_output_buffer[3]);
+
           // Number of elements is decreased by 1 since the first element is
           // excluded for the subsequent operations.
           num_elements_current_chunk -= 1;
