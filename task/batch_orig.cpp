@@ -230,6 +230,19 @@ void test_predefined_cases(int use_bp)
       input1_host.size() * sizeof(data_type),
       cudaMemcpyHostToDevice));
 
+  printf("input0_host: ");
+for(auto el: input0_host)
+  printf("%d:", el);
+
+printf("\n");
+
+
+printf("input1_host: ");
+for(auto el: input1_host)
+  printf("%d:", el);
+
+printf("\n");
+
   // Copy uncompressed pointers and sizes to device memory
 
   std::vector<void*> uncompressed_ptrs_host
@@ -329,7 +342,7 @@ void test_predefined_cases(int use_bp)
         compressed_bytes_host[i],
         cudaMemcpyDeviceToHost));
 
-    printf("compressed_data_host: ");
+    printf("%d compressed_data_host: ", i);
     for (auto el : compressed_data_host) {
       printf("%d:", el);
     }
