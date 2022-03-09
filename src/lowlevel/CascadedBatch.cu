@@ -818,10 +818,10 @@ __global__ void cascaded_compression_kernel(
        partition_idx += gridDim.x) {
     const auto input_buffer = uncompressed_data[partition_idx];
     const auto input_bytes = uncompressed_bytes[partition_idx];
-    printf("input_bytes %u\n", input_bytes);
+//    printf("input_bytes %u\n", input_bytes);
     assert(input_bytes <= UINT32_MAX);
     const size_type num_input_elements = input_bytes / sizeof(data_type);
-    printf("num_input_elements %u %d\n", num_input_elements, num_input_elements);
+//    printf("num_input_elements %u %d\n", num_input_elements, num_input_elements);
     auto output_buffer = static_cast<uint32_t*>(compressed_data[partition_idx]);
     // `output_limit` points to the end of the output compressed buffer of the
     // current partition. The size of the compressed buffer should be at least
@@ -951,7 +951,7 @@ __global__ void cascaded_compression_kernel(
           // Number of elements is decreased by 1 since the first element is
           // excluded for the subsequent operations.
           num_elements_current_chunk -= 1;
-          printf("delta num_elements_current_chunk %zu\n", num_elements_current_chunk);
+//          printf("delta num_elements_current_chunk %zu\n", num_elements_current_chunk);
 
           delta_remaining--;
         }
@@ -1030,16 +1030,6 @@ __global__ void cascaded_compression_kernel(
         compressed_bytes[partition_idx]
             = roundUpTo(partition_metadata_size, sizeof(data_type))
               + roundUpTo(num_input_elements * sizeof(data_type), 4);
-        printf("k: %u %u == %u + %u\n",
-               partition_idx,
-               compressed_bytes[partition_idx],
-               partition_metadata_size,
-               num_input_elements );
-        printf("k: %d %d == %d + %d\n",
-               partition_idx,
-               compressed_bytes[partition_idx],
-               partition_metadata_size,
-               num_input_elements );
       }
       output_buffer[1]
           = static_cast<uint32_t>(num_input_elements * sizeof(data_type));
