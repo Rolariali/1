@@ -842,7 +842,7 @@ __global__ void cascaded_compression_kernel(
     // input buffer to the compressed buffer, and set this flag to false.
     bool use_compression = true;
 
-    if (comp_opts.num_RLEs == 0 && comp_opts.num_deltas == 0
+    if (comp_opts.num_RLEs == 0
         && comp_opts.use_bp == 0)
       use_compression = false;
 
