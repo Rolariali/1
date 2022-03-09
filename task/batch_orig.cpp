@@ -997,5 +997,5 @@ TEST_CASE("BatchedCascadedCompressor out-of-bound", "[nvcomp]")
 int main()
 {
   test_predefined_cases<int8_t>(0);
-  test_predefined_cases<int8_t>(1);
+//  test_predefined_cases<int8_t>(1);
 }
