@@ -942,7 +942,7 @@ __global__ void cascaded_compression_kernel(
             delta_header[comp_opts.num_deltas - delta_remaining]
                 = shared_input_buffer[0];
 
-            printf("> %d, %d, %d, %d\n",
+            printf("> %c, %c, %c, %c\n",
             shared_output_buffer[0], shared_output_buffer[1],
                    shared_output_buffer[2], shared_output_buffer[3]);
           }
@@ -955,7 +955,7 @@ __global__ void cascaded_compression_kernel(
           // Number of elements is decreased by 1 since the first element is
           // excluded for the subsequent operations.
           num_elements_current_chunk -= 1;
-          printf("delta num_elements_current_chunk %zu\n", num_elements_current_chunk);
+          printf("delta num_elements_current_chunk %u\n", num_elements_current_chunk);
 
           delta_remaining--;
         }
