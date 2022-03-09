@@ -295,7 +295,7 @@ printf("\n");
   // Launch batched compression
 
   nvcompBatchedCascadedOpts_t comp_opts
-      = {batch_size, nvcomp::TypeOf<data_type>(), 2, 1, use_bp};
+      = {batch_size, nvcomp::TypeOf<data_type>(), 0, 1, 0};
 
   auto status = nvcompBatchedCascadedCompressAsync(
       uncompressed_ptrs_device,
