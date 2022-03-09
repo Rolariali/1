@@ -818,6 +818,7 @@ __global__ void cascaded_compression_kernel(
        partition_idx += gridDim.x) {
     const auto input_buffer = uncompressed_data[partition_idx];
     const auto input_bytes = uncompressed_bytes[partition_idx];
+    printf("input_bytes %u\n", input_bytes);
     assert(input_bytes <= UINT32_MAX);
     const size_type num_input_elements = input_bytes / sizeof(data_type);
     auto output_buffer = static_cast<uint32_t*>(compressed_data[partition_idx]);
