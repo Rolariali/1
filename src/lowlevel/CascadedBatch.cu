@@ -821,6 +821,7 @@ __global__ void cascaded_compression_kernel(
     printf("input_bytes %u\n", input_bytes);
     assert(input_bytes <= UINT32_MAX);
     const size_type num_input_elements = input_bytes / sizeof(data_type);
+    printf("num_input_elements %u %d\n", num_input_elements, num_input_elements);
     auto output_buffer = static_cast<uint32_t*>(compressed_data[partition_idx]);
     // `output_limit` points to the end of the output compressed buffer of the
     // current partition. The size of the compressed buffer should be at least
