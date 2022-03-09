@@ -311,12 +311,14 @@ void test_predefined_cases(int use_bp)
   for (auto const& compressed_bytes_partition : compressed_bytes_host) {
     REQUIRE(compressed_bytes_partition % 4 == 0);
     REQUIRE(compressed_bytes_partition % sizeof(data_type) == 0);
+    printf("compressed_bytes_partition %zu\n", compressed_bytes_partition);
   }
 
   // Check the test case is small enough to fit inside one batch
   constexpr size_t chunk_size = 4096;
   for (auto const& uncompressed_byte : uncompressed_bytes_host) {
     REQUIRE(uncompressed_byte <= chunk_size);
+    printf("uncompressed_byte %zu\n", uncompressed_byte);
   }
 
   // Check compression output
@@ -369,7 +371,7 @@ void test_predefined_cases(int use_bp)
   }
 
   // Check uncompressed bytes stored in the compressed buffer
-
+  printf("\n----- Decompression ---------\n");
   size_t* decompressed_bytes_device;
   CUDA_CHECK(
       cudaMalloc(&decompressed_bytes_device, sizeof(size_t) * batch_size));
