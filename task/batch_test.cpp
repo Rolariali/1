@@ -595,10 +595,10 @@ void test_fallback_path()
  printf("compressed_bytes: ");
  for(auto s: compressed_bytes)
    printf("%u,", s);
- printf("\n--\n");
+ printf("\n--+\n");
 
  REQUIRE(!nvcomp::CudaUtils::is_device_pointer(compressed_ptrs_device[0]));
- printf("nvcomp::CudaUtils::is_device_pointer(compressed_ptrs_device[0] %d\n",
+ printf("is_device_pointer %d\n",
         nvcomp::CudaUtils::is_device_pointer(compressed_ptrs_device[0]));
  const size_t size_comp = 40;
  std::vector<data_type> compressed_el(size_comp);
