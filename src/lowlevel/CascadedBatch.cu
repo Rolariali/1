@@ -930,6 +930,7 @@ __global__ void cascaded_compression_kernel(
         }
 
         if (delta_remaining > 0) {
+          printf("delta_remaining %d\n", delta_remaining);
           // Run Delta
           block_delta_compress<data_type, size_type>(
               shared_input_buffer,
@@ -972,7 +973,7 @@ __global__ void cascaded_compression_kernel(
         use_compression = false;
         break;
       }
-
+      printf("block_write\n");
       current_output_ptr = final_output_ptr + roundUpDiv(out_bytes, 4);
       current_output_ptr = reinterpret_cast<uint32_t*>(
           roundUpToAlignment<data_type>(current_output_ptr));
@@ -1596,7 +1597,7 @@ nvcompStatus_t nvcompBatchedCascadedCompressGetMaxOutputChunkSize(
 nvcompStatus_t nvcompBatchedCascadedCompressAsync(
     const void* const* device_uncompressed_ptrs,
     const size_t* device_uncompressed_bytes,
-    size_t max_uncompressed_chunk_bytes, // not used
+    size_t /* max_uncompressed_chunk_bytes */, // not used
     size_t batch_size,
     void* /* device_temp_ptr */, // not used
     size_t /* temp_bytes */,     // not used
