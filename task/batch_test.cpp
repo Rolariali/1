@@ -608,16 +608,18 @@ void test_fallback_path()
    REQUIRE(
        metadata == (static_cast<uint32_t>(nvcomp::TypeOf<data_type>()) << 24));
 
-   const size_t size_comp = 40;
-   std::vector<data_type> compressed_el(size_comp);
-   CUDA_CHECK(cudaMemcpy(
-       compressed_el.data(),
-       compressed_ptrs_device[partition_idx],
-       size_comp,
-       cudaMemcpyDeviceToHost));
-   for(auto el: compressed_el)
-     printf("%d:", el);
  }
+
+ const size_t size_comp = 40;
+ std::vector<data_type> compressed_el(size_comp);
+ CUDA_CHECK(cudaMemcpy(
+     compressed_el.data(),
+     compressed_ptrs_device[0],
+     4,
+     cudaMemcpyDeviceToHost));
+ printf("\ncompressed_el: ");
+ for(auto el: compressed_el)
+   printf("%d:", el);
 
  printf("\n------------------------- Decompress ---------------------------\n");
  // ========================================================================
