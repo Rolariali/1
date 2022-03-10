@@ -900,6 +900,12 @@ __global__ void cascaded_compression_kernel(
               reinterpret_cast<run_type*>(shared_tmp_buffer));
           __syncthreads();
 
+          if (threadIdx.x == 0) {
+            printf("rle count %d, %d, %d, %d\n",
+                   (int)shared_count_buffer[0], (int)shared_count_buffer[1],
+                   (int)shared_count_buffer[2], (int)shared_count_buffer[3]);
+          }
+
           // Save run counts to the compressed buffer
           if (block_write<run_type, size_type, threadblock_size>(
                   reinterpret_cast<run_type*>(shared_count_buffer),
@@ -921,10 +927,22 @@ __global__ void cascaded_compression_kernel(
             chunk_metadata[comp_opts.num_RLEs - rle_remaining + 1] = out_bytes;
           }
 
+          if (threadIdx.x == 0) {
+            printf("rle output %d, %d, %d, %d\n",
+                   (int)shared_output_buffer[0], (int)shared_output_buffer[1],
+                   (int)shared_output_buffer[2], (int)shared_output_buffer[3]);
+          }
+
           // Revert the role of input and ouput buffer
           auto temp_ptr = shared_output_buffer;
           shared_output_buffer = shared_input_buffer;
           shared_input_buffer = temp_ptr;
+
+          if (threadIdx.x == 0) {
+            printf("rle input %d, %d, %d, %d\n",
+                   (int)shared_input_buffer[0], (int)shared_input_buffer[1],
+                   (int)shared_input_buffer[2], (int)shared_input_buffer[3]);
+          }
 
           num_elements_current_chunk = num_outputs;
 
@@ -941,8 +959,9 @@ __global__ void cascaded_compression_kernel(
           if (threadIdx.x == 0) {
             delta_header[comp_opts.num_deltas - delta_remaining]
                 = shared_input_buffer[0];
-
-            printf("> %d, %d, %d, %d\n",
+          }
+          if (threadIdx.x == 0) {
+            printf("delta output %d, %d, %d, %d\n",
             (int)shared_output_buffer[0], (int)shared_output_buffer[1],
                    (int)shared_output_buffer[2], (int)shared_output_buffer[3]);
           }
@@ -952,14 +971,21 @@ __global__ void cascaded_compression_kernel(
           shared_output_buffer = shared_input_buffer;
           shared_input_buffer = temp_ptr;
 
-          printf("< %d, %d, %d, %d\n",
-                 (int)shared_input_buffer[0], (int)shared_input_buffer[1],
-                 (int)shared_input_buffer[2], (int)shared_input_buffer[3]);
+          if (threadIdx.x == 0) {
+            printf(
+                "delta input %d, %d, %d, %d\n",
+                (int)shared_input_buffer[0],
+                (int)shared_input_buffer[1],
+                (int)shared_input_buffer[2],
+                (int)shared_input_buffer[3]);
 
-          printf("<> %d, %d, %d, %d\n",
-                 (int)shared_output_buffer[0], (int)shared_output_buffer[1],
-                 (int)shared_output_buffer[2], (int)shared_output_buffer[3]);
-
+            printf(
+                "delta output %d, %d, %d, %d\n",
+                (int)shared_output_buffer[0],
+                (int)shared_output_buffer[1],
+                (int)shared_output_buffer[2],
+                (int)shared_output_buffer[3]);
+          }
           // Number of elements is decreased by 1 since the first element is
           // excluded for the subsequent operations.
           num_elements_current_chunk -= 1;
