@@ -48,7 +48,7 @@ using nvcomp::roundUpToAlignment;
   do {                                                                         \
     if (!(a)) {                                                                \
       printf("Check " #a " at %d failed.\n", __LINE__);                        \
-      return;                                                                \
+      return 0;                                                                \
     }                                                                          \
   } while (0)
 
@@ -78,19 +78,14 @@ size_t max_compressed_size(size_t uncompressed_size)
   return (uncompressed_size + 3) / 4 * 4 + 4;
 }
 
-/*
- * This test case tests the correctness of batched cascaded compressor and
- * decompressor on predefined data. The test case uses 2 RLE layers, 1 Delta
- * layer, and optionally bitpacking depending on the `use_bp` argument. It first
- * compresses the data and verifies the compressed buffers. Then it decompresses
- * the data and compares against the original values.
- */
+
 template <typename data_type>
-void test_predefined_cases()
+size_t test_predefined_cases(int rle, int delta, int bp)
 {
-  std::vector<data_type> input0_host = generate_predefined_input_host(
-      std::vector<data_type>{3, 9, 4, 0, 1},
-      std::vector<size_t>{1, 20, 13, 25, 6});
+  std::vector<data_type> input0_host;
+
+  for(int i=-120; i<120; i++)
+    input0_host.push_back(i);
 
   void* input0_device;
   CUDA_CHECK(
@@ -101,7 +96,7 @@ void test_predefined_cases()
       input0_host.size() * sizeof(data_type),
       cudaMemcpyHostToDevice));
 
-  printf("input0_host: ");
+  printf("input0_host(%zu) : ", input0_host.size());
   for(auto el: input0_host)
     printf("%d:", el);
 
@@ -158,7 +153,7 @@ void test_predefined_cases()
   // Launch batched compression
 
   nvcompBatchedCascadedOpts_t comp_opts
-      = {batch_size, nvcomp::TypeOf<data_type>(), 0, 1, 0};
+      = {batch_size, nvcomp::TypeOf<data_type>(), rle, delta, bp};
 
   auto status = nvcompBatchedCascadedCompressAsync(
       uncompressed_ptrs_device,
@@ -197,7 +192,7 @@ void test_predefined_cases()
 
   for(int i=0; i < batch_size; i++) {
     size_t _size = compressed_bytes_host[i];
-    printf("%d compressed_data_host %zu: ", i, _size);
+    printf("compressed_data_host (%zu) : ", _size);
 
     std::vector<data_type> compressed_data_host(_size);
     CUDA_CHECK(cudaMemcpy(
@@ -221,9 +216,36 @@ void test_predefined_cases()
   CUDA_CHECK(cudaFree(compressed_ptrs_device));
   CUDA_CHECK(cudaFree(compressed_bytes_device));
 
+
+  return compressed_bytes_host[0];
 }
 
 int main()
 {
-  test_predefined_cases<int8_t>();
+  size_t size;
+  printf("Delta option - no compress:\n");
+  size = test_predefined_cases<int8_t>(0,1,0);
+  printf("result size: %zu\n", size);
+  printf("\n----------------------------------------------------------\n");
+
+  printf("RLE option - no compress:\n");
+  test_predefined_cases<int8_t>(1,0,0);
+  printf("result size: %zu\n", size);
+  printf("\n----------------------------------------------------------\n");
+
+  printf("RLE + BP option - no compress:\n");
+  test_predefined_cases<int8_t>(1,0,1);
+  printf("result size: %zu\n", size);
+  printf("\n----------------------------------------------------------\n");
+
+  printf("BP option - no compress:\n");
+  test_predefined_cases<int8_t>(0,0,1);
+  printf("result size: %zu\n", size);
+  printf("\n----------------------------------------------------------\n");
+
+  printf("Delta + BP option - compress! :\n");
+  test_predefined_cases<int8_t>(0,1,1);
+  printf("result size: %zu\n", size);
+  printf("\n----------------------------------------------------------\n");
+
 }
