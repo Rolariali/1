@@ -874,6 +874,8 @@ __global__ void cascaded_compression_kernel(
       uint32_t* chunk_start_ptr = current_output_ptr;
 
       // Move current output pointer as the end of chunk metadata
+      if (threadIdx.x == 0)
+        printf("chunk_metadata_size: %u\n", chunk_metadata_size);
       current_output_ptr += chunk_metadata_size / sizeof(uint32_t);
 
       auto input_buffer_current_chunk
