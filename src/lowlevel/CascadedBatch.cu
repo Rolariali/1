@@ -647,7 +647,7 @@ __device__ BlockIOStatus block_write(
 
   const size_type padded_out_bytes = roundUpTo(*out_bytes, sizeof(uint32_t));
 //  if (threadIdx.x == 0)
-    printf("*out_bytes : %u num_elements: %d"
+    printf("*out_bytes : %u num_elements: %d | "
         "padded_out_bytes : %d "
            "output : %p "
            "output_limit: %p = %d\n",
