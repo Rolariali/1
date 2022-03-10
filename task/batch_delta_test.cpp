@@ -88,15 +88,9 @@ size_t max_compressed_size(size_t uncompressed_size)
 template <typename data_type>
 void test_predefined_cases()
 {
-  // Generate input data and copy it to device memory
-
   std::vector<data_type> input0_host = generate_predefined_input_host(
       std::vector<data_type>{3, 9, 4, 0, 1},
       std::vector<size_t>{1, 20, 13, 25, 6});
-
-  std::vector<data_type> input1_host = generate_predefined_input_host(
-      std::vector<data_type>{1, 2, 3, 4, 5, 6},
-      std::vector<size_t>{10, 6, 15, 1, 13, 9});
 
   void* input0_device;
   CUDA_CHECK(
@@ -107,23 +101,8 @@ void test_predefined_cases()
       input0_host.size() * sizeof(data_type),
       cudaMemcpyHostToDevice));
 
-  void* input1_device;
-  CUDA_CHECK(
-      cudaMalloc(&input1_device, input1_host.size() * sizeof(data_type)));
-  CUDA_CHECK(cudaMemcpy(
-      input1_device,
-      input1_host.data(),
-      input1_host.size() * sizeof(data_type),
-      cudaMemcpyHostToDevice));
-
   printf("input0_host: ");
   for(auto el: input0_host)
-    printf("%d:", el);
-
-  printf("\n");
-
-  printf("input1_host: ");
-  for(auto el: input1_host)
     printf("%d:", el);
 
   printf("\n");
@@ -131,10 +110,9 @@ void test_predefined_cases()
   // Copy uncompressed pointers and sizes to device memory
 
   std::vector<void*> uncompressed_ptrs_host
-      = {input0_device, input1_device, input0_device};
+      = {input0_device};
   std::vector<size_t> uncompressed_bytes_host
-      = {input0_host.size() * sizeof(data_type),
-         input1_host.size() * sizeof(data_type)
+      = {input0_host.size() * sizeof(data_type)
       };
   const size_t batch_size = uncompressed_ptrs_host.size();
 
@@ -233,10 +211,9 @@ void test_predefined_cases()
     }
     printf("\n");
   }
-    // Cleanup
+  // Cleanup
 
   CUDA_CHECK(cudaFree(input0_device));
-  CUDA_CHECK(cudaFree(input1_device));
   CUDA_CHECK(cudaFree(uncompressed_ptrs_device));
   CUDA_CHECK(cudaFree(uncompressed_bytes_device));
   for (void* const& ptr : compressed_ptrs_host)
