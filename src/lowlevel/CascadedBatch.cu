@@ -645,13 +645,14 @@ __device__ BlockIOStatus block_write(
   }
 
   const size_type padded_out_bytes = roundUpTo(*out_bytes, sizeof(uint32_t));
-  if (threadIdx.x == 0)
+//  if (threadIdx.x == 0)
     printf("padded_out_bytes : %d "
            "output : %p "
-           "output_limit: %p\n",
+           "output_limit: %p = %d",
            (int)padded_out_bytes,
            output,
-           output_limit
+           output_limit,
+           (int)(output + padded_out_bytes / sizeof(uint32_t) > output_limit)
            );
   if (output + padded_out_bytes / sizeof(uint32_t) > output_limit) {
     return BlockIOStatus::out_of_bound;
@@ -1009,7 +1010,7 @@ __global__ void cascaded_compression_kernel(
       auto final_output_ptr = reinterpret_cast<uint32_t*>(
           roundUpToAlignment<data_type>(current_output_ptr));
 
-      if (threadIdx.x == 0)
+//      if (threadIdx.x == 0)
         printf("out_bytes %d "
                "num_elements_current_chunk %u\n",
                (int)out_bytes,
