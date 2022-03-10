@@ -1015,7 +1015,7 @@ __global__ void cascaded_compression_kernel(
       auto final_output_ptr = reinterpret_cast<uint32_t*>(
           roundUpToAlignment<data_type>(current_output_ptr));
 
-//      if (threadIdx.x == 0)
+      if (threadIdx.x == 0)
         printf("out_bytes %d "
                "num_elements_current_chunk %d\n",
                (int)out_bytes,
