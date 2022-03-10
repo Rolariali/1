@@ -1011,7 +1011,7 @@ __global__ void cascaded_compression_kernel(
 
       if (threadIdx.x == 0)
         printf("out_bytes %d "
-               "num_elements_current_chunk %u",
+               "num_elements_current_chunk %u\n",
                (int)out_bytes,
                num_elements_current_chunk);
 
