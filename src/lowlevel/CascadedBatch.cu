@@ -645,6 +645,14 @@ __device__ BlockIOStatus block_write(
   }
 
   const size_type padded_out_bytes = roundUpTo(*out_bytes, sizeof(uint32_t));
+  if (threadIdx.x == 0)
+    printf("padded_out_bytes : %d "
+           "output : %p "
+           "output_limit: %p",
+           (int)padded_out_bytes,
+           output,
+           output_limit
+           );
   if (output + padded_out_bytes / sizeof(uint32_t) > output_limit) {
     return BlockIOStatus::out_of_bound;
   }
