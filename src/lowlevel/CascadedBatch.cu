@@ -641,7 +641,7 @@ __device__ BlockIOStatus block_write(
     source = temp_storage;
   } else {
     *out_bytes = num_elements * sizeof(data_type);
-    printf("*out_bytes : %u num_elements: %u\n", out_bytes, num_elements);
+    printf("*out_bytes : %u num_elements: %d\n", *out_bytes, (int)num_elements);
     source = reinterpret_cast<const uint32_t*>(input);
   }
 
@@ -1013,9 +1013,9 @@ __global__ void cascaded_compression_kernel(
 
 //      if (threadIdx.x == 0)
         printf("out_bytes %d "
-               "num_elements_current_chunk %u\n",
+               "num_elements_current_chunk %d\n",
                (int)out_bytes,
-               num_elements_current_chunk);
+             (int)num_elements_current_chunk);
 
       if (block_write<data_type, size_type, threadblock_size>(
               shared_input_buffer,
