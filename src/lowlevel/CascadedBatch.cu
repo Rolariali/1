@@ -641,7 +641,7 @@ __device__ BlockIOStatus block_write(
     source = temp_storage;
   } else {
     *out_bytes = num_elements * sizeof(data_type);
-    printf("*out_bytes : %u \n", out_bytes);
+    printf("*out_bytes : %u num_elements: %u\n", out_bytes, num_elements);
     source = reinterpret_cast<const uint32_t*>(input);
   }
 
