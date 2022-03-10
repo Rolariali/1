@@ -225,27 +225,27 @@ int main()
   size_t size;
   printf("Delta option - no compress:\n");
   size = test_predefined_cases<int8_t>(0,1,0);
-  printf("result size: %zu\n", size);
+  printf("result compressed size: %zu\n", size);
   printf("\n----------------------------------------------------------\n");
 
   printf("RLE option - no compress:\n");
-  test_predefined_cases<int8_t>(1,0,0);
-  printf("result size: %zu\n", size);
+  size = test_predefined_cases<int8_t>(1,0,0);
+  printf("result compressed size: %zu\n", size);
   printf("\n----------------------------------------------------------\n");
 
   printf("RLE + BP option - no compress:\n");
-  test_predefined_cases<int8_t>(1,0,1);
-  printf("result size: %zu\n", size);
+  size = test_predefined_cases<int8_t>(1,0,1);
+  printf("result compressed size: %zu\n", size);
   printf("\n----------------------------------------------------------\n");
 
   printf("BP option - no compress:\n");
-  test_predefined_cases<int8_t>(0,0,1);
-  printf("result size: %zu\n", size);
+  size = test_predefined_cases<int8_t>(0,0,1);
+  printf("result compressed size: %zu\n", size);
   printf("\n----------------------------------------------------------\n");
 
   printf("Delta + BP option - compress! :\n");
-  test_predefined_cases<int8_t>(0,1,1);
-  printf("result size: %zu\n", size);
+  size = test_predefined_cases<int8_t>(0,1,1);
+  printf("result compressed size: %zu\n", size);
   printf("\n----------------------------------------------------------\n");
 
 }
