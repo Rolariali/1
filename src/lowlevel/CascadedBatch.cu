@@ -1010,7 +1010,10 @@ __global__ void cascaded_compression_kernel(
           roundUpToAlignment<data_type>(current_output_ptr));
 
       if (threadIdx.x == 0)
-        printf("out_bytes %d\n", (int)out_bytes);
+        printf("out_bytes %d "
+               "num_elements_current_chunk %u",
+               (int)out_bytes,
+               num_elements_current_chunk);
 
       if (block_write<data_type, size_type, threadblock_size>(
               shared_input_buffer,
@@ -1023,7 +1026,7 @@ __global__ void cascaded_compression_kernel(
           != BlockIOStatus::success) {
         use_compression = false;
         if (threadIdx.x == 0)
-          printf("block_write %d\n", (int)use_compression);
+          printf("no compreseion %d\n", (int)use_compression);
         break;
       }
       if (threadIdx.x == 0)
