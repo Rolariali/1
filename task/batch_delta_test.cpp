@@ -134,8 +134,8 @@ void test_predefined_cases()
       = {input0_device, input1_device, input0_device};
   std::vector<size_t> uncompressed_bytes_host
       = {input0_host.size() * sizeof(data_type),
-         input1_host.size() * sizeof(data_type),
-         input0_host.size() * sizeof(data_type)};
+         input1_host.size() * sizeof(data_type)
+      };
   const size_t batch_size = uncompressed_ptrs_host.size();
 
   void** uncompressed_ptrs_device;
