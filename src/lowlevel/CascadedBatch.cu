@@ -641,15 +641,17 @@ __device__ BlockIOStatus block_write(
     source = temp_storage;
   } else {
     *out_bytes = num_elements * sizeof(data_type);
-    printf("*out_bytes : %u num_elements: %d\n", *out_bytes, (int)num_elements);
+//    printf("*out_bytes : %u num_elements: %d\n", *out_bytes, (int)num_elements);
     source = reinterpret_cast<const uint32_t*>(input);
   }
 
   const size_type padded_out_bytes = roundUpTo(*out_bytes, sizeof(uint32_t));
 //  if (threadIdx.x == 0)
-    printf("padded_out_bytes : %d "
+    printf("*out_bytes : %u num_elements: %d"
+        "padded_out_bytes : %d "
            "output : %p "
            "output_limit: %p = %d\n",
+         *out_bytes, (int)num_elements,
            (int)padded_out_bytes,
            output,
            output_limit,
