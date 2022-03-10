@@ -646,17 +646,7 @@ __device__ BlockIOStatus block_write(
   }
 
   const size_type padded_out_bytes = roundUpTo(*out_bytes, sizeof(uint32_t));
-//  if (threadIdx.x == 0)
-    printf("*out_bytes : %u num_elements: %d | "
-        "padded_out_bytes : %d "
-           "output : %p "
-           "output_limit: %p = %d\n",
-         *out_bytes, (int)num_elements,
-           (int)padded_out_bytes,
-           output,
-           output_limit,
-           (int)(output + padded_out_bytes / sizeof(uint32_t) > output_limit)
-           );
+
   if (output + padded_out_bytes / sizeof(uint32_t) > output_limit) {
     return BlockIOStatus::out_of_bound;
   }
@@ -873,9 +863,6 @@ __global__ void cascaded_compression_kernel(
       // Save a pointer at the start of the chunk
       uint32_t* chunk_start_ptr = current_output_ptr;
 
-      // Move current output pointer as the end of chunk metadata
-      if (threadIdx.x == 0)
-        printf("chunk_metadata_size: %u\n", chunk_metadata_size);
       current_output_ptr += chunk_metadata_size / sizeof(uint32_t);
 
       auto input_buffer_current_chunk
@@ -914,12 +901,6 @@ __global__ void cascaded_compression_kernel(
               reinterpret_cast<run_type*>(shared_tmp_buffer));
           __syncthreads();
 
-          if (threadIdx.x == 0) {
-            printf("rle count %d, %d, %d, %d\n",
-                   (int)shared_count_buffer[0], (int)shared_count_buffer[1],
-                   (int)shared_count_buffer[2], (int)shared_count_buffer[3]);
-          }
-
           // Save run counts to the compressed buffer
           if (block_write<run_type, size_type, threadblock_size>(
                   reinterpret_cast<run_type*>(shared_count_buffer),
@@ -941,22 +922,11 @@ __global__ void cascaded_compression_kernel(
             chunk_metadata[comp_opts.num_RLEs - rle_remaining + 1] = out_bytes;
           }
 
-          if (threadIdx.x == 0) {
-            printf("rle output %d, %d, %d, %d\n",
-                   (int)shared_output_buffer[0], (int)shared_output_buffer[1],
-                   (int)shared_output_buffer[2], (int)shared_output_buffer[3]);
-          }
 
           // Revert the role of input and ouput buffer
           auto temp_ptr = shared_output_buffer;
           shared_output_buffer = shared_input_buffer;
           shared_input_buffer = temp_ptr;
-
-          if (threadIdx.x == 0) {
-            printf("rle input %d, %d, %d, %d\n",
-                   (int)shared_input_buffer[0], (int)shared_input_buffer[1],
-                   (int)shared_input_buffer[2], (int)shared_input_buffer[3]);
-          }
 
           num_elements_current_chunk = num_outputs;
 
@@ -974,32 +944,13 @@ __global__ void cascaded_compression_kernel(
             delta_header[comp_opts.num_deltas - delta_remaining]
                 = shared_input_buffer[0];
           }
-          if (threadIdx.x == 0) {
-            printf("delta output %d, %d, %d, %d\n",
-            (int)shared_output_buffer[0], (int)shared_output_buffer[1],
-                   (int)shared_output_buffer[2], (int)shared_output_buffer[3]);
-          }
+
 
           // Revert the role of input and ouput buffer
           auto temp_ptr = shared_output_buffer;
           shared_output_buffer = shared_input_buffer;
           shared_input_buffer = temp_ptr;
 
-          if (threadIdx.x == 0) {
-            printf(
-                "delta input %d, %d, %d, %d\n",
-                (int)shared_input_buffer[0],
-                (int)shared_input_buffer[1],
-                (int)shared_input_buffer[2],
-                (int)shared_input_buffer[3]);
-
-            printf(
-                "delta output %d, %d, %d, %d\n",
-                (int)shared_output_buffer[0],
-                (int)shared_output_buffer[1],
-                (int)shared_output_buffer[2],
-                (int)shared_output_buffer[3]);
-          }
           // Number of elements is decreased by 1 since the first element is
           // excluded for the subsequent operations.
           num_elements_current_chunk -= 1;
@@ -1015,11 +966,6 @@ __global__ void cascaded_compression_kernel(
       auto final_output_ptr = reinterpret_cast<uint32_t*>(
           roundUpToAlignment<data_type>(current_output_ptr));
 
-      if (threadIdx.x == 0)
-        printf("out_bytes %d "
-               "num_elements_current_chunk %d\n",
-               (int)out_bytes,
-             (int)num_elements_current_chunk);
 
       if (block_write<data_type, size_type, threadblock_size>(
               shared_input_buffer,
@@ -1031,12 +977,9 @@ __global__ void cascaded_compression_kernel(
               comp_opts.use_bp)
           != BlockIOStatus::success) {
         use_compression = false;
-        if (threadIdx.x == 0)
-          printf("no compreseion %d\n", (int)use_compression);
+
         break;
       }
-      if (threadIdx.x == 0)
-        printf("use_compression %d\n", (int)use_compression);
 
       current_output_ptr = final_output_ptr + roundUpDiv(out_bytes, 4);
       current_output_ptr = reinterpret_cast<uint32_t*>(
