@@ -648,7 +648,7 @@ __device__ BlockIOStatus block_write(
 //  if (threadIdx.x == 0)
     printf("padded_out_bytes : %d "
            "output : %p "
-           "output_limit: %p = %d",
+           "output_limit: %p = %d\n",
            (int)padded_out_bytes,
            output,
            output_limit,
