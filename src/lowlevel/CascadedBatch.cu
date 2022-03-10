@@ -1011,6 +1011,8 @@ __global__ void cascaded_compression_kernel(
               comp_opts.use_bp)
           != BlockIOStatus::success) {
         use_compression = false;
+        if (threadIdx.x == 0)
+          printf("block_write %d\n", (int)use_compression);
         break;
       }
       if (threadIdx.x == 0)
