@@ -54,13 +54,13 @@ int main()
   //  typedef uint8_t T;
 
   vector<T> input;
-  for(int i=120; i > 0; i--)
+  for(int i=132; i > 100; i--)
     input.push_back(i);
 
 
   printf("--------------------------------------------\n");
 
-  const nvcompType_t type = NVCOMP_TYPE_CHAR;
+  const nvcompType_t type = nvcomp::TypeOf<T>();
   size_t min_comp_out_bytes = 99999999999;
 
   //  T input[16] = {0, 2, 2, 3, 0, 0, 0, 0, 0, 3, 1, 1, 1, 1, 1, 1};
