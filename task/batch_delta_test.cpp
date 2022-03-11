@@ -257,7 +257,7 @@ int main()
   printf("\n----------------------------------------------------------\n");
 
 
-  printf("Delta + BP option - compress! :\n");
+  printf("Delta + BP option - ???! :\n");
   size = test_predefined_cases<uint8_t>(0,1,1);
   printf("result compressed size: %zu\n", size);
   printf("\n----------------------------------------------------------\n");
