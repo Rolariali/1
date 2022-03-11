@@ -41,11 +41,11 @@ using namespace nvcomp;
 
 
 
-
+typedef uint8_t T;
 // #include "test_data.h"
 //bool verbose = true;
 // vector<uint8_t> input = {2, 2, 2, 3, 0, 0, 0, 0, 0, 3, 1, 1, 1, 1, 1, 1};
-vector<int8_t> input = {-11, -3, 2, 2, 2, 2, 3, 0, 0, 0, 0, 0, 3, 1, 1, 1, 1, 1, 1};
+//vector<T> input = {-11, -3, 2, 2, 2, 2, 3, 0, 0, 0, 0, 0, 3, 1, 1, 1, 1, 1, 1};
 
 
 int main()
@@ -53,8 +53,13 @@ int main()
   nvcompCascadedFormatOpts opts;
   //  typedef uint8_t T;
 
+  vector<T> input;
+  for(int i=120; i > 0; i--)
+    input.push_back(i);
+
+
   printf("--------------------------------------------\n");
-  typedef int8_t T;
+
   const nvcompType_t type = NVCOMP_TYPE_CHAR;
   size_t min_comp_out_bytes = 99999999999;
 
