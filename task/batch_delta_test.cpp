@@ -84,7 +84,7 @@ size_t test_predefined_cases(int rle, int delta, int bp)
 {
   std::vector<data_type> input0_host;
 
-  for(int i=-120; i<120; i++)
+  for(int i=120; i > 0; i--)
     input0_host.push_back(i);
 
   void* input0_device;
@@ -228,6 +228,7 @@ int main()
   printf("result compressed size: %zu\n", size);
   printf("\n----------------------------------------------------------\n");
 
+  /*
   printf("RLE option - no compress:\n");
   size = test_predefined_cases<int8_t>(1,0,0);
   printf("result compressed size: %zu\n", size);
@@ -242,10 +243,24 @@ int main()
   size = test_predefined_cases<int8_t>(0,0,1);
   printf("result compressed size: %zu\n", size);
   printf("\n----------------------------------------------------------\n");
-
+  */
   printf("Delta + BP option - compress! :\n");
   size = test_predefined_cases<int8_t>(0,1,1);
   printf("result compressed size: %zu\n", size);
   printf("\n----------------------------------------------------------\n");
+
+
+
+  printf("Delta option ???:\n");
+  size = test_predefined_cases<uint8_t>(0,1,0);
+  printf("result compressed size: %zu\n", size);
+  printf("\n----------------------------------------------------------\n");
+
+
+  printf("Delta + BP option - compress! :\n");
+  size = test_predefined_cases<uint8_t>(0,1,1);
+  printf("result compressed size: %zu\n", size);
+  printf("\n----------------------------------------------------------\n");
+
 
 }
