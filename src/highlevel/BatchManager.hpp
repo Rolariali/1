@@ -201,7 +201,13 @@ private: // helper API overrides
     return sizeof(CommonHeader) + sizeof(FormatSpecHeader) + 
         chunk_offsets_size + chunk_sizes_size + checksum_size + comp_buffer_size;
   }
-
+  /*
+   * #0  nvcomp::BatchManager<nvcomp::CascadedFormatSpecHeader>::do_compress (this=0x55cd5aac8080, common_header=0x7009e0400, decomp_buffer=0x7009e0000 "", comp_buffer=0x7009e0458 "", comp_config=...) at /content/v2.1/src/highlevel/BatchManager.hpp:205
+#1  0x000055cd586f925f in nvcomp::ManagerBase<nvcomp::CascadedFormatSpecHeader>::compress (this=0x55cd5aac8080, decomp_buffer=0x7009e0000 "", comp_buffer=0x7009e0400 "", comp_config=...) at /content/v2.1/src/highlevel/ManagerBase.hpp:206
+#2  0x000055cd586f4218 in nvcomp::PimplManager::compress (this=0x7ffd1d1dd3d0, decomp_buffer=0x7009e0000 "", comp_buffer=0x7009e0400 "", comp_config=...) at /content/v2.1/include/nvcomp/nvcompManager.hpp:242
+#3  0x000055cd586f465b in test_cascaded<signed char> (input=..., options=...) at /content/v2.1/task/cascade_test.cpp:47
+#4  0x000055cd586f40cc in main () at /content/v2.1/task/cascade_test.cpp:121
+   */
   void do_compress(
       CommonHeader* common_header,
       const uint8_t* decomp_buffer, 

@@ -103,7 +103,15 @@ public:
         user_stream,
         &(format_spec->options));
   }
-
+  /*
+   * #0  nvcomp::CascadedBatchManager::do_batch_compress (this=0x5623ad678080, compress_args=...) at /content/v2.1/src/highlevel/CascadedManager.hpp:104
+#1  0x00005623abc18a50 in nvcomp::BatchManager<nvcomp::CascadedFormatSpecHeader>::do_compress (this=0x5623ad678080, common_header=0x7009e0400, decomp_buffer=0x7009e0000 "", comp_buffer=0x7009e0458 "", comp_config=...)
+    at /content/v2.1/src/highlevel/BatchManager.hpp:235
+#2  0x00005623abc1825f in nvcomp::ManagerBase<nvcomp::CascadedFormatSpecHeader>::compress (this=0x5623ad678080, decomp_buffer=0x7009e0000 "", comp_buffer=0x7009e0400 "", comp_config=...) at /content/v2.1/src/highlevel/ManagerBase.hpp:206
+#3  0x00005623abc13218 in nvcomp::PimplManager::compress (this=0x7ffea1a94320, decomp_buffer=0x7009e0000 "", comp_buffer=0x7009e0400 "", comp_config=...) at /content/v2.1/include/nvcomp/nvcompManager.hpp:242
+#4  0x00005623abc1365b in test_cascaded<signed char> (input=..., options=...) at /content/v2.1/task/cascade_test.cpp:47
+#5  0x00005623abc130cc in main () at /content/v2.1/task/cascade_test.cpp:121
+   */
   void do_batch_decompress(
       const uint8_t* comp_data_buffer,
       uint8_t* decomp_buffer,
