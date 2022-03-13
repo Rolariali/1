@@ -136,7 +136,7 @@ __device__ inline void copyScratchBuffer(
     }
   }
 }
-
+//  cascadedHlifBatchCompress ->  HlifCompressBatchKernel -> HlifCompressBatch
 template<int chunks_per_block, typename CompressT, typename GroupT>
 __device__ inline void HlifCompressBatch(
     const CompressArgs& compression_args,
@@ -161,6 +161,10 @@ __device__ inline void HlifCompressBatch(
   uint8_t* scratch_output_buffer = compression_args.scratch_buffer + this_ix_chunk * compression_args.max_comp_chunk_size;
 
   int initial_chunks = gridDim.x * chunks_per_block;
+
+  if (cg_group.thread_rank() == 0) {
+    printf("this_ix_chunk %u num_chunks %u\n", this_ix_chunk, compression_args.num_chunks);
+  }
 
   while (this_ix_chunk < compression_args.num_chunks) {
     size_t ix_decomp_start = this_ix_chunk * compression_args.uncomp_chunk_size;
@@ -205,7 +209,7 @@ __device__ inline void HlifCompressBatch(
     cg_group.sync();
   }
 }
-
+// compress !!! from cascadedHlifBatchCompress ->  HlifCompressBatchKernel
 template<typename CompressT, 
          typename CompressorArg,
          int chunks_per_block = 1>

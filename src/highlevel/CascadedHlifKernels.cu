@@ -142,7 +142,16 @@ public:
     return *status;
   }
 };
-
+/*
+ * #0  nvcomp::cascadedHlifBatchCompress (compress_args=..., max_ctas=52, stream=0x5623ad651b00, options=0x2031c0400) at /content/v2.1/src/highlevel/CascadedHlifKernels.cu:151
+#1  0x00005623abc15c3b in nvcomp::CascadedBatchManager::do_batch_compress (this=0x5623ad678080, compress_args=...) at /content/v2.1/src/highlevel/CascadedManager.hpp:100
+#2  0x00005623abc18a50 in nvcomp::BatchManager<nvcomp::CascadedFormatSpecHeader>::do_compress (this=0x5623ad678080, common_header=0x7009e0400, decomp_buffer=0x7009e0000 "", comp_buffer=0x7009e0458 "", comp_config=...)
+    at /content/v2.1/src/highlevel/BatchManager.hpp:235
+#3  0x00005623abc1825f in nvcomp::ManagerBase<nvcomp::CascadedFormatSpecHeader>::compress (this=0x5623ad678080, decomp_buffer=0x7009e0000 "", comp_buffer=0x7009e0400 "", comp_config=...) at /content/v2.1/src/highlevel/ManagerBase.hpp:206
+#4  0x00005623abc13218 in nvcomp::PimplManager::compress (this=0x7ffea1a94320, decomp_buffer=0x7009e0000 "", comp_buffer=0x7009e0400 "", comp_config=...) at /content/v2.1/include/nvcomp/nvcompManager.hpp:242
+#5  0x00005623abc1365b in test_cascaded<signed char> (input=..., options=...) at /content/v2.1/task/cascade_test.cpp:47
+#6  0x00005623abc130cc in main () at /content/v2.1/task/cascade_test.cpp:121
+ */
 void cascadedHlifBatchCompress(
     const CompressArgs& compress_args,
     const uint32_t max_ctas,
@@ -175,16 +184,7 @@ void cascadedHlifBatchCompress(
         <<<batch_size, threadblock_size, 0, stream>>>(compress_args, *options);
   }
 }
-/*
- * #0  nvcomp::cascadedHlifBatchCompress (compress_args=..., max_ctas=52, stream=0x5623ad651b00, options=0x2031c0400) at /content/v2.1/src/highlevel/CascadedHlifKernels.cu:151
-#1  0x00005623abc15c3b in nvcomp::CascadedBatchManager::do_batch_compress (this=0x5623ad678080, compress_args=...) at /content/v2.1/src/highlevel/CascadedManager.hpp:100
-#2  0x00005623abc18a50 in nvcomp::BatchManager<nvcomp::CascadedFormatSpecHeader>::do_compress (this=0x5623ad678080, common_header=0x7009e0400, decomp_buffer=0x7009e0000 "", comp_buffer=0x7009e0458 "", comp_config=...)
-    at /content/v2.1/src/highlevel/BatchManager.hpp:235
-#3  0x00005623abc1825f in nvcomp::ManagerBase<nvcomp::CascadedFormatSpecHeader>::compress (this=0x5623ad678080, decomp_buffer=0x7009e0000 "", comp_buffer=0x7009e0400 "", comp_config=...) at /content/v2.1/src/highlevel/ManagerBase.hpp:206
-#4  0x00005623abc13218 in nvcomp::PimplManager::compress (this=0x7ffea1a94320, decomp_buffer=0x7009e0000 "", comp_buffer=0x7009e0400 "", comp_config=...) at /content/v2.1/include/nvcomp/nvcompManager.hpp:242
-#5  0x00005623abc1365b in test_cascaded<signed char> (input=..., options=...) at /content/v2.1/task/cascade_test.cpp:47
-#6  0x00005623abc130cc in main () at /content/v2.1/task/cascade_test.cpp:121
- */
+
 void cascadedHlifBatchDecompress(
     const uint8_t* comp_buffer, 
     uint8_t* decomp_buffer, 
