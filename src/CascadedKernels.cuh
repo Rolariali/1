@@ -484,6 +484,12 @@ __device__ void block_bitpack(
 
   const data_type frame_of_reference = *for_ptr;
   const uint32_t bitwidth = (*current_ptr & 0xFFFF0000) >> 16;
+
+  if (threadIdx.x == 0) {
+    printf("bitwidth %u frame_of_reference %u num_elements %u\n",
+           bitwidth, frame_of_reference, num_elements)
+  }
+
   current_ptr = reinterpret_cast<uint32_t*>(
       roundUpToAlignment<data_type>(current_ptr + 1));
 
