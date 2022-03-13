@@ -106,15 +106,17 @@ int main()
   options.num_deltas = 1;
   options.num_RLEs = 0;
   options.use_bp = 0;
+//  options.chunk_size = 1;
   std::vector<T> input;
 
+#if 1
   for(int i=0; i<32; i++)
     input.push_back(i);
-
-//  for(int i=32; i<0; i--)
-//    input.push_back(i);
-//    input.push_back(i);
-
+#else
+  for(int i=32; i>0; i--)
+    input.push_back(i);
+  input.push_back(2);
+#endif
   for(auto el: input)
     printf("%d:", el);
   printf("\n");
