@@ -208,4 +208,15 @@ int main()
   printf("result compressed size: %zu\n", size);
   printf("\n----------------------------------------------------------\n");
 
+  std::vector<T> input1;
+
+  for(int i=0; i<32; i++)
+    input1.push_back(127 + i%2);
+
+  printf("BP overflow:\n");
+  rle = 0; delta = 0; bp = 1;
+  size = test_predefined_cases<T>(input1, rle, delta, bp);
+  printf("result compressed size: %zu\n", size);
+  printf("\n----------------------------------------------------------\n");
+
 }
