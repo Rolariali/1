@@ -941,6 +941,13 @@ __device__ void do_cascaded_compression_kernel(
           if (threadIdx.x == 0) {
             delta_header[comp_opts.num_deltas - delta_remaining]
                 = shared_input_buffer[0];
+            printf("delta: %u %u %u %u %u %u %u %u %u %u\n",
+                   (uint8_t)shared_output_buffer[0], (uint8_t)shared_output_buffer[1],
+                   (uint8_t)shared_output_buffer[2], (uint8_t)shared_output_buffer[3],
+                   (uint8_t)shared_output_buffer[4], (uint8_t)shared_output_buffer[5],
+                   (uint8_t)shared_output_buffer[6], (uint8_t)shared_output_buffer[7],
+                   (uint8_t)shared_output_buffer[8], (uint8_t)shared_output_buffer[9]
+                   );
           }
 
           // Revert the role of input and ouput buffer
