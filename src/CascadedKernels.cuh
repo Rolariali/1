@@ -487,7 +487,7 @@ __device__ void block_bitpack(
 
   if (threadIdx.x == 0) {
     printf("bitwidth %u frame_of_reference %u num_elements %u\n",
-           bitwidth, frame_of_reference, num_elements)
+           bitwidth, frame_of_reference, num_elements);
   }
 
   current_ptr = reinterpret_cast<uint32_t*>(
