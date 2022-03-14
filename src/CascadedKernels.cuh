@@ -382,8 +382,8 @@ __device__ void get_for_bitwidth(
   // the same raw bits, the interpretation of the smallest element is different
   // for negative values.
   using signed_data_type = std::make_signed_t<data_type>;
-  if (threadIdx.x == 0)
-    printf("signed_data_type %d\n", std::is_same<signed_data_type, int8_t>::value);
+//  if (threadIdx.x == 0)
+//    printf("signed_data_type %d\n", std::is_same<signed_data_type, int8_t>::value);
 
   // First, we calculate the maximum and the minimum of the input elements. We
   // process input elements in rounds, where each round processes
@@ -487,10 +487,10 @@ __device__ void block_bitpack(
   const data_type frame_of_reference = *for_ptr;
   const uint32_t bitwidth = (*current_ptr & 0xFFFF0000) >> 16;
 
-  if (threadIdx.x == 0) {
-    printf("bitwidth %u frame_of_reference %u num_elements %u\n",
-           bitwidth, frame_of_reference, num_elements);
-  }
+//  if (threadIdx.x == 0) {
+//    printf("bitwidth %u frame_of_reference %u num_elements %u\n",
+//           bitwidth, frame_of_reference, num_elements);
+//  }
 
   current_ptr = reinterpret_cast<uint32_t*>(
       roundUpToAlignment<data_type>(current_ptr + 1));
