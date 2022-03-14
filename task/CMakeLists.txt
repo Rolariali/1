@@ -46,3 +46,7 @@ target_link_libraries(batch_orig PRIVATE ${CUDA_ART} nvcomp)
 
 add_executable(batch_delta_test batch_delta_test.cpp)
 target_link_libraries(batch_delta_test PRIVATE ${CUDA_ART} nvcomp)
+
+
+add_executable(delta_bp_test delta_bp_test.cpp)
+target_link_libraries(delta_bp_test PRIVATE ${CUDA_ART} nvcomp)
