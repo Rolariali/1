@@ -159,20 +159,42 @@ size_t test_predefined_cases(std::vector<data_type> input0_host,int rle, int del
 int main()
 {
   size_t size;
-  typedef uint8_t T;
+  {
+    typedef uint8_t T;
+    std::vector<T> input;
 
-  std::vector<T> input;
+    for (int i = 0; i < 32; i++)
+      input.push_back(127 + i % 2);
 
-  for(int i=0; i<32; i++)
-    input.push_back(127 + i%2);
+    printf("BitPack for uint8_t:\n");
+    printf("input data(size:%zu) : ", input.size());
+    for (auto el : input)
+      printf("%u:", el);
+    printf("\n");
 
-  printf("input data(size:%zu) : ", input.size());
-  for(auto el: input)
-    printf("%u:", el);
-  printf("\n");
+    int rle = 0;
+    int delta = 0;
+    int bp = 1;
+    size = test_predefined_cases<T>(input, rle, delta, bp);
+    printf("result compressed size: %zu\n", size);
+  }
+  {
+    typedef uint16_t T;
+    std::vector<T> input;
 
-  int rle = 0; int delta = 0; int bp = 1;
-  size = test_predefined_cases<T>(input, rle, delta, bp);
-  printf("result compressed size: %zu\n", size);
+    for (int i = 0; i < 32; i++)
+      input.push_back(127 + i % 2);
 
+    printf("BitPack for uint16_t:\n");
+    printf("input data(size:%zu) : ", input.size());
+    for (auto el : input)
+      printf("%u:", el);
+    printf("\n");
+
+    int rle = 0;
+    int delta = 0;
+    int bp = 1;
+    size = test_predefined_cases<T>(input, rle, delta, bp);
+    printf("result compressed size: %zu\n", size);
+  }
 }
