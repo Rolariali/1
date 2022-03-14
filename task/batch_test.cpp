@@ -130,7 +130,7 @@ size_t test_predefined_cases(std::vector<data_type> input0_host,int rle, int del
     size_t _size = compressed_bytes_host[i];
     printf("output compressed data(size:%zu): ", _size);
 
-    std::vector<data_type> compressed_data_host(_size);
+    std::vector<uint8_t> compressed_data_host(_size);
     CUDA_CHECK(cudaMemcpy(
         compressed_data_host.data(),
         compressed_ptrs_host[i],
@@ -138,7 +138,7 @@ size_t test_predefined_cases(std::vector<data_type> input0_host,int rle, int del
         cudaMemcpyDeviceToHost));
 
     for (auto el : compressed_data_host) {
-      printf("%d:", el);
+      printf("%u:", el);
     }
     printf("\n");
   }
