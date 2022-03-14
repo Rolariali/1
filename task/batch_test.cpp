@@ -6,9 +6,6 @@
 #include <cstdint>
 #include <vector>
 
-using run_type = uint16_t;
-using nvcomp::roundUpToAlignment;
-
 #define REQUIRE(a)                                                             \
   do {                                                                         \
     if (!(a)) {                                                                \
@@ -31,10 +28,6 @@ size_t max_compressed_size(size_t uncompressed_size)
 template <typename data_type>
 size_t test_predefined_cases(std::vector<data_type> input0_host,int rle, int delta, int bp)
 {
-//  std::vector<data_type> input0_host;
-
-//  for(int i=-120; i<120; i++)
-//    input0_host.push_back(i);
 
   void* input0_device;
   CUDA_CHECK(
@@ -44,12 +37,6 @@ size_t test_predefined_cases(std::vector<data_type> input0_host,int rle, int del
       input0_host.data(),
       input0_host.size() * sizeof(data_type),
       cudaMemcpyHostToDevice));
-
-  printf("input data(size:%zu) : ", input0_host.size());
-  for(auto el: input0_host)
-    printf("%d:", el);
-
-  printf("\n");
 
   // Copy uncompressed pointers and sizes to device memory
 
@@ -172,51 +159,20 @@ size_t test_predefined_cases(std::vector<data_type> input0_host,int rle, int del
 int main()
 {
   size_t size;
-  typedef int8_t T;
+  typedef uint8_t T;
 
-  nvcompBatchedCascadedOpts_t options = nvcompBatchedCascadedDefaultOpts;
-  options.num_deltas = 1;
-  options.num_RLEs = 0;
-  options.use_bp = 0;
-  //  options.chunk_size = 1;
   std::vector<T> input;
 
-#if 1
   for(int i=0; i<32; i++)
-    input.push_back(i);
-#else
-  for(int i=32; i>0; i--)
-    input.push_back(i);
-  input.push_back(2);
-#endif
+    input.push_back(127 + i%2);
 
-  printf("Delta option - no modify:\n");
-  int rle = 0; int delta = 1; int bp = 0;
+  printf("input data(size:%zu) : ", input.size());
+  for(auto el: input)
+    printf("%u:", el);
+  printf("\n");
+
+  int rle = 0; int delta = 0; int bp = 1;
   size = test_predefined_cases<T>(input, rle, delta, bp);
   printf("result compressed size: %zu\n", size);
-  printf("\n----------------------------------------------------------\n");
-
-  printf("Delta + BP option - compress! :\n");
-  rle = 0; delta = 1; bp = 1;
-  size = test_predefined_cases<T>(input, rle, delta, bp);
-  printf("result compressed size: %zu\n", size);
-  printf("\n----------------------------------------------------------\n");
-
-  printf("BP option - no modify:\n");
-  rle = 0; delta = 0; bp = 1;
-  size = test_predefined_cases<T>(input, rle, delta, bp);
-  printf("result compressed size: %zu\n", size);
-  printf("\n----------------------------------------------------------\n");
-
-  std::vector<T> input1;
-
-  for(int i=0; i<32; i++)
-    input1.push_back(127 + i%2);
-
-  printf("BP overflow:\n");
-  rle = 0; delta = 0; bp = 1;
-  size = test_predefined_cases<T>(input1, rle, delta, bp);
-  printf("result compressed size: %zu\n", size);
-  printf("\n----------------------------------------------------------\n");
 
 }
