@@ -361,8 +361,8 @@ template <typename data_type, typename size_type,
 __device__ void get_min_max(
     const data_type* input,
     size_type num_elements,
-    int64_t* min_ptr,
-    int64_t* max_ptr
+    signed_data_type* min_ptr,
+    signed_data_type* max_ptr
     ){
 
   typedef cub::BlockReduce<signed_data_type, threadblock_size> BlockReduce;
@@ -404,8 +404,8 @@ __device__ void get_min_max(
       maximum = local_max;
   }
 
-  *min_ptr = reinterpret_cast<int64_t&>(minimum);
-  *max_ptr = reinterpret_cast<int64_t&>(maximum);
+  *min_ptr = minimum;
+  *max_ptr = maximum;
 }
 
 /**
@@ -435,6 +435,7 @@ __device__ void get_for_bitwidth(
   // the same raw bits, the interpretation of the smallest element is different
   // for negative values.
   using signed_data_type = std::make_signed_t<data_type>;
+  using unsigned_data_type = std::make_unsigned_t<data_type>;
   if (threadIdx.x == 0)
     printf("signed_data_type %d\n", std::is_same<signed_data_type, data_type>::value);
 
@@ -481,13 +482,36 @@ __device__ void get_for_bitwidth(
       maximum = local_max;
   }
 #else
-  int64_t minimum;
-  int64_t maximum;
 
-  get_min_max<data_type, size_type, data_type, threadblock_size>
-      (input, num_elements, &minimum, &maximum);
-if (threadIdx.x == 0)
-  printf("min %u, max %u\n", (uint8_t)minimum, (uint8_t)maximum);
+  unsigned_data_type diff_4_sign;
+  unsigned_data_type diff_4_unsign;
+
+    signed_data_type minimum_sign;
+    signed_data_type maximum_sign;
+
+    get_min_max<data_type, size_type, signed_data_type, threadblock_size>(
+        input, num_elements, &minimum_sign, &maximum_sign);
+    if (threadIdx.x == 0)
+      printf("sign min %u, max %u\n", (uint8_t)minimum_sign, (uint8_t)maximum_sign);
+
+    diff_4_sign = static_cast<unsigned_data_type>(maximum_sign - minimum_sign);
+
+    unsigned_data_type minimum_unsign;
+    unsigned_data_type maximum_unsign;
+
+    get_min_max<data_type, size_type, unsigned_data_type, threadblock_size>(
+        input, num_elements, &minimum_unsign, &maximum_unsign);
+    if (threadIdx.x == 0)
+      printf("unsign min %u, max %u\n", (uint8_t)minimum_unsign, (uint8_t)maximum_unsign);
+
+    diff_4_unsign = maximum_unsign - minimum_unsign;
+
+  unsigned_data_type minimum = minimum_unsign;
+  unsigned_data_type maximum = maximum_unsign;
+  if(diff_4_sign < diff_4_unsign){
+    minimum = reinterpret_cast<unsigned_data_type&>(minimum_sign);
+    maximum = reinterpret_cast<unsigned_data_type&>(maximum_sign);
+  }
 
 #endif
   // Next, we store the frame of reference, the bitwidth and the number of
