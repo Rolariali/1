@@ -382,8 +382,8 @@ __device__ void get_for_bitwidth(
   // the same raw bits, the interpretation of the smallest element is different
   // for negative values.
   using signed_data_type = std::make_signed_t<data_type>;
-//  if (threadIdx.x == 0)
-//    printf("signed_data_type %d\n", std::is_same<signed_data_type, int8_t>::value);
+  if (threadIdx.x == 0)
+    printf("signed_data_type %d\n", std::is_same<signed_data_type, data_type>::value);
 
   // First, we calculate the maximum and the minimum of the input elements. We
   // process input elements in rounds, where each round processes
