@@ -506,12 +506,12 @@ __device__ void get_for_bitwidth(
 
     diff_4_unsign = maximum_unsign - minimum_unsign;
 
-  unsigned_data_type minimum = minimum_unsign;
-  unsigned_data_type maximum = maximum_unsign;
-  if(diff_4_sign < diff_4_unsign){
-    minimum = reinterpret_cast<unsigned_data_type&>(maximum_sign);
-    maximum = reinterpret_cast<unsigned_data_type&>(minimum_sign);
-  }
+    signed_data_type minimum = minimum_sign;
+    signed_data_type maximum = maximum_sign;
+    if(diff_4_sign < diff_4_unsign){
+      minimum = reinterpret_cast<signed_data_type&>(minimum_unsign);
+      maximum = reinterpret_cast<signed_data_type&>(maximum_unsign);
+    }
 
 #endif
   // Next, we store the frame of reference, the bitwidth and the number of
