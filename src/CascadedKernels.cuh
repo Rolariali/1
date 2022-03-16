@@ -404,8 +404,8 @@ __device__ void get_min_max(
       maximum = local_max;
   }
 
-  *min_ptr = reinterpret_cast<int64_t>(minimum);
-  *max_ptr = reinterpret_cast<int64_t>(maximum);
+  *min_ptr = reinterpret_cast<int64_t&>(minimum);
+  *max_ptr = reinterpret_cast<int64_t&>(maximum);
 }
 
 /**
