@@ -179,7 +179,7 @@ int main()
     printf("result compressed size: %zu\n", size);
   }
   {
-    typedef data_type T;
+    typedef int16_t T;
     std::vector<T> input;
 
     for (int i = 0; i < 32; i++)
