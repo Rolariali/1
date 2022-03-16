@@ -355,39 +355,15 @@ __device__ void block_delta_decompress(
     output_buffer[input_num_elements] = initial_value;
 }
 
-/**
- * Helper function to calculate the frame of reference and bitwidth in
- * bitpacking layer.
- *
- * @param[in] input Array of size \p num_elements of the input elements.
- * @param[out] frame_of_reference Frame of reference in the bitpacking layer.
- * Currently this is the smallest element of \p input. This argument will be set
- * by thread 0 so the memory location should be accessible by thread 0 (e.g., in
- * shared memory).
- * @param[out] bitwidth_ptr The highest 16 bits of this field store the number
- * of bits needed in the bitpacked buffer to represent a single input element.
- * The lowest 16 bits store the number of elements. This argument will be set
- * by thread 0 so the memory location should be accessible by thread 0 (e.g., in
- * shared memory).
- */
-template <typename data_type, typename size_type, int threadblock_size>
-__device__ void get_for_bitwidth(
+template <typename data_type, typename size_type,
+          typename signed_data_type,
+    int threadblock_size>
+__device__ void get_min_max(
     const data_type* input,
     size_type num_elements,
-    data_type* frame_of_reference,
-    uint32_t* bitwidth_ptr)
-{
-  // Use signed data type since input could store negative values, e.g. the
-  // output of delta layer. Although the signed type and the unsigned type have
-  // the same raw bits, the interpretation of the smallest element is different
-  // for negative values.
-  using signed_data_type = std::make_signed_t<data_type>;
-  if (threadIdx.x == 0)
-    printf("signed_data_type %d\n", std::is_same<signed_data_type, data_type>::value);
-
-  // First, we calculate the maximum and the minimum of the input elements. We
-  // process input elements in rounds, where each round processes
-  // `threadblock_size` elements, with one element per thread.
+    signed_data_type* min_ptr,
+    signed_data_type* max_ptr
+    ){
 
   typedef cub::BlockReduce<signed_data_type, threadblock_size> BlockReduce;
   __shared__ typename BlockReduce::TempStorage temp_storage;
@@ -428,6 +404,90 @@ __device__ void get_for_bitwidth(
       maximum = local_max;
   }
 
+  *min_ptr = minimum;
+  *max_ptr = maximum;
+}
+
+/**
+ * Helper function to calculate the frame of reference and bitwidth in
+ * bitpacking layer.
+ *
+ * @param[in] input Array of size \p num_elements of the input elements.
+ * @param[out] frame_of_reference Frame of reference in the bitpacking layer.
+ * Currently this is the smallest element of \p input. This argument will be set
+ * by thread 0 so the memory location should be accessible by thread 0 (e.g., in
+ * shared memory).
+ * @param[out] bitwidth_ptr The highest 16 bits of this field store the number
+ * of bits needed in the bitpacked buffer to represent a single input element.
+ * The lowest 16 bits store the number of elements. This argument will be set
+ * by thread 0 so the memory location should be accessible by thread 0 (e.g., in
+ * shared memory).
+ */
+template <typename data_type, typename size_type, int threadblock_size>
+__device__ void get_for_bitwidth(
+    const data_type* input,
+    size_type num_elements,
+    data_type* frame_of_reference,
+    uint32_t* bitwidth_ptr)
+{
+  // Use signed data type since input could store negative values, e.g. the
+  // output of delta layer. Although the signed type and the unsigned type have
+  // the same raw bits, the interpretation of the smallest element is different
+  // for negative values.
+  using signed_data_type = std::make_signed_t<data_type>;
+  if (threadIdx.x == 0)
+    printf("signed_data_type %d\n", std::is_same<signed_data_type, data_type>::value);
+
+  // First, we calculate the maximum and the minimum of the input elements. We
+  // process input elements in rounds, where each round processes
+  // `threadblock_size` elements, with one element per thread.
+#if false
+  typedef cub::BlockReduce<signed_data_type, threadblock_size> BlockReduce;
+  __shared__ typename BlockReduce::TempStorage temp_storage;
+
+  signed_data_type thread_data;
+  int num_valid = min(num_elements, static_cast<size_type>(threadblock_size));
+  if (threadIdx.x < num_elements) {
+    thread_data = input[threadIdx.x];
+  }
+
+  signed_data_type minimum
+      = BlockReduce(temp_storage).Reduce(thread_data, cub::Min(), num_valid);
+  __syncthreads();
+  signed_data_type maximum
+      = BlockReduce(temp_storage).Reduce(thread_data, cub::Max(), num_valid);
+  __syncthreads();
+
+  const int num_rounds = roundUpDiv(num_elements, threadblock_size);
+
+  for (int round = 1; round < num_rounds; round++) {
+    num_valid = min(
+        num_elements - round * threadblock_size,
+        static_cast<size_type>(threadblock_size));
+    if (threadIdx.x < num_valid) {
+      thread_data = input[threadIdx.x + round * threadblock_size];
+    }
+
+    const signed_data_type local_min
+        = BlockReduce(temp_storage).Reduce(thread_data, cub::Min(), num_valid);
+    __syncthreads();
+    const signed_data_type local_max
+        = BlockReduce(temp_storage).Reduce(thread_data, cub::Max(), num_valid);
+    __syncthreads();
+
+    if (threadIdx.x == 0 && local_min < minimum)
+      minimum = local_min;
+    if (threadIdx.x == 0 && local_max > maximum)
+      maximum = local_max;
+  }
+#else
+  signed_data_type minimum;
+  signed_data_type maximum;
+
+  get_min_max<data_type, size_type, signed_data_type, threadblock_size>
+      (input, num_elements, &minimum, &maximum);
+
+#endif
   // Next, we store the frame of reference, the bitwidth and the number of
   // elements into the desired location.
 
