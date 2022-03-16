@@ -486,7 +486,7 @@ __device__ void get_for_bitwidth(
 
   get_min_max<data_type, size_type, data_type, threadblock_size>
       (input, num_elements, &minimum, &maximum);
-
+if (threadIdx.x == 0)
   printf("min %u, max %u\n", (uint8_t)minimum, (uint8_t)maximum);
 
 #endif
