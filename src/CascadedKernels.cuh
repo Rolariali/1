@@ -487,6 +487,8 @@ __device__ void get_for_bitwidth(
   get_min_max<data_type, size_type, data_type, threadblock_size>
       (input, num_elements, &minimum, &maximum);
 
+  printf("min %u, max %u\n", (uint8_t)minimum, (uint8_t)maximum);
+
 #endif
   // Next, we store the frame of reference, the bitwidth and the number of
   // elements into the desired location.
@@ -549,7 +551,7 @@ __device__ void block_bitpack(
 
   if (threadIdx.x == 0) {
     printf("bitwidth %u frame_of_reference %u num_elements %u\n",
-           bitwidth, (uint32_t)frame_of_reference, (uint32_t)num_elements);
+           bitwidth, (uint8_t)frame_of_reference, (uint32_t)num_elements);
   }
 
   current_ptr = reinterpret_cast<uint32_t*>(
