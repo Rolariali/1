@@ -508,7 +508,7 @@ __device__ void get_for_bitwidth(
 
     signed_data_type minimum = minimum_sign;
     signed_data_type maximum = maximum_sign;
-    if(diff_4_sign < diff_4_unsign){
+    if(diff_4_sign > diff_4_unsign){
       minimum = reinterpret_cast<signed_data_type&>(minimum_unsign);
       maximum = reinterpret_cast<signed_data_type&>(maximum_unsign);
     }
