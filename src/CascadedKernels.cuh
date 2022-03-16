@@ -361,8 +361,8 @@ template <typename data_type, typename size_type,
 __device__ void get_min_max(
     const data_type* input,
     size_type num_elements,
-    signed_data_type* min_ptr,
-    signed_data_type* max_ptr
+    int64_t* min_ptr,
+    int64_t* max_ptr
     ){
 
   typedef cub::BlockReduce<signed_data_type, threadblock_size> BlockReduce;
@@ -404,8 +404,8 @@ __device__ void get_min_max(
       maximum = local_max;
   }
 
-  *min_ptr = minimum;
-  *max_ptr = maximum;
+  *min_ptr = reinterpret_cast<int64_t>(minimum);
+  *max_ptr = reinterpret_cast<int64_t>(maximum);
 }
 
 /**
@@ -481,8 +481,8 @@ __device__ void get_for_bitwidth(
       maximum = local_max;
   }
 #else
-  data_type minimum;
-  data_type maximum;
+  int64_t minimum;
+  int64_t maximum;
 
   get_min_max<data_type, size_type, data_type, threadblock_size>
       (input, num_elements, &minimum, &maximum);
