@@ -506,11 +506,9 @@ __device__ void get_for_bitwidth(
       printf("unsign min %u, max %u diff %u\n",
              (uint8_t)minimum_unsign, (uint8_t)maximum_unsign, (uint8_t)diff_4_unsign);
 
-    signed_data_type minimum = minimum_sign;
-    signed_data_type maximum = maximum_sign;
+    unsigned_data_type diff = diff_4_sign;
     if(diff_4_sign > diff_4_unsign){
-      minimum = reinterpret_cast<signed_data_type&>(minimum_unsign);
-      maximum = reinterpret_cast<signed_data_type&>(maximum_unsign);
+      diff = diff_4_unsign;
     }
 
 #endif
@@ -528,8 +526,8 @@ __device__ void get_for_bitwidth(
       // need 64 bit clz
       bitwidth = sizeof(long long int) * num_bits_per_byte - __clzll(range);
     } else {
-      const int range
-          = static_cast<uint32_t>(maximum) - static_cast<uint32_t>(minimum);
+      const int range = diff;
+//          = static_cast<uint32_t>(maximum) - static_cast<uint32_t>(minimum);
       if (threadIdx.x == 0)
         printf("range %d, __clz %u\n", range, __clz(range));
 
