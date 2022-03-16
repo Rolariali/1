@@ -481,10 +481,10 @@ __device__ void get_for_bitwidth(
       maximum = local_max;
   }
 #else
-  signed_data_type minimum;
-  signed_data_type maximum;
+  data_type minimum;
+  data_type maximum;
 
-  get_min_max<data_type, size_type, signed_data_type, threadblock_size>
+  get_min_max<data_type, size_type, data_type, threadblock_size>
       (input, num_elements, &minimum, &maximum);
 
 #endif
