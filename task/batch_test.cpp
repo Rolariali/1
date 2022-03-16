@@ -6,13 +6,7 @@
 #include <cstdint>
 #include <vector>
 
-#define REQUIRE(a)                                                             \
-  do {                                                                         \
-    if (!(a)) {                                                                \
-      printf("Check " #a " at %d failed.\n", __LINE__);                        \
-      return 0;                                                                \
-    }                                                                          \
-  } while (0)
+#define REQUIRE(a) assert(a)
 
 #define CUDA_CHECK(cond)                                                       \
   do {                                                                         \
