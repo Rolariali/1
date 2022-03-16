@@ -530,6 +530,9 @@ __device__ void get_for_bitwidth(
     } else {
       const int range
           = static_cast<uint32_t>(maximum) - static_cast<uint32_t>(minimum);
+      if (threadIdx.x == 0)
+        printf("range %d, __clz %u\n", range, __clz(range));
+
       // can use 32 bit clz
       bitwidth = sizeof(int) * num_bits_per_byte - __clz(range);
     }
