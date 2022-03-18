@@ -520,13 +520,13 @@ __device__ void get_for_bitwidth(
   if (threadIdx.x == 0) {
     *frame_of_reference = minimum;
 
-    uint32_t bitwidth;
+    uint32_t bitwidth = 0;
     // calculate bit-width
     if (sizeof(data_type) > sizeof(int)) {
-//      const long long int range
+      const long long int range = static_cast<uint64_t>(diff);
 //          = static_cast<uint64_t>(maximum) - static_cast<uint64_t>(minimum);
 //      // need 64 bit clz
-//      bitwidth = sizeof(long long int) * num_bits_per_byte - __clzll(range);
+      bitwidth = sizeof(long long int) * num_bits_per_byte - __clzll(range);
     } else {
       const int range = static_cast<int>(diff);
 //          = static_cast<uint32_t>(maximum) - static_cast<uint32_t>(minimum);
