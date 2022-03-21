@@ -442,7 +442,10 @@ __device__ void get_for_bitwidth(
   // First, we calculate the maximum and the minimum of the input elements. We
   // process input elements in rounds, where each round processes
   // `threadblock_size` elements, with one element per thread.
-#if false
+
+#define BP_OLD 1
+
+#if BP_OLD
   typedef cub::BlockReduce<signed_data_type, threadblock_size> BlockReduce;
   __shared__ typename BlockReduce::TempStorage temp_storage;
 
@@ -523,13 +526,21 @@ __device__ void get_for_bitwidth(
     uint32_t bitwidth = 0;
     // calculate bit-width
     if (sizeof(data_type) > sizeof(int)) {
-      const long long int range = static_cast<uint64_t>(diff);
-//          = static_cast<uint64_t>(maximum) - static_cast<uint64_t>(minimum);
-//      // need 64 bit clz
+      const long long int range
+#if BP_OLD
+          = static_cast<uint64_t>(maximum) - static_cast<uint64_t>(minimum);
+#else
+      = static_cast<uint64_t>(diff);
+#endif
+      // need 64 bit clz
       bitwidth = sizeof(long long int) * num_bits_per_byte - __clzll(range);
     } else {
-      const int range = static_cast<int>(diff);
-//          = static_cast<uint32_t>(maximum) - static_cast<uint32_t>(minimum);
+      const int range
+#if BP_OLD
+          = static_cast<uint32_t>(maximum) - static_cast<uint32_t>(minimum);
+#else
+      = static_cast<int>(diff);
+#endif
       if (threadIdx.x == 0)
         printf("range %d, __clz %u\n", range, __clz(range));
 
