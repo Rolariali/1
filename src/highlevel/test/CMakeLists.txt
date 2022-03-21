@@ -8,11 +8,16 @@
 # is strictly prohibited.
 #
 
+if(CMAKE_OLD_CUDA_PACKAGE)
+  include_directories(/usr/local/cuda/include)
+  set(CUDA_ART "/usr/local/cuda/lib64/libcudart.so")
+endif()
+
 function(add_unit_test test_file)
   get_filename_component(test_name "${test_file}" NAME_WE)
   add_executable(${test_name} ${test_file})
-  target_include_directories(${test_name} PRIVATE ${CMAKE_SOURCE_DIR}/src ${CMAKE_SOURCE_DIR})
-  target_link_libraries(${test_name} PRIVATE nvcomp CUDA::cudart)
+  target_include_directories(${test_name} PRIVATE ../)
+  target_link_libraries(${test_name} PRIVATE nvcomp ${CUDA_ART})
   add_test(NAME ${test_name} COMMAND ${test_name})
 endfunction()
 
