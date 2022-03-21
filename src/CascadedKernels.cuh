@@ -443,7 +443,7 @@ __device__ void get_for_bitwidth(
   // process input elements in rounds, where each round processes
   // `threadblock_size` elements, with one element per thread.
 
-#define BP_OLD 1
+#define BP_OLD 0
 
 #if BP_OLD
   typedef cub::BlockReduce<signed_data_type, threadblock_size> BlockReduce;
@@ -484,6 +484,10 @@ __device__ void get_for_bitwidth(
     if (threadIdx.x == 0 && local_max > maximum)
       maximum = local_max;
   }
+
+  if (threadIdx.x == 0)
+    printf("minimum %d maximum %d\n", minimum, maximum);
+
 #else
 
   unsigned_data_type diff_4_sign;
@@ -588,8 +592,8 @@ __device__ void block_bitpack(
   const uint32_t bitwidth = (*current_ptr & 0xFFFF0000) >> 16;
 
   if (threadIdx.x == 0) {
-    printf("bitwidth %u frame_of_reference %u num_elements %u\n",
-           bitwidth, (uint8_t)frame_of_reference, (uint32_t)num_elements);
+    printf("bitwidth %u frame_of_reference %ld num_elements %u\n",
+           bitwidth, frame_of_reference, (uint32_t)num_elements);
   }
 
   current_ptr = reinterpret_cast<uint32_t*>(
