@@ -583,6 +583,9 @@ __device__ void block_bitpack(
   auto for_ptr = reinterpret_cast<data_type*>(output);
   uint32_t* current_ptr = roundUpToAlignment<uint32_t>(for_ptr + 1);
 
+  if (threadIdx.x == 0)
+    printf("size_type is size_t %d \n", std::is_same<size_type, size_t>::value);
+
   get_for_bitwidth<data_type, size_type, threadblock_size>(
       input, num_elements, for_ptr, current_ptr);
 
@@ -592,8 +595,9 @@ __device__ void block_bitpack(
   const uint32_t bitwidth = (*current_ptr & 0xFFFF0000) >> 16;
 
   if (threadIdx.x == 0) {
-    printf("bitwidth %u frame_of_reference %d num_elements %u\n",
-           bitwidth, frame_of_reference, (uint32_t)num_elements);
+      printf("block_bitpack num_elements %u\n", num_elements);
+    printf("bitwidth %u frame_of_reference %d \n",
+           bitwidth, frame_of_reference);
   }
 
   current_ptr = reinterpret_cast<uint32_t*>(
@@ -747,6 +751,7 @@ __device__ BlockIOStatus block_write(
   const uint32_t* source = nullptr;
 
   if (use_bp) {
+
     block_bitpack<data_type, size_type, threadblock_size>(
         input, num_elements, temp_storage, out_bytes);
     __syncthreads();

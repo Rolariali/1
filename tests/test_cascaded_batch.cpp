@@ -1204,19 +1204,19 @@ void test_bitpack_compress(const size_t data_size)
 
 TEST_CASE("BatchedCascadedCompressor BitPack for wide signed unsigned interval input data", "[nvcomp]")
 {
-//  test_bitpack_compress<int8_t>(1000);
-//  printf("--------------\n");
-//  test_bitpack_compress<uint8_t>(1000);
-//  printf("--------------\n");
-//  test_bitpack_compress<int16_t>(1000);
-//  printf("--------------\n");
-//  test_bitpack_compress<uint16_t>(1000);
-//  printf("--------------\n");
-//  test_bitpack_compress<int32_t>(1000);
+  test_bitpack_compress<int8_t>(1000);
+  printf("--------------\n");
+  test_bitpack_compress<uint8_t>(1000);
+  printf("--------------\n");
+  test_bitpack_compress<int16_t>(1000);
+  printf("--------------\n");
+  test_bitpack_compress<uint16_t>(1000);
+  printf("--------------\n");
+  test_bitpack_compress<int32_t>(1000);
   printf("--------------\n");
   test_bitpack_compress<uint32_t>(1000);
   printf("--------------\n");
   test_bitpack_compress<int64_t>(500);
   printf("--------------\n");
-//  test_bitpack_compress<uint64_t>(500);
+  test_bitpack_compress<uint64_t>(500);
 }
