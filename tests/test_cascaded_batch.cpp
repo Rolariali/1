@@ -37,6 +37,7 @@
 #include <cstdint>
 #include <random>
 #include <vector>
+#include <limits>       // std::numeric_limits
 
 using run_type = uint16_t;
 using nvcomp::roundUpToAlignment;
@@ -895,102 +896,6 @@ void test_out_of_bound(int use_bp)
   CUDA_CHECK(cudaFree(decompression_statuses));
 }
 
-TEST_CASE("BatchedCascadedCompressor predefined-cases", "[nvcomp]")
-{
-  test_predefined_cases<int8_t>(0);
-  test_predefined_cases<int8_t>(1);
-  test_predefined_cases<uint8_t>(0);
-  test_predefined_cases<uint8_t>(1);
-  test_predefined_cases<int16_t>(0);
-  test_predefined_cases<int16_t>(1);
-  test_predefined_cases<uint16_t>(0);
-  test_predefined_cases<uint16_t>(1);
-  test_predefined_cases<int32_t>(0);
-  test_predefined_cases<int32_t>(1);
-  test_predefined_cases<uint32_t>(0);
-  test_predefined_cases<uint32_t>(1);
-  test_predefined_cases<int64_t>(0);
-  test_predefined_cases<int64_t>(1);
-  test_predefined_cases<uint64_t>(0);
-  test_predefined_cases<uint64_t>(1);
-}
-TEST_CASE("BatchedCascadedCompressor fallback-path", "[nvcomp]")
-{
-  test_fallback_path<int8_t>();
-  test_fallback_path<uint8_t>();
-  test_fallback_path<int16_t>();
-  test_fallback_path<uint16_t>();
-  test_fallback_path<int32_t>();
-  test_fallback_path<uint32_t>();
-  test_fallback_path<int64_t>();
-  test_fallback_path<uint64_t>();
-}
-
-TEST_CASE("BatchedCascadedCompressor invalid-decompressed-size", "[nvcomp]")
-{
-  void* compressed_buffer;
-  size_t* compressed_bytes;
-  size_t* uncompressed_bytes;
-  // A well-formed compressed buffer should have size at least 8 due to
-  // metadata. We delibrately set it to 4 here to see whether the implementation
-  // can fail gracefully.
-  constexpr size_t compressed_byte_host = 4;
-  // Set this field to a number other than 0 here. Later, we will copy the
-  // uncompressed byte back to this field, and it should contain 0 due to OOB
-  // access.
-  size_t uncompressed_byte_host = 1;
-
-  CUDA_CHECK(cudaMalloc(&compressed_buffer, compressed_byte_host));
-  CUDA_CHECK(cudaMalloc(&compressed_bytes, sizeof(size_t)));
-  CUDA_CHECK(cudaMalloc(&uncompressed_bytes, sizeof(size_t)));
-
-  CUDA_CHECK(cudaMemcpy(
-      compressed_bytes,
-      &compressed_byte_host,
-      sizeof(size_t),
-      cudaMemcpyHostToDevice));
-
-  auto status = nvcompBatchedCascadedGetDecompressSizeAsync(
-      &compressed_buffer, compressed_bytes, uncompressed_bytes, 1, 0);
-
-  REQUIRE(status == nvcompSuccess);
-  CUDA_CHECK(cudaStreamSynchronize(0));
-
-  CUDA_CHECK(cudaMemcpy(
-      &uncompressed_byte_host,
-      uncompressed_bytes,
-      sizeof(size_t),
-      cudaMemcpyDeviceToHost));
-  REQUIRE(uncompressed_byte_host == 0);
-
-  CUDA_CHECK(cudaFree(compressed_buffer));
-  CUDA_CHECK(cudaFree(compressed_bytes));
-  CUDA_CHECK(cudaFree(uncompressed_bytes));
-}
-
-TEST_CASE("BatchedCascadedCompressor out-of-bound", "[nvcomp]")
-{
-  test_out_of_bound<int8_t>(0);
-  test_out_of_bound<int8_t>(1);
-  test_out_of_bound<uint8_t>(0);
-  test_out_of_bound<uint8_t>(1);
-  test_out_of_bound<int16_t>(0);
-  test_out_of_bound<int16_t>(1);
-  test_out_of_bound<uint16_t>(0);
-  test_out_of_bound<uint16_t>(1);
-  test_out_of_bound<int32_t>(0);
-  test_out_of_bound<int32_t>(1);
-  test_out_of_bound<uint32_t>(0);
-  test_out_of_bound<uint32_t>(1);
-  test_out_of_bound<int64_t>(0);
-  test_out_of_bound<int64_t>(1);
-  test_out_of_bound<uint64_t>(0);
-  test_out_of_bound<uint64_t>(1);
-}
-
-
-#include <limits>       // std::numeric_limits
-
 template <typename data_type>
 void test_bitpack_compress(const size_t data_size, const size_t expect_comp_size)
 {
@@ -1098,9 +1003,6 @@ void test_bitpack_compress(const size_t data_size, const size_t expect_comp_size
     REQUIRE(uncompressed_byte <= chunk_size);
   }
 
-  // Check compression output
-
-
   // Check uncompressed bytes stored in the compressed buffer
 
   size_t* decompressed_bytes_device;
@@ -1202,21 +1104,107 @@ void test_bitpack_compress(const size_t data_size, const size_t expect_comp_size
   CUDA_CHECK(cudaFree(compression_statuses_device));
 }
 
+TEST_CASE("BatchedCascadedCompressor predefined-cases", "[nvcomp]")
+{
+  test_predefined_cases<int8_t>(0);
+  test_predefined_cases<int8_t>(1);
+  test_predefined_cases<uint8_t>(0);
+  test_predefined_cases<uint8_t>(1);
+  test_predefined_cases<int16_t>(0);
+  test_predefined_cases<int16_t>(1);
+  test_predefined_cases<uint16_t>(0);
+  test_predefined_cases<uint16_t>(1);
+  test_predefined_cases<int32_t>(0);
+  test_predefined_cases<int32_t>(1);
+  test_predefined_cases<uint32_t>(0);
+  test_predefined_cases<uint32_t>(1);
+  test_predefined_cases<int64_t>(0);
+  test_predefined_cases<int64_t>(1);
+  test_predefined_cases<uint64_t>(0);
+  test_predefined_cases<uint64_t>(1);
+}
+TEST_CASE("BatchedCascadedCompressor fallback-path", "[nvcomp]")
+{
+  test_fallback_path<int8_t>();
+  test_fallback_path<uint8_t>();
+  test_fallback_path<int16_t>();
+  test_fallback_path<uint16_t>();
+  test_fallback_path<int32_t>();
+  test_fallback_path<uint32_t>();
+  test_fallback_path<int64_t>();
+  test_fallback_path<uint64_t>();
+}
+
+TEST_CASE("BatchedCascadedCompressor invalid-decompressed-size", "[nvcomp]")
+{
+  void* compressed_buffer;
+  size_t* compressed_bytes;
+  size_t* uncompressed_bytes;
+  // A well-formed compressed buffer should have size at least 8 due to
+  // metadata. We delibrately set it to 4 here to see whether the implementation
+  // can fail gracefully.
+  constexpr size_t compressed_byte_host = 4;
+  // Set this field to a number other than 0 here. Later, we will copy the
+  // uncompressed byte back to this field, and it should contain 0 due to OOB
+  // access.
+  size_t uncompressed_byte_host = 1;
+
+  CUDA_CHECK(cudaMalloc(&compressed_buffer, compressed_byte_host));
+  CUDA_CHECK(cudaMalloc(&compressed_bytes, sizeof(size_t)));
+  CUDA_CHECK(cudaMalloc(&uncompressed_bytes, sizeof(size_t)));
+
+  CUDA_CHECK(cudaMemcpy(
+      compressed_bytes,
+      &compressed_byte_host,
+      sizeof(size_t),
+      cudaMemcpyHostToDevice));
+
+  auto status = nvcompBatchedCascadedGetDecompressSizeAsync(
+      &compressed_buffer, compressed_bytes, uncompressed_bytes, 1, 0);
+
+  REQUIRE(status == nvcompSuccess);
+  CUDA_CHECK(cudaStreamSynchronize(0));
+
+  CUDA_CHECK(cudaMemcpy(
+      &uncompressed_byte_host,
+      uncompressed_bytes,
+      sizeof(size_t),
+      cudaMemcpyDeviceToHost));
+  REQUIRE(uncompressed_byte_host == 0);
+
+  CUDA_CHECK(cudaFree(compressed_buffer));
+  CUDA_CHECK(cudaFree(compressed_bytes));
+  CUDA_CHECK(cudaFree(uncompressed_bytes));
+}
+
+TEST_CASE("BatchedCascadedCompressor out-of-bound", "[nvcomp]")
+{
+  test_out_of_bound<int8_t>(0);
+  test_out_of_bound<int8_t>(1);
+  test_out_of_bound<uint8_t>(0);
+  test_out_of_bound<uint8_t>(1);
+  test_out_of_bound<int16_t>(0);
+  test_out_of_bound<int16_t>(1);
+  test_out_of_bound<uint16_t>(0);
+  test_out_of_bound<uint16_t>(1);
+  test_out_of_bound<int32_t>(0);
+  test_out_of_bound<int32_t>(1);
+  test_out_of_bound<uint32_t>(0);
+  test_out_of_bound<uint32_t>(1);
+  test_out_of_bound<int64_t>(0);
+  test_out_of_bound<int64_t>(1);
+  test_out_of_bound<uint64_t>(0);
+  test_out_of_bound<uint64_t>(1);
+}
+
 TEST_CASE("BatchedCascadedCompressor BitPack for wide signed unsigned interval input data", "[nvcomp]")
 {
   test_bitpack_compress<int8_t>(1000, 152);
-  printf("--------------\n");
   test_bitpack_compress<uint8_t>(1000, 152);
-  printf("--------------\n");
   test_bitpack_compress<int16_t>(1000, 152);
-  printf("--------------\n");
   test_bitpack_compress<uint16_t>(1000, 152);
-  printf("--------------\n");
   test_bitpack_compress<int32_t>(1000, 152);
-  printf("--------------\n");
   test_bitpack_compress<uint32_t>(1000, 152);
-  printf("--------------\n");
   test_bitpack_compress<int64_t>(500, 96);
-  printf("--------------\n");
   test_bitpack_compress<uint64_t>(500, 96);
 }
