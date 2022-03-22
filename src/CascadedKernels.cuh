@@ -498,7 +498,7 @@ __device__ void get_for_bitwidth(
 
     get_min_max<data_type, size_type, signed_data_type, threadblock_size>(
         input, num_elements, &minimum_sign, &maximum_sign);
-    diff_4_sign = static_cast<unsigned_data_type>(abs(maximum_sign - minimum_sign));
+    diff_4_sign = static_cast<unsigned_data_type>(maximum_sign) - static_cast<unsigned_data_type>(minimum_sign);
     if (threadIdx.x == 0)
       printf("sign min %d, max %d diff %d\n",
              minimum_sign, maximum_sign, diff_4_sign);
@@ -508,7 +508,7 @@ __device__ void get_for_bitwidth(
 
     get_min_max<data_type, size_type, unsigned_data_type, threadblock_size>(
         input, num_elements, &minimum_unsign, &maximum_unsign);
-    diff_4_unsign = static_cast<int64_t>(maximum_unsign - minimum_unsign);
+    diff_4_unsign = maximum_unsign - minimum_unsign;
     if (threadIdx.x == 0)
       printf("unsign min %u, max %u diff %ld\n",
              minimum_unsign, maximum_unsign, diff_4_unsign);
