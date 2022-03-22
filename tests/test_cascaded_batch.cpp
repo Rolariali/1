@@ -174,7 +174,7 @@ void verify_decompressed_output(
         cudaMemcpyDeviceToHost));
 
     for (size_t element_idx = 0; element_idx < num_elements; element_idx++) {
-      printf("idx: %zu part %zu dec %u unc %u\n", element_idx, partition_idx,
+      printf("idx: %zu part %zu dec %d unc %d\n", element_idx, partition_idx,
              decompressed_data_host[element_idx],
              uncompressed_data_host[partition_idx][element_idx]
              );
@@ -474,7 +474,7 @@ void test_predefined_cases(int use_bp)
 template <typename data_type>
 void test_fallback_path()
 {
-  std::vector<int> uncompressed_num_elements = {10, 100, // 1000, 10000, 1000
+  std::vector<int> uncompressed_num_elements = {32, //100,  1000, 10000, 1000
                                                   };
   const size_t batch_size = uncompressed_num_elements.size();
 
@@ -497,7 +497,7 @@ void test_fallback_path()
     for (int element_idx = 0;
          element_idx < uncompressed_num_elements[input_idx];
          element_idx++) {
-      inputs_data[input_idx][element_idx] = static_cast<data_type>(dist(random_generator));
+      inputs_data[input_idx][element_idx] = -1987259202*((element_idx+1)%2) + 2139037708*(element_idx%2);//static_cast<data_type>(dist(random_generator));
     }
   }
 
@@ -926,8 +926,8 @@ TEST_CASE("BatchedCascadedCompressor fallback-path", "[nvcomp]")
 //  test_fallback_path<uint8_t>();
 //  test_fallback_path<int16_t>();
 //  test_fallback_path<uint16_t>();
-//  test_fallback_path<int32_t>();
-  test_fallback_path<uint32_t>();
+  test_fallback_path<int32_t>();
+//  test_fallback_path<uint32_t>();
 //  test_fallback_path<int64_t>();
 //  test_fallback_path<uint64_t>();
 }
