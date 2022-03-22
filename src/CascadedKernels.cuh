@@ -436,8 +436,6 @@ __device__ void get_for_bitwidth(
   // for negative values.
   using signed_data_type = std::make_signed_t<data_type>;
   using unsigned_data_type = std::make_unsigned_t<data_type>;
-  if (threadIdx.x == 0)
-    printf("signed_data_type %d\n", std::is_same<signed_data_type, data_type>::value);
 
   // First, we calculate the maximum and the minimum of the input elements. We
   // process input elements in rounds, where each round processes
@@ -452,9 +450,6 @@ __device__ void get_for_bitwidth(
   get_min_max<data_type, size_type, signed_data_type, threadblock_size>(
       input, num_elements, &minimum_sign, &maximum_sign);
   diff_4_sign = static_cast<unsigned_data_type>(maximum_sign) - static_cast<unsigned_data_type>(minimum_sign);
-  if (threadIdx.x == 0)
-    printf("sign min %d, max %d diff %d\n",
-           minimum_sign, maximum_sign, diff_4_sign);
 
   unsigned_data_type minimum_unsign;
   unsigned_data_type maximum_unsign;
@@ -462,9 +457,6 @@ __device__ void get_for_bitwidth(
   get_min_max<data_type, size_type, unsigned_data_type, threadblock_size>(
       input, num_elements, &minimum_unsign, &maximum_unsign);
   diff_4_unsign = maximum_unsign - minimum_unsign;
-  if (threadIdx.x == 0)
-    printf("unsign min %u, max %u diff %ld\n",
-           minimum_unsign, maximum_unsign, diff_4_unsign);
 
   unsigned_data_type diff = diff_4_sign;
   signed_data_type minimum = minimum_sign;
@@ -487,8 +479,6 @@ __device__ void get_for_bitwidth(
       bitwidth = sizeof(long long int) * num_bits_per_byte - __clzll(range);
     } else {
       const int range = static_cast<int>(diff);
-      if (threadIdx.x == 0)
-        printf("range %d, __clz %u\n", range, __clz(range));
 
       // can use 32 bit clz
       bitwidth = sizeof(int) * num_bits_per_byte - __clz(range);
