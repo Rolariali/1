@@ -894,7 +894,7 @@ void test_out_of_bound(int use_bp)
   CUDA_CHECK(cudaFree(actual_decompressed_bytes));
   CUDA_CHECK(cudaFree(decompression_statuses));
 }
-
+/*
 TEST_CASE("BatchedCascadedCompressor predefined-cases", "[nvcomp]")
 {
   test_predefined_cases<int8_t>(0);
@@ -986,4 +986,220 @@ TEST_CASE("BatchedCascadedCompressor out-of-bound", "[nvcomp]")
   test_out_of_bound<int64_t>(1);
   test_out_of_bound<uint64_t>(0);
   test_out_of_bound<uint64_t>(1);
+}
+*/
+
+
+template <typename data_type>
+void test_bitpack_compress(const size_t data_size)
+{
+  // Generate input data and copy it to device memory
+
+  std::vector<data_type> input0_host = generate_predefined_input_host(
+      std::vector<data_type>{3, 9, 4, 0, 1},
+      std::vector<size_t>{1, 20, 13, 25, 6});
+
+  void* input0_device;
+  CUDA_CHECK(
+      cudaMalloc(&input0_device, input0_host.size() * sizeof(data_type)));
+  CUDA_CHECK(cudaMemcpy(
+      input0_device,
+      input0_host.data(),
+      input0_host.size() * sizeof(data_type),
+      cudaMemcpyHostToDevice));
+
+  // Copy uncompressed pointers and sizes to device memory
+
+  std::vector<void*> uncompressed_ptrs_host
+      = {input0_device};
+  std::vector<size_t> uncompressed_bytes_host
+      = {input0_host.size() * sizeof(data_type)};
+  const size_t batch_size = uncompressed_ptrs_host.size();
+
+  void** uncompressed_ptrs_device;
+  CUDA_CHECK(cudaMalloc(&uncompressed_ptrs_device, sizeof(void*) * batch_size));
+  CUDA_CHECK(cudaMemcpy(
+      uncompressed_ptrs_device,
+      uncompressed_ptrs_host.data(),
+      sizeof(void*) * batch_size,
+      cudaMemcpyHostToDevice));
+
+  size_t* uncompressed_bytes_device;
+  CUDA_CHECK(
+      cudaMalloc(&uncompressed_bytes_device, sizeof(size_t) * batch_size));
+  CUDA_CHECK(cudaMemcpy(
+      uncompressed_bytes_device,
+      uncompressed_bytes_host.data(),
+      sizeof(size_t) * batch_size,
+      cudaMemcpyHostToDevice));
+
+  // Allocate compressed buffers and sizes
+
+  std::vector<void*> compressed_ptrs_host;
+  for (size_t partition_idx = 0; partition_idx < batch_size; partition_idx++) {
+    void* compressed_ptr;
+    CUDA_CHECK(cudaMalloc(
+        &compressed_ptr,
+        max_compressed_size(uncompressed_bytes_host[partition_idx])));
+    compressed_ptrs_host.push_back(compressed_ptr);
+  }
+
+  void** compressed_ptrs_device;
+  CUDA_CHECK(cudaMalloc(&compressed_ptrs_device, sizeof(void*) * batch_size));
+  CUDA_CHECK(cudaMemcpy(
+      compressed_ptrs_device,
+      compressed_ptrs_host.data(),
+      sizeof(void*) * batch_size,
+      cudaMemcpyHostToDevice));
+
+  size_t* compressed_bytes_device;
+  CUDA_CHECK(cudaMalloc(&compressed_bytes_device, sizeof(size_t) * batch_size));
+
+  // Launch batched compression
+
+  nvcompBatchedCascadedOpts_t comp_opts
+      = {batch_size, nvcomp::TypeOf<data_type>(), 0, 0, 1};
+
+  auto status = nvcompBatchedCascadedCompressAsync(
+      uncompressed_ptrs_device,
+      uncompressed_bytes_device,
+      0, // not used
+      batch_size,
+      nullptr, // not used
+      0,       // not used
+      compressed_ptrs_device,
+      compressed_bytes_device,
+      comp_opts,
+      0);
+
+  REQUIRE(status == nvcompSuccess);
+  CUDA_CHECK(cudaStreamSynchronize(0));
+
+  // Verify compressed bytes alignment
+
+  std::vector<size_t> compressed_bytes_host(batch_size);
+  CUDA_CHECK(cudaMemcpy(
+      compressed_bytes_host.data(),
+      compressed_bytes_device,
+      sizeof(size_t) * batch_size,
+      cudaMemcpyDeviceToHost));
+
+  for (auto const& compressed_bytes_partition : compressed_bytes_host) {
+    REQUIRE(compressed_bytes_partition % 4 == 0);
+    REQUIRE(compressed_bytes_partition % sizeof(data_type) == 0);
+  }
+
+  // Check the test case is small enough to fit inside one batch
+  constexpr size_t chunk_size = 4096;
+  for (auto const& uncompressed_byte : uncompressed_bytes_host) {
+    REQUIRE(uncompressed_byte <= chunk_size);
+  }
+
+  // Check compression output
+
+
+  // Check uncompressed bytes stored in the compressed buffer
+
+  size_t* decompressed_bytes_device;
+  CUDA_CHECK(
+      cudaMalloc(&decompressed_bytes_device, sizeof(size_t) * batch_size));
+
+  status = nvcompBatchedCascadedGetDecompressSizeAsync(
+      compressed_ptrs_device,
+      compressed_bytes_device,
+      decompressed_bytes_device,
+      batch_size,
+      0);
+
+  REQUIRE(status == nvcompSuccess);
+  CUDA_CHECK(cudaStreamSynchronize(0));
+
+  verify_decompressed_sizes(
+      batch_size, decompressed_bytes_device, uncompressed_bytes_host);
+
+  // Allocate decompressed buffers
+
+  std::vector<void*> decompressed_ptrs_host;
+  for (size_t partition_idx = 0; partition_idx < batch_size; partition_idx++) {
+    void* decompressed_ptr;
+    CUDA_CHECK(
+        cudaMalloc(&decompressed_ptr, uncompressed_bytes_host[partition_idx]));
+    decompressed_ptrs_host.push_back(decompressed_ptr);
+  }
+
+  void** decompressed_ptrs_device;
+  CUDA_CHECK(cudaMalloc(&decompressed_ptrs_device, sizeof(void*) * batch_size));
+  CUDA_CHECK(cudaMemcpy(
+      decompressed_ptrs_device,
+      decompressed_ptrs_host.data(),
+      sizeof(void*) * batch_size,
+      cudaMemcpyHostToDevice));
+
+  CUDA_CHECK(
+      cudaMemset(decompressed_bytes_device, 0, sizeof(size_t) * batch_size));
+
+  // Launch decompression
+
+  nvcompStatus_t* compression_statuses_device;
+  CUDA_CHECK(cudaMalloc(
+      &compression_statuses_device, sizeof(nvcompStatus_t) * batch_size));
+
+  status = nvcompBatchedCascadedDecompressAsync(
+      compressed_ptrs_device,
+      compressed_bytes_device,
+      uncompressed_bytes_device,
+      decompressed_bytes_device,
+      batch_size,
+      nullptr, // not used
+      0,       // not used
+      decompressed_ptrs_device,
+      compression_statuses_device,
+      0);
+
+  REQUIRE(status == nvcompSuccess);
+  CUDA_CHECK(cudaStreamSynchronize(0));
+
+  std::vector<nvcompStatus_t> compression_statuses_host(batch_size);
+  CUDA_CHECK(cudaMemcpy(
+      compression_statuses_host.data(),
+      compression_statuses_device,
+      sizeof(nvcompStatus_t) * batch_size,
+      cudaMemcpyDeviceToHost));
+
+  for (auto const& compression_status : compression_statuses_host)
+    REQUIRE(compression_status == nvcompSuccess);
+
+  // Verify decompression outputs match the original uncompressed data
+
+  std::vector<const data_type*> uncompressed_data_host
+      = {input0_host.data()};
+
+  verify_decompressed_sizes(
+      batch_size, decompressed_bytes_device, uncompressed_bytes_host);
+
+  verify_decompressed_output(
+      batch_size,
+      decompressed_ptrs_host,
+      uncompressed_data_host,
+      uncompressed_bytes_host);
+
+  // Cleanup
+
+  CUDA_CHECK(cudaFree(input0_device));
+  CUDA_CHECK(cudaFree(uncompressed_ptrs_device));
+  CUDA_CHECK(cudaFree(uncompressed_bytes_device));
+  for (void* const& ptr : compressed_ptrs_host)
+    CUDA_CHECK(cudaFree(ptr));
+  CUDA_CHECK(cudaFree(compressed_ptrs_device));
+  CUDA_CHECK(cudaFree(compressed_bytes_device));
+  for (void* const& ptr : decompressed_ptrs_host)
+    CUDA_CHECK(cudaFree(ptr));
+  CUDA_CHECK(cudaFree(decompressed_bytes_device));
+  CUDA_CHECK(cudaFree(decompressed_ptrs_device));
+  CUDA_CHECK(cudaFree(compression_statuses_device));
+}
+
+TEST_CASE("BatchedCascadedCompressor BitPack for wide signed unsigned interval input data", "[nvcomp]")
+{
+  test_bitpack_compress<int>(1);
 }
