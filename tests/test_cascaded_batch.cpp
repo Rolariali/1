@@ -174,10 +174,6 @@ void verify_decompressed_output(
         cudaMemcpyDeviceToHost));
 
     for (size_t element_idx = 0; element_idx < num_elements; element_idx++) {
-      printf("idx: %zu part %zu dec %d unc %d\n", element_idx, partition_idx,
-             decompressed_data_host[element_idx],
-             uncompressed_data_host[partition_idx][element_idx]
-             );
       REQUIRE(
           decompressed_data_host[element_idx]
           == uncompressed_data_host[partition_idx][element_idx]);
@@ -474,8 +470,7 @@ void test_predefined_cases(int use_bp)
 template <typename data_type>
 void test_fallback_path()
 {
-  std::vector<int> uncompressed_num_elements = {32, //100,  1000, 10000, 1000
-                                                  };
+  std::vector<int> uncompressed_num_elements = {10, 100, 1000, 10000, 1000};
   const size_t batch_size = uncompressed_num_elements.size();
 
   // Generate random integers as input data in the host memory
@@ -497,7 +492,7 @@ void test_fallback_path()
     for (int element_idx = 0;
          element_idx < uncompressed_num_elements[input_idx];
          element_idx++) {
-      inputs_data[input_idx][element_idx] = -1987259202*((element_idx+1)%2) + 2139037708*(element_idx%2);//static_cast<data_type>(dist(random_generator));
+      inputs_data[input_idx][element_idx] = static_cast<data_type>(dist(random_generator));
     }
   }
 
@@ -564,7 +559,7 @@ void test_fallback_path()
   // Launch batched cascaded compression
 
   nvcompBatchedCascadedOpts_t comp_opts
-      = {batch_size, nvcomp::TypeOf<data_type>(), 0, 0, true};
+      = {batch_size, nvcomp::TypeOf<data_type>(), 2, 1, true};
 
   auto status = nvcompBatchedCascadedCompressAsync(
       uncompressed_ptrs_device,
@@ -590,8 +585,8 @@ void test_fallback_path()
         compressed_ptrs_host[partition_idx],
         sizeof(uint32_t),
         cudaMemcpyDeviceToHost));
-//    REQUIRE(
-//        metadata == (static_cast<uint32_t>(nvcomp::TypeOf<data_type>()) << 24));
+    REQUIRE(
+        metadata == (static_cast<uint32_t>(nvcomp::TypeOf<data_type>()) << 24));
   }
 
   // Check uncompressed bytes stored in the compressed buffer
@@ -899,7 +894,7 @@ void test_out_of_bound(int use_bp)
   CUDA_CHECK(cudaFree(actual_decompressed_bytes));
   CUDA_CHECK(cudaFree(decompression_statuses));
 }
-/*
+
 TEST_CASE("BatchedCascadedCompressor predefined-cases", "[nvcomp]")
 {
   test_predefined_cases<int8_t>(0);
@@ -919,19 +914,18 @@ TEST_CASE("BatchedCascadedCompressor predefined-cases", "[nvcomp]")
   test_predefined_cases<uint64_t>(0);
   test_predefined_cases<uint64_t>(1);
 }
-*/
 TEST_CASE("BatchedCascadedCompressor fallback-path", "[nvcomp]")
 {
-//  test_fallback_path<int8_t>();
-//  test_fallback_path<uint8_t>();
-//  test_fallback_path<int16_t>();
-//  test_fallback_path<uint16_t>();
+  test_fallback_path<int8_t>();
+  test_fallback_path<uint8_t>();
+  test_fallback_path<int16_t>();
+  test_fallback_path<uint16_t>();
   test_fallback_path<int32_t>();
-//  test_fallback_path<uint32_t>();
-//  test_fallback_path<int64_t>();
-//  test_fallback_path<uint64_t>();
+  test_fallback_path<uint32_t>();
+  test_fallback_path<int64_t>();
+  test_fallback_path<uint64_t>();
 }
-/*
+
 TEST_CASE("BatchedCascadedCompressor invalid-decompressed-size", "[nvcomp]")
 {
   void* compressed_buffer;
@@ -993,4 +987,3 @@ TEST_CASE("BatchedCascadedCompressor out-of-bound", "[nvcomp]")
   test_out_of_bound<uint64_t>(0);
   test_out_of_bound<uint64_t>(1);
 }
-*/
