@@ -564,7 +564,7 @@ void test_fallback_path()
   // Launch batched cascaded compression
 
   nvcompBatchedCascadedOpts_t comp_opts
-      = {batch_size, nvcomp::TypeOf<data_type>(), 2, 1, true};
+      = {batch_size, nvcomp::TypeOf<data_type>(), 0, 0, true};
 
   auto status = nvcompBatchedCascadedCompressAsync(
       uncompressed_ptrs_device,
