@@ -989,15 +989,17 @@ TEST_CASE("BatchedCascadedCompressor out-of-bound", "[nvcomp]")
 }
 */
 
+#include <limits>       // std::numeric_limits
 
 template <typename data_type>
 void test_bitpack_compress(const size_t data_size)
 {
-  // Generate input data and copy it to device memory
+  const data_type min_value = std::numeric_limits<data_type>::min();
+  const data_type max_value = std::numeric_limits<data_type>::max();
 
-  std::vector<data_type> input0_host = generate_predefined_input_host(
-      std::vector<data_type>{3, 9, 4, 0, 1},
-      std::vector<size_t>{1, 20, 13, 25, 6});
+  // Generate input data and copy it to device memory
+  std::vector<data_type> input0_host(data_size, min_value);
+  input0_host[0] = max_value;
 
   void* input0_device;
   CUDA_CHECK(
@@ -1085,6 +1087,7 @@ void test_bitpack_compress(const size_t data_size)
       cudaMemcpyDeviceToHost));
 
   for (auto const& compressed_bytes_partition : compressed_bytes_host) {
+    printf("compressed_bytes_partition %zu\n", compressed_bytes_partition);
     REQUIRE(compressed_bytes_partition % 4 == 0);
     REQUIRE(compressed_bytes_partition % sizeof(data_type) == 0);
   }
@@ -1201,5 +1204,19 @@ void test_bitpack_compress(const size_t data_size)
 
 TEST_CASE("BatchedCascadedCompressor BitPack for wide signed unsigned interval input data", "[nvcomp]")
 {
-  test_bitpack_compress<int>(1);
+  test_bitpack_compress<int8_t>(1000);
+  printf("--------------\n");
+  test_bitpack_compress<uint8_t>(1000);
+  printf("--------------\n");
+  test_bitpack_compress<int16_t>(1000);
+  printf("--------------\n");
+  test_bitpack_compress<uint16_t>(1000);
+  printf("--------------\n");
+  test_bitpack_compress<int32_t>(1000);
+  printf("--------------\n");
+  test_bitpack_compress<uint32_t>(1000);
+  printf("--------------\n");
+  test_bitpack_compress<int64_t>(500);
+  printf("--------------\n");
+  test_bitpack_compress<uint64_t>(500);
 }
