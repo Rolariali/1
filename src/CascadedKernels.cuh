@@ -356,28 +356,28 @@ __device__ void block_delta_decompress(
 }
 
 template <typename data_type, typename size_type,
-          typename signed_data_type,
-    int threadblock_size>
+          typename processing_data_type,
+          int threadblock_size>
 __device__ void get_min_max(
     const data_type* input,
     size_type num_elements,
-    signed_data_type* min_ptr,
-    signed_data_type* max_ptr
+    processing_data_type* min_ptr,
+    processing_data_type* max_ptr
     ){
 
-  typedef cub::BlockReduce<signed_data_type, threadblock_size> BlockReduce;
+  typedef cub::BlockReduce<processing_data_type, threadblock_size> BlockReduce;
   __shared__ typename BlockReduce::TempStorage temp_storage;
 
-  signed_data_type thread_data;
+  processing_data_type thread_data;
   int num_valid = min(num_elements, static_cast<size_type>(threadblock_size));
   if (threadIdx.x < num_elements) {
     thread_data = input[threadIdx.x];
   }
 
-  signed_data_type minimum
+  processing_data_type minimum
       = BlockReduce(temp_storage).Reduce(thread_data, cub::Min(), num_valid);
   __syncthreads();
-  signed_data_type maximum
+  processing_data_type maximum
       = BlockReduce(temp_storage).Reduce(thread_data, cub::Max(), num_valid);
   __syncthreads();
 
@@ -391,10 +391,10 @@ __device__ void get_min_max(
       thread_data = input[threadIdx.x + round * threadblock_size];
     }
 
-    const signed_data_type local_min
+    const processing_data_type local_min
         = BlockReduce(temp_storage).Reduce(thread_data, cub::Min(), num_valid);
     __syncthreads();
-    const signed_data_type local_max
+    const processing_data_type local_max
         = BlockReduce(temp_storage).Reduce(thread_data, cub::Max(), num_valid);
     __syncthreads();
 
