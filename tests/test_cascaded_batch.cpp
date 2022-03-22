@@ -894,7 +894,7 @@ void test_out_of_bound(int use_bp)
   CUDA_CHECK(cudaFree(actual_decompressed_bytes));
   CUDA_CHECK(cudaFree(decompression_statuses));
 }
-/*
+
 TEST_CASE("BatchedCascadedCompressor predefined-cases", "[nvcomp]")
 {
   test_predefined_cases<int8_t>(0);
@@ -987,7 +987,7 @@ TEST_CASE("BatchedCascadedCompressor out-of-bound", "[nvcomp]")
   test_out_of_bound<uint64_t>(0);
   test_out_of_bound<uint64_t>(1);
 }
-*/
+
 
 #include <limits>       // std::numeric_limits
 
