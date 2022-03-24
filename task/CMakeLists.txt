@@ -16,6 +16,8 @@ target_link_libraries(cascade_test PRIVATE ${CUDA_ART} nvcomp)
 add_executable(batch_test batch_test.cpp)
 target_link_libraries(batch_test PRIVATE ${CUDA_ART} nvcomp)
 
+add_executable(delta_limit delta_limit.cpp)
+target_link_libraries(delta_limit PRIVATE ${CUDA_ART} nvcomp)
 
 #add_executable(q_cascade cascade.cpp
 #        #        CascadeWrapper.cpp
