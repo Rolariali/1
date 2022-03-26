@@ -323,6 +323,22 @@ __device__ void block_delta_compress(
   }
 }
 
+template <typename data_type, typename size_type>
+__device__ void block_deltaMinMax_compress(
+    const data_type* input_buffer,
+    size_type input_size,
+    DeltaHeader<data_type>* delta_header_chunk,
+    data_type* output_buffer)
+{
+  for (size_type element_idx = threadIdx.x; element_idx < input_size - 1;
+       element_idx += blockDim.x) {
+    output_buffer[element_idx]
+        = input_buffer[element_idx + 1] - input_buffer[element_idx];
+  }
+  if (threadIdx.x == 0) {
+    delta_header_chunk->first = input_buffer[0];
+  }
+}
 /**
  * \brief Default sum functor
  */
@@ -1022,23 +1038,29 @@ __device__ void do_cascaded_compression_kernel(
         }
 
         if (delta_remaining > 0) {
-          // Run Delta
-          block_delta_compress<data_type, size_type>(
+          block_deltaMinMax_compress<data_type, size_type>(
               shared_input_buffer,
               num_elements_current_chunk,
-              shared_output_buffer);
-
-          if (threadIdx.x == 0) {
-            delta_header[comp_opts.num_deltas - delta_remaining].first
-                = shared_input_buffer[0];
-            printf("delta: %u %u %u %u %u %u %u %u %u %u\n",
-                   (uint8_t)shared_output_buffer[0], (uint8_t)shared_output_buffer[1],
-                   (uint8_t)shared_output_buffer[2], (uint8_t)shared_output_buffer[3],
-                   (uint8_t)shared_output_buffer[4], (uint8_t)shared_output_buffer[5],
-                   (uint8_t)shared_output_buffer[6], (uint8_t)shared_output_buffer[7],
-                   (uint8_t)shared_output_buffer[8], (uint8_t)shared_output_buffer[9]
-                   );
-          }
+              &delta_header[comp_opts.num_deltas - delta_remaining],
+              shared_output_buffer
+              );
+          // Run Delta
+//          block_delta_compress<data_type, size_type>(
+//              shared_input_buffer,
+//              num_elements_current_chunk,
+//              shared_output_buffer);
+//
+//          if (threadIdx.x == 0) {
+//            delta_header[comp_opts.num_deltas - delta_remaining].first
+//                = shared_input_buffer[0];
+//            printf("delta: %u %u %u %u %u %u %u %u %u %u\n",
+//                   (uint8_t)shared_output_buffer[0], (uint8_t)shared_output_buffer[1],
+//                   (uint8_t)shared_output_buffer[2], (uint8_t)shared_output_buffer[3],
+//                   (uint8_t)shared_output_buffer[4], (uint8_t)shared_output_buffer[5],
+//                   (uint8_t)shared_output_buffer[6], (uint8_t)shared_output_buffer[7],
+//                   (uint8_t)shared_output_buffer[8], (uint8_t)shared_output_buffer[9]
+//                   );
+//          }
 
           // Revert the role of input and ouput buffer
           auto temp_ptr = shared_output_buffer;
