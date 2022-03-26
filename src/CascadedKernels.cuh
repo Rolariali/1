@@ -182,13 +182,12 @@ __device__ void find_min_diff(
       input, num_elements, &minimum_unsign, &maximum_unsign);
   diff_4_unsign = maximum_unsign - minimum_unsign;
 
-  unsigned_data_type diff = diff_4_sign;
   if(diff_4_sign < diff_4_unsign){
     *min_ptr = static_cast<data_type>(minimum_sign);
-    *max_ptr = static_cast<data_type>(minimum_sign);
+    *max_ptr = static_cast<data_type>(maximum_sign);
   } else {
     *min_ptr = static_cast<data_type>(minimum_unsign);
-    *max_ptr = static_cast<data_type>(minimum_unsign);
+    *max_ptr = static_cast<data_type>(maximum_unsign);
   }
 }
 
