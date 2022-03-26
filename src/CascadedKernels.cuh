@@ -316,7 +316,7 @@ struct Sum
   template <typename T>
   __host__ __device__ __forceinline__ T operator()(const T &a, const T &b) const
   {
-    return a + b + add;
+    return a + b;
   }
 };
 
