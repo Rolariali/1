@@ -311,7 +311,7 @@ __device__ void block_delta_compress(
  */
 struct Sum
 {
-  int8_t add = 1;
+  int8_t add = 0;
   /// Binary sum operator, returns <tt>a + b</tt>
   template <typename T>
   __host__ __device__ __forceinline__ T operator()(const T &a, const T &b) const
@@ -356,7 +356,7 @@ __device__ void block_delta_decompress(
     data_type aggregate;
 
     Sum ss;
-    ss.add = 2;
+    printf("@%d ",input_val);
 
     BlockScan(temp_storage)
         .ExclusiveScan(
