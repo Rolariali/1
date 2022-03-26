@@ -73,6 +73,14 @@ constexpr size_t num_bits_per_byte = 8;
 constexpr int cascaded_compress_threadblock_size = 128;
 constexpr int cascaded_decompress_threadblock_size = 128;
 
+template <typename data_type>
+struct DeltaHeader
+{
+  data_type first;
+  data_type max_value;
+  data_type min_value;
+};
+
 /**
  * Helper function to calculate the size in byte of the chunk metadata. The size
  * is guaranteed to be a multiple of the data type size, and a multiple of 4.
@@ -81,7 +89,16 @@ template <typename data_type>
 __device__ int get_chunk_metadata_size(int num_RLEs, int num_deltas)
 {
   return roundUpTo(4 + 4 * (num_RLEs + 1), sizeof(data_type))
-         + roundUpTo(sizeof(data_type) * num_deltas, 4);
+         + roundUpTo(sizeof(DeltaHeader<data_type>) * num_deltas, 4);
+}
+
+template <typename T>
+constexpr __host__ __device__ DeltaHeader<T>* getDeltaHeaderPtr
+    (uint32_t* chunk_metadata, const int num_RLEs)
+{
+  void* ptr = chunk_metadata + 1 + num_RLEs + 1;
+  return reinterpret_cast<DeltaHeader<T>*>(
+      roundUpTo(reinterpret_cast<uintptr_t>(ptr), sizeof(T)));
 }
 
 /**
@@ -878,8 +895,12 @@ __device__ void do_cascaded_compression_kernel(
   // Explanation of the math here: from the start of a chunk metadata, we need
   // to skip the size of the chunk (4B), and (num_RLEs + 1) RLE offsets
   // (4B each) to get to the start of the delta header.
-  data_type* const delta_header = roundUpToAlignment<data_type>(
-      chunk_metadata + 1 + comp_opts.num_RLEs + 1);
+//  data_type* const delta_header = roundUpToAlignment<data_type>(
+//      chunk_metadata + 1 + comp_opts.num_RLEs + 1);
+  DeltaHeader<data_type>* delta_header = getDeltaHeaderPtr<data_type>(
+                                             chunk_metadata, comp_opts.num_RLEs
+                                             );
+
 
   // Number of output elements for the RLE layer
   __shared__ size_type num_outputs;
@@ -1008,7 +1029,7 @@ __device__ void do_cascaded_compression_kernel(
               shared_output_buffer);
 
           if (threadIdx.x == 0) {
-            delta_header[comp_opts.num_deltas - delta_remaining]
+            delta_header[comp_opts.num_deltas - delta_remaining].first
                 = shared_input_buffer[0];
             printf("delta: %u %u %u %u %u %u %u %u %u %u\n",
                    (uint8_t)shared_output_buffer[0], (uint8_t)shared_output_buffer[1],
@@ -1310,8 +1331,11 @@ __device__ void cascaded_decompression_fcn(
 
     // Start location of the first elements of delta layers in shared memory
     // storage of chunk metadata.
-    const data_type* const delta_header
-        = roundUpToAlignment<data_type>(chunk_metadata + 1 + num_RLEs + 1);
+//    const data_type* const delta_header
+//        = roundUpToAlignment<data_type>(chunk_metadata + 1 + num_RLEs + 1);
+    DeltaHeader<data_type>* delta_header = getDeltaHeaderPtr<data_type>(
+        chunk_metadata, num_RLEs
+    );
 
     // `chunk_ptr` points to the start location of the current chunk in global
     // memory. Here we initialize it to the start location of the first chunk.
@@ -1390,7 +1414,7 @@ __device__ void cascaded_decompression_fcn(
           // Decompress the delta layer
           block_delta_decompress<data_type, size_type, threadblock_size>(
               shared_input_buffer,
-              delta_header[delta_remaining - 1],
+              delta_header[delta_remaining - 1].first,
               num_elements,
               shared_output_buffer);
           __syncthreads();
