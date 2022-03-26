@@ -74,7 +74,7 @@ void verify_decompressed_output(
 }
 
 template <typename data_type>
-size_t test_predefined_cases(std::vector<data_type> input0_host,int rle, int delta, int bp)
+size_t test_predefined_cases(std::vector<data_type> input0_host, std::vector<data_type> input1_host, int rle, int delta, int bp)
 {
 
   void* input0_device;
@@ -88,11 +88,28 @@ size_t test_predefined_cases(std::vector<data_type> input0_host,int rle, int del
 
   // Copy uncompressed pointers and sizes to device memory
 
+  void* input1_device;
+  CUDA_CHECK(
+      cudaMalloc(&input1_device, input1_host.size() * sizeof(data_type)));
+  CUDA_CHECK(cudaMemcpy(
+      input1_device,
+      input1_host.data(),
+      input1_host.size() * sizeof(data_type),
+      cudaMemcpyHostToDevice));
+
+  // Copy uncompressed pointers and sizes to device memory
+
   std::vector<void*> uncompressed_ptrs_host
-      = {input0_device};
+      = {input0_device, input1_device};
   std::vector<size_t> uncompressed_bytes_host
-      = {input0_host.size() * sizeof(data_type)
-      };
+      = {input0_host.size() * sizeof(data_type),
+         input1_host.size() * sizeof(data_type)};
+
+//  std::vector<void*> uncompressed_ptrs_host
+//      = {input0_device};
+//  std::vector<size_t> uncompressed_bytes_host
+//      = {input0_host.size() * sizeof(data_type)
+//      };
   const size_t batch_size = uncompressed_ptrs_host.size();
 
   void** uncompressed_ptrs_device;
@@ -176,7 +193,7 @@ size_t test_predefined_cases(std::vector<data_type> input0_host,int rle, int del
 
   for(int i=0; i < batch_size; i++) {
     size_t _size = compressed_bytes_host[i];
-    printf("output compressed data(size:%zu): ", _size);
+    printf("output compressed data %d(size:%zu): ", i, _size);
 
     std::vector<uint8_t> compressed_data_host(_size);
     CUDA_CHECK(cudaMemcpy(
@@ -305,7 +322,9 @@ int main()
     std::vector<T> input;
 
     for (int i = 0; i < 32; i++)
-      input.push_back(base + i % 2);
+      input.push_back(i + 1);
+
+    std::vector<T> input1(32, 64);
 
     printf("delta for uint8_t:\n");
     printf("input data(size:%zu) : ", input.size());
@@ -316,7 +335,7 @@ int main()
     int rle = 0;
     int delta = 1;
     int bp = 0;
-    size = test_predefined_cases<T>(input, rle, delta, bp);
+    size = test_predefined_cases<T>(input, input1, rle, delta, bp);
     printf("result compressed size: %zu\n", size);
   }
 }
