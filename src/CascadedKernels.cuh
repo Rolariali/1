@@ -101,6 +101,97 @@ constexpr __host__ __device__ DeltaHeader<T>* getDeltaHeaderPtr
       roundUpTo(reinterpret_cast<uintptr_t>(ptr), sizeof(T)));
 }
 
+template <typename data_type, typename size_type,
+          typename processing_data_type,
+          int threadblock_size>
+__device__ void get_min_max(
+    const data_type* input,
+    size_type num_elements,
+    processing_data_type* min_ptr,
+    processing_data_type* max_ptr
+){
+
+  typedef cub::BlockReduce<processing_data_type, threadblock_size> BlockReduce;
+  __shared__ typename BlockReduce::TempStorage temp_storage;
+
+  processing_data_type thread_data;
+  int num_valid = min(num_elements, static_cast<size_type>(threadblock_size));
+  if (threadIdx.x < num_elements) {
+    thread_data = input[threadIdx.x];
+  }
+
+  processing_data_type minimum
+      = BlockReduce(temp_storage).Reduce(thread_data, cub::Min(), num_valid);
+  __syncthreads();
+  processing_data_type maximum
+      = BlockReduce(temp_storage).Reduce(thread_data, cub::Max(), num_valid);
+  __syncthreads();
+
+  const int num_rounds = roundUpDiv(num_elements, threadblock_size);
+
+  for (int round = 1; round < num_rounds; round++) {
+    num_valid = min(
+        num_elements - round * threadblock_size,
+        static_cast<size_type>(threadblock_size));
+    if (threadIdx.x < num_valid) {
+      thread_data = input[threadIdx.x + round * threadblock_size];
+    }
+
+    const processing_data_type local_min
+        = BlockReduce(temp_storage).Reduce(thread_data, cub::Min(), num_valid);
+    __syncthreads();
+    const processing_data_type local_max
+        = BlockReduce(temp_storage).Reduce(thread_data, cub::Max(), num_valid);
+    __syncthreads();
+
+    if (threadIdx.x == 0 && local_min < minimum)
+      minimum = local_min;
+    if (threadIdx.x == 0 && local_max > maximum)
+      maximum = local_max;
+  }
+
+  *min_ptr = minimum;
+  *max_ptr = maximum;
+}
+
+template <typename data_type, typename size_type,
+          int threadblock_size>
+__device__ void find_min_diff(
+    const data_type* input,
+    size_type num_elements,
+    data_type* min_ptr,
+    data_type* max_ptr
+){
+  using signed_data_type = std::make_signed_t<data_type>;
+  using unsigned_data_type = std::make_unsigned_t<data_type>;
+
+  unsigned_data_type diff_4_sign;
+  unsigned_data_type diff_4_unsign;
+
+  signed_data_type minimum_sign;
+  signed_data_type maximum_sign;
+
+  get_min_max<data_type, size_type, signed_data_type, threadblock_size>(
+      input, num_elements, &minimum_sign, &maximum_sign);
+  diff_4_sign = static_cast<unsigned_data_type>(maximum_sign) - static_cast<unsigned_data_type>(minimum_sign);
+
+  unsigned_data_type minimum_unsign;
+  unsigned_data_type maximum_unsign;
+
+  get_min_max<data_type, size_type, unsigned_data_type, threadblock_size>(
+      input, num_elements, &minimum_unsign, &maximum_unsign);
+  diff_4_unsign = maximum_unsign - minimum_unsign;
+
+  unsigned_data_type diff = diff_4_sign;
+  if(diff_4_sign < diff_4_unsign){
+    *min_ptr = static_cast<data_type>(minimum_sign);
+    *max_ptr = static_cast<data_type>(minimum_sign);
+  } else {
+    *min_ptr = static_cast<data_type>(minimum_unsign);
+    *max_ptr = static_cast<data_type>(minimum_unsign);
+  }
+}
+
 /**
  * Perform RLE compression on a single threadblock.
  *
@@ -323,13 +414,24 @@ __device__ void block_delta_compress(
   }
 }
 
-template <typename data_type, typename size_type>
+template <typename data_type, typename size_type, int threadblock_size>
 __device__ void block_deltaMinMax_compress(
     const data_type* input_buffer,
     size_type input_size,
     DeltaHeader<data_type>* delta_header_chunk,
     data_type* output_buffer)
 {
+
+  data_type min_value;
+  data_type max_value;
+
+  find_min_diff<data_type, size_type, threadblock_size>(
+      input_buffer,
+      input_size,
+      &min_value,
+      &max_value
+      );
+
   for (size_type element_idx = threadIdx.x; element_idx < input_size - 1;
        element_idx += blockDim.x) {
     output_buffer[element_idx]
@@ -337,6 +439,8 @@ __device__ void block_deltaMinMax_compress(
   }
   if (threadIdx.x == 0) {
     delta_header_chunk->first = input_buffer[0];
+    delta_header_chunk->min_value = min_value;
+    delta_header_chunk->max_value = max_value;
   }
 }
 /**
@@ -352,6 +456,49 @@ struct Sum
     return a + b;
   }
 };
+
+template <typename data_type, typename size_type, int threadblock_size>
+__device__ void block_deltaMinMax_decompress(
+    const data_type* input_buffer,
+    DeltaHeader<data_type>* delta_header_chunk,
+    size_type input_num_elements,
+    data_type* output_buffer)
+{
+  typedef cub::BlockScan<data_type, threadblock_size> BlockScan;
+  __shared__ typename BlockScan::TempStorage temp_storage;
+
+  const int num_rounds = roundUpDiv(input_num_elements, threadblock_size);
+
+  data_type initial_value = delta_header_chunk->first;
+
+  Sum ss;
+  if (threadIdx.x == 0)
+    printf("@%d > %d \n", delta_header_chunk->max_value, delta_header_chunk->min_value);
+
+  for (int round = 0; round < num_rounds; round++) {
+    const size_type idx = round * threadblock_size + threadIdx.x;
+
+    data_type input_val = 0;
+    if (idx < input_num_elements)
+      input_val = input_buffer[idx];
+
+    data_type output_val;
+    data_type aggregate;
+
+    BlockScan(temp_storage)
+        .ExclusiveScan(
+            input_val, output_val, initial_value, ss, aggregate);
+    initial_value += aggregate;
+
+    if (idx < input_num_elements)
+      output_buffer[idx] = output_val;
+
+    __syncthreads();
+  }
+
+  if (threadIdx.x == 0)
+    output_buffer[input_num_elements] = initial_value;
+}
 
 /**
  * Perform delta decompression on a single threadblock.
@@ -387,13 +534,9 @@ __device__ void block_delta_decompress(
 
     data_type output_val;
     data_type aggregate;
-
-    Sum ss;
-    printf("@%d ",input_val);
-
     BlockScan(temp_storage)
         .ExclusiveScan(
-            input_val, output_val, initial_value, ss, aggregate);
+            input_val, output_val, initial_value, cub::Sum(), aggregate);
     initial_value += aggregate;
 
     if (idx < input_num_elements)
@@ -404,59 +547,6 @@ __device__ void block_delta_decompress(
 
   if (threadIdx.x == 0)
     output_buffer[input_num_elements] = initial_value;
-}
-
-template <typename data_type, typename size_type,
-          typename processing_data_type,
-          int threadblock_size>
-__device__ void get_min_max(
-    const data_type* input,
-    size_type num_elements,
-    processing_data_type* min_ptr,
-    processing_data_type* max_ptr
-    ){
-
-  typedef cub::BlockReduce<processing_data_type, threadblock_size> BlockReduce;
-  __shared__ typename BlockReduce::TempStorage temp_storage;
-
-  processing_data_type thread_data;
-  int num_valid = min(num_elements, static_cast<size_type>(threadblock_size));
-  if (threadIdx.x < num_elements) {
-    thread_data = input[threadIdx.x];
-  }
-
-  processing_data_type minimum
-      = BlockReduce(temp_storage).Reduce(thread_data, cub::Min(), num_valid);
-  __syncthreads();
-  processing_data_type maximum
-      = BlockReduce(temp_storage).Reduce(thread_data, cub::Max(), num_valid);
-  __syncthreads();
-
-  const int num_rounds = roundUpDiv(num_elements, threadblock_size);
-
-  for (int round = 1; round < num_rounds; round++) {
-    num_valid = min(
-        num_elements - round * threadblock_size,
-        static_cast<size_type>(threadblock_size));
-    if (threadIdx.x < num_valid) {
-      thread_data = input[threadIdx.x + round * threadblock_size];
-    }
-
-    const processing_data_type local_min
-        = BlockReduce(temp_storage).Reduce(thread_data, cub::Min(), num_valid);
-    __syncthreads();
-    const processing_data_type local_max
-        = BlockReduce(temp_storage).Reduce(thread_data, cub::Max(), num_valid);
-    __syncthreads();
-
-    if (threadIdx.x == 0 && local_min < minimum)
-      minimum = local_min;
-    if (threadIdx.x == 0 && local_max > maximum)
-      maximum = local_max;
-  }
-
-  *min_ptr = minimum;
-  *max_ptr = maximum;
 }
 
 /**
@@ -1038,7 +1128,7 @@ __device__ void do_cascaded_compression_kernel(
         }
 
         if (delta_remaining > 0) {
-          block_deltaMinMax_compress<data_type, size_type>(
+          block_deltaMinMax_compress<data_type, size_type, threadblock_size>(
               shared_input_buffer,
               num_elements_current_chunk,
               &delta_header[comp_opts.num_deltas - delta_remaining],
@@ -1434,11 +1524,16 @@ __device__ void cascaded_decompression_fcn(
            layer_idx++) {
         if (delta_remaining > 0 && delta_remaining >= rle_remaining) {
           // Decompress the delta layer
-          block_delta_decompress<data_type, size_type, threadblock_size>(
-              shared_input_buffer,
-              delta_header[delta_remaining - 1].first,
-              num_elements,
-              shared_output_buffer);
+          block_deltaMinMax_decompress<data_type, size_type, threadblock_size>(
+                            shared_input_buffer,
+                            &delta_header[delta_remaining - 1],
+                            num_elements,
+                            shared_output_buffer);
+//          block_delta_decompress<data_type, size_type, threadblock_size>(
+//              shared_input_buffer,
+//              delta_header[delta_remaining - 1].first,
+//              num_elements,
+//              shared_output_buffer);
           __syncthreads();
 
           // Revert the role of input and ouput buffer
