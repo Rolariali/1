@@ -307,6 +307,20 @@ __device__ void block_delta_compress(
 }
 
 /**
+ * \brief Default sum functor
+ */
+struct Sum
+{
+  int8_t add = 1;
+  /// Binary sum operator, returns <tt>a + b</tt>
+  template <typename T>
+  __host__ __device__ __forceinline__ T operator()(const T &a, const T &b) const
+  {
+    return a + b + add;
+  }
+};
+
+/**
  * Perform delta decompression on a single threadblock.
  *
  * This function calculate the prefix sum of the input elements, i.e. the output
@@ -340,9 +354,13 @@ __device__ void block_delta_decompress(
 
     data_type output_val;
     data_type aggregate;
+
+    Sum ss;
+    ss.add = 2;
+
     BlockScan(temp_storage)
         .ExclusiveScan(
-            input_val, output_val, initial_value, cub::Sum(), aggregate);
+            input_val, output_val, initial_value, ss, aggregate);
     initial_value += aggregate;
 
     if (idx < input_num_elements)
