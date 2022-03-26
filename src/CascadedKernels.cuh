@@ -356,8 +356,7 @@ __device__ void block_delta_decompress(
     data_type aggregate;
 
     Sum ss;
-    if (threadIdx.x == 0)
-      printf("@ %d\n",input_val);
+    printf("@%d ",input_val);
 
     BlockScan(temp_storage)
         .ExclusiveScan(
