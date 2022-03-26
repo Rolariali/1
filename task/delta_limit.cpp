@@ -277,6 +277,7 @@ size_t test_predefined_cases(std::vector<data_type> input0_host,int rle, int del
       uncompressed_bytes_host);
 
   // Cleanup
+  printf("cleanup\n\n");
 
   CUDA_CHECK(cudaFree(input0_device));
   CUDA_CHECK(cudaFree(uncompressed_ptrs_device));
@@ -290,16 +291,6 @@ size_t test_predefined_cases(std::vector<data_type> input0_host,int rle, int del
   CUDA_CHECK(cudaFree(decompressed_bytes_device));
   CUDA_CHECK(cudaFree(decompressed_ptrs_device));
   CUDA_CHECK(cudaFree(compression_statuses_device));
-  // Cleanup
-
-  CUDA_CHECK(cudaFree(input0_device));
-  CUDA_CHECK(cudaFree(uncompressed_ptrs_device));
-  CUDA_CHECK(cudaFree(uncompressed_bytes_device));
-  for (void* const& ptr : compressed_ptrs_host)
-    CUDA_CHECK(cudaFree(ptr));
-  CUDA_CHECK(cudaFree(compressed_ptrs_device));
-  CUDA_CHECK(cudaFree(compressed_bytes_device));
-
 
   return compressed_bytes_host[0];
 }
