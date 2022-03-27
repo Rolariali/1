@@ -430,9 +430,8 @@ __device__ void block_deltaMinMax_compress(
       &min_value,
       &max_value
       );
-
-  using signed_data_type = std::make_signed_t<data_type>;
-  const size_t min_max_width = max_value - max_value + 1;
+//  using unsigned_data_type = std::make_unsigned_t<data_type>;
+  const size_t width = max_value - max_value + 1;
 
   for (size_type element_idx = threadIdx.x; element_idx < input_size - 1;
        element_idx += blockDim.x) {
@@ -443,7 +442,7 @@ __device__ void block_deltaMinMax_compress(
     //todo:
     // long long llabs( long long n );
     const size_t abs_forward_diff = abs(static_cast<int>(next - prev));
-    const size_t abs_reverse_diff = min_max_width - abs(static_cast<int>(next - prev));
+    const size_t abs_reverse_diff = width - abs(static_cast<int>(next - prev));
 
     if(abs_reverse_diff < abs_forward_diff)
       output_buffer[element_idx] =
@@ -467,22 +466,42 @@ struct DeltaSum
   T min_value;
   T max_value;
   T width;
+  T shift;
   __host__ __device__ __forceinline__ DeltaSum(T min_value, T max_value){
     this->min_value = min_value;
     this->max_value = max_value;
-    this->width = max_value - min_value;
-    if (threadIdx.x == 0)
+    this->width = max_value - min_value + 1;
+    using unsigned_data_type = std::make_unsigned_t<T>;
+    if( static_cast<unsigned_data_type>(max_value) <
+        static_cast<unsigned_data_type>(min_value))
+      this->shift = min_value;
+    else
+      this->shift = 0;
+
+    if (threadIdx.x == 0) {
       printf("DeltaSum %d = %d - %d\n", width, max_value, min_value);
+      printf("shift: %d", this->shift);
+    }
   }
 
-  __host__ __device__ __forceinline__ T operator()(const T &a, const T &b) const
+  __host__ __device__ __forceinline__ T operator()(const T &prev, const T &delta) const
   {
-      T result = a + b;
-      printf("# %d = %d + %d\n", result, a, b);
-      if(result > max_value and result < max_value + width)
-        result = min_value + (max_value - result);
-      else if(result < min_value and result < min_value - width)
-        result = max_value - (min_value - result);
+      using unsigned_data_type = std::make_unsigned_t<T>;
+      using signed_data_type = std::make_signed_t<T>;
+      const signed_data_type s_delta = static_cast<signed_data_type>(delta);
+      T result = prev + delta;
+
+      if(0 < s_delta){
+        if(static_cast<unsigned_data_type>(this->width - s_delta)
+            < static_cast<unsigned_data_type>(prev - this->min_value))
+          result = this->min_value + (s_delta - 1) - (this->max_value - prev);
+        }
+      else if(s_delta < 0){
+          if(static_cast<unsigned_data_type>(prev - this->min_value)
+              < static_cast<unsigned_data_type>(-s_delta))
+            result = this->max_value + (s_delta + 1) - (prev - this->min_value);
+        }
+        printf("# %d = %d + %d\n", result, prev, s_delta);
       return result;
   }
 };
