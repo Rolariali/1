@@ -66,7 +66,7 @@ void verify_decompressed_output(
         cudaMemcpyDeviceToHost));
     printf("\nverify:\n");
     for (size_t element_idx = 0; element_idx < num_elements; element_idx++) {
-      printf("\t\t%d == %d", decompressed_data_host[element_idx],
+      printf("\t%d == %d\n", decompressed_data_host[element_idx],
                               uncompressed_data_host[partition_idx][element_idx]);
       REQUIRE(
           decompressed_data_host[element_idx]
