@@ -471,12 +471,14 @@ struct DeltaSum
     this->min_value = min_value;
     this->max_value = max_value;
     this->width = max_value - min_value;
+    if (threadIdx.x == 0)
+      printf("DeltaSum %d = %d - %d\n", width, max_value, min_value);
   }
 
   __host__ __device__ __forceinline__ T operator()(const T &a, const T &b) const
   {
       T result = a + b;
-      printf("# %d = %d + %d", result, a, b);
+      printf("# %d = %d + %d\n", result, a, b);
       if(result > max_value and result < max_value + width)
         result = min_value + (max_value - result);
       else if(result < min_value and result < min_value - width)
