@@ -431,29 +431,56 @@ __device__ void block_deltaMinMax_compress(
       &max_value
       );
 
+  using signed_data_type = std::make_signed_t<data_type>;
+  const size_t min_max_width = max_value - max_value + 1;
+
   for (size_type element_idx = threadIdx.x; element_idx < input_size - 1;
        element_idx += blockDim.x) {
-    output_buffer[element_idx]
-        = input_buffer[element_idx + 1] - input_buffer[element_idx];
+
+    const data_type prev =  input_buffer[element_idx];
+    const data_type next =  input_buffer[element_idx + 1];
+
+    //todo:
+    // long long llabs( long long n );
+    const size_t abs_forward_diff = abs(static_cast<int>(next - prev));
+    const size_t abs_reverse_diff = min_max_width - abs(static_cast<int>(next - prev));
+
+    if(abs_reverse_diff < abs_forward_diff)
+      output_buffer[element_idx] =
+          prev < next ? -static_cast<data_type>(abs_reverse_diff) : static_cast<data_type>(abs_reverse_diff);
+    else
+      output_buffer[element_idx] = next - prev;
   }
   if (threadIdx.x == 0) {
-    printf("fidn %d, %d, %d\n", input_buffer[0], min_value, max_value);
+    printf("find %d, %d, %d\n", input_buffer[0], min_value, max_value);
     delta_header_chunk->first = input_buffer[0];
     delta_header_chunk->min_value = min_value;
     delta_header_chunk->max_value = max_value;
   }
 }
 /**
- * \brief Default sum functor
+ * \brief delta sum functor
  */
-struct Sum
+template <typename T>
+struct DeltaSum
 {
-  int8_t add = 0;
-  /// Binary sum operator, returns <tt>a + b</tt>
-  template <typename T>
+  T min_value;
+  T max_value;
+  T width;
+  __host__ __device__ __forceinline__ DeltaSum(T min_value, T max_value){
+    this->min_value = min_value;
+    this->max_value = max_value;
+    this->width = max_value - min_value;
+  }
+
   __host__ __device__ __forceinline__ T operator()(const T &a, const T &b) const
   {
-    return a + b;
+      T result = a + b;
+      if(result > max_value and result < max_value + width)
+        result = min_value + (max_value - result);
+      else if(result < min_value and result < min_value - width)
+        result = max_value - (min_value - result);
+      return result;
   }
 };
 
@@ -471,9 +498,9 @@ __device__ void block_deltaMinMax_decompress(
 
   data_type initial_value = delta_header_chunk->first;
 
-  Sum ss;
+  DeltaSum<data_type> ops(delta_header_chunk->min_value, delta_header_chunk->max_value);
   if (threadIdx.x == 0)
-    printf("@%d > %d \n", delta_header_chunk->max_value, delta_header_chunk->min_value);
+    printf("@%d < %d \n", delta_header_chunk->min_value, delta_header_chunk->max_value);
 
   for (int round = 0; round < num_rounds; round++) {
     const size_type idx = round * threadblock_size + threadIdx.x;
@@ -487,7 +514,7 @@ __device__ void block_deltaMinMax_decompress(
 
     BlockScan(temp_storage)
         .ExclusiveScan(
-            input_val, output_val, initial_value, ss, aggregate);
+            input_val, output_val, initial_value, ops, aggregate);
     initial_value += aggregate;
 
     if (idx < input_num_elements)
