@@ -431,19 +431,19 @@ __device__ void block_deltaMinMax_compress(
       &max_value
       );
 //  using unsigned_data_type = std::make_unsigned_t<data_type>;
-  const size_t width = max_value - max_value + 1;
+  const size_t width = max_value - min_value + 1;
 
   for (size_type element_idx = threadIdx.x; element_idx < input_size - 1;
        element_idx += blockDim.x) {
 
     const data_type prev =  input_buffer[element_idx];
     const data_type next =  input_buffer[element_idx + 1];
-    printf("element_idx %d = %d & %d\n", element_idx, prev, next);
+//    printf("* %u & %u\n", prev, next);
     //todo:
     // long long llabs( long long n );
     const size_t abs_forward_diff = abs(static_cast<int>(next - prev));
     const size_t abs_reverse_diff = width - abs(static_cast<int>(next - prev));
-
+//    printf("$ %u & %u\n", abs_forward_diff, abs_reverse_diff);
     if(abs_reverse_diff < abs_forward_diff)
       output_buffer[element_idx] =
           prev < next ? -static_cast<data_type>(abs_reverse_diff) : static_cast<data_type>(abs_reverse_diff);
