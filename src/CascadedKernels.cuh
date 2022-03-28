@@ -438,7 +438,7 @@ __device__ void block_deltaMinMax_compress(
 
     const data_type prev =  input_buffer[element_idx];
     const data_type next =  input_buffer[element_idx + 1];
-
+    printf("element_idx %d = %d & %d\n", element_idx, prev, next);
     //todo:
     // long long llabs( long long n );
     const size_t abs_forward_diff = abs(static_cast<int>(next - prev));
@@ -472,15 +472,15 @@ struct DeltaSum
     this->max_value = max_value;
     this->width = max_value - min_value + 1;
     using unsigned_data_type = std::make_unsigned_t<T>;
-    if( static_cast<unsigned_data_type>(max_value) <
-        static_cast<unsigned_data_type>(min_value))
-      this->shift = min_value;
-    else
-      this->shift = 0;
+//    if( static_cast<unsigned_data_type>(max_value) <
+//        static_cast<unsigned_data_type>(min_value))
+//      this->shift = min_value;
+//    else
+//      this->shift = 0;
 
     if (threadIdx.x == 0) {
       printf("DeltaSum %d = %d - %d\n", width, max_value, min_value);
-      printf("shift: %d", this->shift);
+//      printf("shift: %d", this->shift);
     }
   }
 
