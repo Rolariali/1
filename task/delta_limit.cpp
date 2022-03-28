@@ -301,13 +301,13 @@ int main()
 {
   size_t size;
 
-  uint8_t base = 255;
+  uint8_t base = 254;
   {
     typedef uint8_t T;
     std::vector<T> input;
 
     for (int i = 0; i < 32; i++)
-      input.push_back(base + i % 2);
+      input.push_back(base + i % 11);
 
     printf("delta for uint8_t:\n");
     printf("input data(size:%zu) : ", input.size());
