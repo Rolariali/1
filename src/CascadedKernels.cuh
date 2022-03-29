@@ -424,6 +424,7 @@ __device__ void block_deltaMinMax_compress(
   data_type min_value;
   data_type max_value;
   using unsigned_data_type = std::make_unsigned_t<data_type>;
+  using signed_data_type = std::make_signed_t<data_type>;
 
   find_min_diff<data_type, size_type, threadblock_size>(
       input_buffer,
@@ -442,7 +443,7 @@ __device__ void block_deltaMinMax_compress(
 //    printf("* %u & %u\n", prev, next);
     //todo:
     // long long llabs( long long n );
-    const unsigned_data_type abs_forward_diff = abs(static_cast<int>(next) - static_cast<int>(prev));
+    const unsigned_data_type abs_forward_diff = abs(static_cast<signed_data_type>(next - prev));
     const unsigned_data_type abs_reverse_diff = width + 1 - abs_forward_diff;
 //    printf("$( %u\n", abs_forward_diff);
 //    printf("$) %u\n", abs_reverse_diff);
