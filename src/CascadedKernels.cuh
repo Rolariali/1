@@ -432,8 +432,18 @@ __device__ void block_deltaMinMax_compress(
       &min_value,
       &max_value
       );
+  __syncthreads();
+
+  unsigned_data_type width=10;/*
+       if (threadIdx.x == 0) {
+         width = max_value - min_value;
+         printf("  w: %u\n", width);
+       }
+       __syncthreads();
+   //  using unsigned_data_type = std::make_unsigned_t<data_type>;
+   */
 //  using unsigned_data_type = std::make_unsigned_t<data_type>;
-  const unsigned_data_type width = max_value - min_value;
+//  const unsigned_data_type width = max_value - min_value;
 
   for (size_type element_idx = threadIdx.x; element_idx < input_size - 1;
        element_idx += blockDim.x) {
@@ -448,14 +458,14 @@ __device__ void block_deltaMinMax_compress(
 //    printf("$( %u\n", abs_forward_diff);
 //    printf("$) %u\n", abs_reverse_diff);
     if(abs_reverse_diff < abs_forward_diff)
-      output_buffer[element_idx] =
-          prev < next ? -static_cast<data_type>(abs_reverse_diff) : static_cast<data_type>(abs_reverse_diff);
+      output_buffer[element_idx] = width + 1 + next - prev;
+                                   //          prev < next ? -static_cast<data_type>(abs_reverse_diff) : static_cast<data_type>(abs_reverse_diff);
     else
       output_buffer[element_idx] = next - prev;
   }
   if (threadIdx.x == 0) {
     printf("find %d, %d, %d\n", input_buffer[0], min_value, max_value);
-    printf("w: %u", width);
+    printf("w: %u\n", width);
     delta_header_chunk->first = input_buffer[0];
     delta_header_chunk->min_value = min_value;
     delta_header_chunk->max_value = max_value;
@@ -476,11 +486,6 @@ struct DeltaSum
     this->max_value = max_value;
     this->width = max_value - min_value + 1;
     using unsigned_data_type = std::make_unsigned_t<T>;
-//    if( static_cast<unsigned_data_type>(max_value) <
-//        static_cast<unsigned_data_type>(min_value))
-//      this->shift = min_value;
-//    else
-//      this->shift = 0;
 
     if (threadIdx.x == 0) {
       printf("DeltaSum %d = %d - %d\n", width, max_value, min_value);
@@ -497,12 +502,12 @@ struct DeltaSum
 
       if(0 < s_delta){
         if(static_cast<unsigned_data_type>(this->width - s_delta)
-            < static_cast<unsigned_data_type>(prev - this->min_value))
+            <= static_cast<unsigned_data_type>(prev - this->min_value))
           result = this->min_value + (s_delta - 1) - (this->max_value - prev);
         }
       else if(s_delta < 0){
           if(static_cast<unsigned_data_type>(prev - this->min_value)
-              < static_cast<unsigned_data_type>(-s_delta))
+              <= static_cast<unsigned_data_type>(-s_delta))
             result = this->max_value + (s_delta + 1) - (prev - this->min_value);
         }
         printf("# %d = %d + %d\n", result, prev, s_delta);
@@ -541,16 +546,22 @@ __device__ void block_deltaMinMax_decompress(
     BlockScan(temp_storage)
         .ExclusiveScan(
             input_val, output_val, initial_value, ops, aggregate);
-    initial_value += aggregate;
+    printf("initial_value %u %u \n", initial_value , aggregate);
+    //initial_value = ops(initial_value, aggregate);
+//    initial_value += aggregate;
 
-    if (idx < input_num_elements)
+    if (idx <= input_num_elements){
       output_buffer[idx] = output_val;
+      printf("idx[%u]\n", idx);
+      printf("output_val %u\n", output_val);
+    }
 
     __syncthreads();
   }
-
-  if (threadIdx.x == 0)
-    output_buffer[input_num_elements] = initial_value;
+  /*
+    if (threadIdx.x == 0)
+      output_buffer[input_num_elements] = initial_value;
+  */
 }
 
 /**
