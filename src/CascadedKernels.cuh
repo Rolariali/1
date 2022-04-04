@@ -432,31 +432,30 @@ __device__ void block_deltaMinMax_compress(
       &min_value,
       &max_value
       );
+
+  auto for_ptr = output_buffer;
+  constexpr size_t _MAX_VAL_POSITION = 0;
+  constexpr size_t _MIN_VAL_POSITION = 1;
+  if (threadIdx.x == 0) {
+    for_ptr[_MAX_VAL_POSITION] = max_value;
+    for_ptr[_MIN_VAL_POSITION] = min_value;
+  }
   __syncthreads();
 
-  unsigned_data_type width=10;/*
-       if (threadIdx.x == 0) {
-         width = max_value - min_value;
-         printf("  w: %u\n", width);
-       }
-       __syncthreads();
-   //  using unsigned_data_type = std::make_unsigned_t<data_type>;
-   */
-//  using unsigned_data_type = std::make_unsigned_t<data_type>;
-//  const unsigned_data_type width = max_value - min_value;
+  max_value = for_ptr[_MAX_VAL_POSITION];
+  min_value = for_ptr[_MIN_VAL_POSITION];
+  const unsigned_data_type width = max_value - min_value;
 
   for (size_type element_idx = threadIdx.x; element_idx < input_size - 1;
        element_idx += blockDim.x) {
 
     const data_type prev =  input_buffer[element_idx];
     const data_type next =  input_buffer[element_idx + 1];
-//    printf("* %u & %u\n", prev, next);
     //todo:
     // long long llabs( long long n );
     const unsigned_data_type abs_forward_diff = abs(static_cast<signed_data_type>(next - prev));
     const unsigned_data_type abs_reverse_diff = width + 1 - abs_forward_diff;
-//    printf("$( %u\n", abs_forward_diff);
-//    printf("$) %u\n", abs_reverse_diff);
+
     if(abs_reverse_diff < abs_forward_diff)
       output_buffer[element_idx] = width + 1 + next - prev;
                                    //          prev < next ? -static_cast<data_type>(abs_reverse_diff) : static_cast<data_type>(abs_reverse_diff);
