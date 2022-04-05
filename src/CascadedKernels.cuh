@@ -497,6 +497,10 @@ struct DeltaSum
       using unsigned_data_type = std::make_unsigned_t<T>;
       using signed_data_type = std::make_signed_t<T>;
       const signed_data_type s_delta = static_cast<signed_data_type>(delta);
+
+
+      printf("# %u + %u\n", prev, delta);
+      return prev;
       T result = prev + delta;
 
       if(0 < s_delta){
