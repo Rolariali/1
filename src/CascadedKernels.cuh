@@ -514,26 +514,6 @@ struct DeltaSum
   }
 };
 
-// A stateful callback functor that maintains a running prefix to be applied
-// during consecutive scan operations.
-template <typename data_type>
-struct BlockPrefixCallbackOp
-{
-  // Running prefix
-  data_type running_total;
-  // Constructor
-  __device__ BlockPrefixCallbackOp(data_type running_total) : running_total(running_total) {}
-  // Callback operator to be entered by the first warp of threads in the block.
-  // Thread-0 is responsible for returning a value for seeding the block-wide scan.
-  __device__ int operator()(data_type block_aggregate)
-  {
-    printf("block_aggregate: %u\n",block_aggregate);
-    int old_prefix = running_total;
-    running_total = (block_aggregate > old_prefix) ? block_aggregate : old_prefix;
-    return old_prefix;
-  }
-};
-
 template <typename data_type, typename size_type, int threadblock_size>
 __device__ void block_deltaMinMax_decompress(
     const data_type* input_buffer,
@@ -549,8 +529,6 @@ __device__ void block_deltaMinMax_decompress(
   data_type initial_value = delta_header_chunk->first;
 
   DeltaSum<data_type> ops(delta_header_chunk->min_value, delta_header_chunk->max_value);
-  // Initialize running total
-  BlockPrefixCallbackOp<data_type> prefix_op(delta_header_chunk->min_value);
   if (threadIdx.x == 0)
     printf("@%d < %d \n", delta_header_chunk->min_value, delta_header_chunk->max_value);
 
@@ -566,9 +544,8 @@ __device__ void block_deltaMinMax_decompress(
 
     BlockScan(temp_storage)
         .ExclusiveScan(
-//            input_val, output_val, initial_value, ops, aggregate);
-            input_val, output_val, cub::Sum(), prefix_op);
-//    printf("initial_value %u %u \n", initial_value , aggregate);
+            input_val, output_val, initial_value, ops, aggregate);
+    printf("initial_value %u %u \n", initial_value , aggregate);
     //initial_value = ops(initial_value, aggregate);
 //    initial_value += aggregate;
 
