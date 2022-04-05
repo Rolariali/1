@@ -479,7 +479,7 @@ struct DeltaSum
   T min_value;
   T max_value;
   T width;
-  T shift;
+
   __host__ __device__ __forceinline__ DeltaSum(T min_value, T max_value){
     this->min_value = min_value;
     this->max_value = max_value;
@@ -488,16 +488,37 @@ struct DeltaSum
 
     if (threadIdx.x == 0) {
       printf("DeltaSum %d = %d - %d\n", width, max_value, min_value);
-//      printf("shift: %d", this->shift);
     }
   }
+
+  __host__ __device__ __forceinline__ T add2first(const T &first, const T &delta) const
+    {
+      using unsigned_data_type = std::make_unsigned_t<T>;
+      using signed_data_type = std::make_signed_t<T>;
+      signed_data_type s_delta = static_cast<signed_data_type>(delta);
+
+      T result = first + delta;
+
+      if(0 < s_delta){
+        s_delta = s_delta % this->width;
+        if(static_cast<unsigned_data_type>(this->width - s_delta)
+            <= static_cast<unsigned_data_type>(first - this->min_value))
+          result = this->min_value + (s_delta - 1) - (this->max_value - first);
+      } else {
+        s_delta = -(abs(s_delta) % this->width);
+        if(static_cast<unsigned_data_type>(first - this->min_value)
+            <= static_cast<unsigned_data_type>(-s_delta))
+          result = this->max_value + (s_delta + 1) - (first - this->min_value);
+      }
+
+      return result;
+    }
 
   __host__ __device__ __forceinline__ T operator()(const T &prev, const T &delta) const
   {
       using unsigned_data_type = std::make_unsigned_t<T>;
       using signed_data_type = std::make_signed_t<T>;
       const signed_data_type s_delta = static_cast<signed_data_type>(delta);
-
 
       printf("# %u + %u\n", prev, delta);
       return prev;
@@ -530,7 +551,10 @@ __device__ void block_deltaMinMax_decompress(
 
   const int num_rounds = roundUpDiv(input_num_elements, threadblock_size);
 
-  data_type initial_value = delta_header_chunk->first;
+  data_type initial_value = 0; //delta_header_chunk->first;
+  const data_type first = delta_header_chunk->first;
+//  const data_type min_value = delta_header_chunk->min_value;
+//  const data_type max_value = delta_header_chunk->max_value;
 
   DeltaSum<data_type> ops(delta_header_chunk->min_value, delta_header_chunk->max_value);
   if (threadIdx.x == 0)
@@ -545,26 +569,25 @@ __device__ void block_deltaMinMax_decompress(
 
     data_type output_val;
     data_type aggregate;
-
     BlockScan(temp_storage)
         .ExclusiveScan(
-            input_val, output_val, initial_value, ops, aggregate);
-    printf("initial_value %u %u \n", initial_value , aggregate);
-    //initial_value = ops(initial_value, aggregate);
-//    initial_value += aggregate;
+            input_val, output_val, initial_value, cub::Sum(), aggregate);
+    initial_value += aggregate;
 
-    if (idx <= input_num_elements){
-      output_buffer[idx] = output_val;
-      printf("idx[%u]\n", idx);
-      printf("output_val %u\n", output_val);
+    if (idx < input_num_elements) {
+      const data_type r = ops.add2first(first, output_val);
+      printf("# %d = %d - %d\n", idx, r, output_val);
+      output_buffer[idx] = r;
     }
 
     __syncthreads();
   }
-  /*
-    if (threadIdx.x == 0)
-      output_buffer[input_num_elements] = initial_value;
-  */
+
+  if (threadIdx.x == 0) {
+    const data_type r = ops.add2first(first, initial_value);
+    printf("# end %d - %d\n", r, initial_value);
+    output_buffer[input_num_elements] = r;
+  }
 }
 
 /**
