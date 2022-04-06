@@ -66,7 +66,8 @@ void verify_decompressed_output(
         cudaMemcpyDeviceToHost));
     printf("\nverify:\n");
     for (size_t element_idx = 0; element_idx < num_elements; element_idx++) {
-      printf("\t%d == %d\n", decompressed_data_host[element_idx],
+      printf("%u\t%d == %d\n", element_idx,
+             decompressed_data_host[element_idx],
                               uncompressed_data_host[partition_idx][element_idx]);
       REQUIRE(
           decompressed_data_host[element_idx]
@@ -301,13 +302,13 @@ int main()
 {
   size_t size;
 
-    uint8_t base = 240;
-    {
-      typedef uint8_t T;
-      std::vector<T> input;
+  uint8_t base = 100;
+  {
+    typedef uint8_t T;
+    std::vector<T> input;
 
-      for (int i = 0; i < 5; i++)
-        input.push_back(base + i % 11);
+    for (int i = 0; i < 12; i++)
+      input.push_back(base + (i*20) % 100);
 
     printf("delta for uint8_t:\n");
     printf("input data(size:%zu) : ", input.size());
