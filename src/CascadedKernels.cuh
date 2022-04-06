@@ -497,18 +497,24 @@ struct DeltaSum
       using signed_data_type = std::make_signed_t<T>;
       signed_data_type s_delta = static_cast<signed_data_type>(delta);
 
-      T result = first + delta;
-
-      if(0 < s_delta){
+      T result; // = first + delta;
+//      printf("@ %d = %d + %d\n", result, first, delta);
+      if(0 <= s_delta){
         s_delta = s_delta % this->width;
+        result = first + s_delta;
         if(static_cast<unsigned_data_type>(this->width - s_delta)
-            <= static_cast<unsigned_data_type>(first - this->min_value))
+            <= static_cast<unsigned_data_type>(first - this->min_value)){
           result = this->min_value + (s_delta - 1) - (this->max_value - first);
-      } else {
+//          printf("< %d = %d - %d\n", result, first, s_delta);
+        }
+      } else if(s_delta < 0) {
         s_delta = -(abs(s_delta) % this->width);
+        result = first + s_delta;
         if(static_cast<unsigned_data_type>(first - this->min_value)
-            <= static_cast<unsigned_data_type>(-s_delta))
+            <= static_cast<unsigned_data_type>(-s_delta)){
           result = this->max_value + (s_delta + 1) - (first - this->min_value);
+//          printf("> %d = %d + %d\n", result, first, s_delta);
+        }
       }
 
       return result;
@@ -576,7 +582,7 @@ __device__ void block_deltaMinMax_decompress(
 
     if (idx < input_num_elements) {
       const data_type r = ops.add2first(first, output_val);
-      printf("# %d = %d - %d\n", idx, r, output_val);
+//      printf("# %d = %d - %d\n", idx, r, output_val);
       output_buffer[idx] = r;
     }
 
@@ -585,7 +591,7 @@ __device__ void block_deltaMinMax_decompress(
 
   if (threadIdx.x == 0) {
     const data_type r = ops.add2first(first, initial_value);
-    printf("# end %d - %d\n", r, initial_value);
+//    printf("# end %d - %d\n", r, initial_value);
     output_buffer[input_num_elements] = r;
   }
 }
