@@ -473,7 +473,7 @@ __device__ void block_deltaMinMax_compress(
 /**
  * \brief delta sum functor
  */
-template <typename T>
+template <typename T, typename extend_signed_sum_type>
 struct DeltaSum
 {
   T min_value;
@@ -520,7 +520,49 @@ struct DeltaSum
       return result;
     }
 
-  __host__ __device__ __forceinline__ T operator()(const T &prev, const T &delta) const
+//    template <typename extend_signed_sum_type>
+  __host__ __device__ __forceinline__ T operator()(const T &left, const T &rigth) const
+      {
+       extend_signed_sum_type result = static_cast<extend_signed_sum_type>(left)
+                                        + static_cast<extend_signed_sum_type>(rigth);
+       result %= this->width;
+      printf("$ %d = %d + %d\n", result, left, rigth);
+       return static_cast<extend_signed_sum_type>(result);
+      }
+
+/*
+      template <typename signedT>
+        __host__ __device__ __forceinline__ signedT w2min(){
+          return - static_cast<signedT>(this->width_2);
+        }
+
+        template <typename signedT>
+        __host__ __device__ __forceinline__ signedT w2max(){
+          return static_cast<signedT>(this->width_2);
+        }
+  __host__ __device__ __forceinline__ T v(const T &left, const T &rigth) const
+      {
+        using unsigned_data_type = std::make_unsigned_t<T>;
+        using signed_data_type = std::make_signed_t<T>;
+        const signed_data_type s_rigth = static_cast<signed_data_type>(rigth);
+        const signed_data_type s_left = static_cast<signed_data_type>(left);
+
+        signed_data_type result = rigth + left;
+
+        if(s_left < 0 ) {
+          if (s_rigth <= this->w2min<signed_data_type>() - s_left) {
+            result = s_rigth + s_left + this->width;
+          }
+        } else {
+          if (this->w2ax<signed_data_type>() - s_left <= s_rigth) {
+            result = s_rigth + s_left - this->width;
+          }
+        }
+
+        return 1;
+      }
+
+  __host__ __device__ __forceinline__ T sss(const T &prev, const T &delta) const
   {
       using unsigned_data_type = std::make_unsigned_t<T>;
       using signed_data_type = std::make_signed_t<T>;
@@ -543,7 +585,9 @@ struct DeltaSum
         printf("# %d = %d + %d\n", result, prev, s_delta);
       return result;
   }
+      */
 };
+
 
 template <typename data_type, typename size_type, int threadblock_size>
 __device__ void block_deltaMinMax_decompress(
@@ -557,14 +601,10 @@ __device__ void block_deltaMinMax_decompress(
 
   const int num_rounds = roundUpDiv(input_num_elements, threadblock_size);
 
-  data_type initial_value = 0; //delta_header_chunk->first;
+  data_type initial_value = 0;
   const data_type first = delta_header_chunk->first;
-//  const data_type min_value = delta_header_chunk->min_value;
-//  const data_type max_value = delta_header_chunk->max_value;
 
-  DeltaSum<data_type> ops(delta_header_chunk->min_value, delta_header_chunk->max_value);
-  if (threadIdx.x == 0)
-    printf("@%d < %d \n", delta_header_chunk->min_value, delta_header_chunk->max_value);
+  DeltaSum<data_type, int> ops(delta_header_chunk->min_value, delta_header_chunk->max_value);
 
   for (int round = 0; round < num_rounds; round++) {
     const size_type idx = round * threadblock_size + threadIdx.x;
@@ -577,7 +617,7 @@ __device__ void block_deltaMinMax_decompress(
     data_type aggregate;
     BlockScan(temp_storage)
         .ExclusiveScan(
-            input_val, output_val, initial_value, cub::Sum(), aggregate);
+            input_val, output_val, initial_value, ops, aggregate);
     initial_value += aggregate;
 
     if (idx < input_num_elements) {
