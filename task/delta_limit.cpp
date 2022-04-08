@@ -308,7 +308,7 @@ int main()
     std::vector<T> input;
 
     for (int i = 0; i < 12; i++)
-      input.push_back(base + (i*20) % 100);
+      input.push_back(base - (i*20) % 100);
 
     printf("delta for uint8_t:\n");
     printf("input data(size:%zu) : ", input.size());
