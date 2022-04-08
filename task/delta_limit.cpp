@@ -5,6 +5,7 @@
 
 #include <cstdint>
 #include <vector>
+#include <iostream>
 
 #define REQUIRE(a) assert(a)
 
@@ -298,28 +299,30 @@ size_t test_predefined_cases(std::vector<data_type> input0_host,int rle, int del
   return compressed_bytes_host[0];
 }
 
+template <typename data_type>
+void test_stair_case(const data_type start, const int step,
+                     const data_type base, const size_t count, const char* name){
+  size_t size;
+  int rle = 0;  int delta = 1;   int bp = 0;
+
+  std::vector<data_type> input;
+  for (int i = 0; i < count; i++)
+    input.push_back(start + (i*step) % base);
+
+  printf("\n====================================================\n");
+  printf("delta for %s:\n", name);
+  printf("input data(size:%zu) : ", input.size());
+  for (auto el : input)
+    std::cout << el << ":";
+//    printf("%u:", el);
+  printf("\n");
+  size = test_predefined_cases<data_type>(input, rle, delta, bp);
+  printf("result compressed size: %zu\n", size);
+  printf("\n====================================================\n");
+}
+
+
 int main()
 {
-  size_t size;
-
-  uint8_t base = 100;
-  {
-    typedef uint8_t T;
-    std::vector<T> input;
-
-    for (int i = 0; i < 12; i++)
-      input.push_back(base - (i*20) % 100);
-
-    printf("delta for uint8_t:\n");
-    printf("input data(size:%zu) : ", input.size());
-    for (auto el : input)
-      printf("%u:", el);
-    printf("\n");
-
-    int rle = 0;
-    int delta = 1;
-    int bp = 0;
-    size = test_predefined_cases<T>(input, rle, delta, bp);
-    printf("result compressed size: %zu\n", size);
-  }
+  test_stair_case<uint8_t>(0, 20, 120, 20, "u8 20");
 }
