@@ -446,6 +446,8 @@ __device__ void block_deltaMinMax_compress(
   min_value = for_ptr[_MIN_VAL_POSITION];
   const unsigned_data_type width = max_value - min_value + 1;
   const unsigned_data_type shift = max_value < min_value  ? -max_value : 0;
+  if (threadIdx.x == 0)
+    printf("shift: %u\n", shift);
 
   for (size_type element_idx = threadIdx.x; element_idx < input_size - 1;
        element_idx += blockDim.x) {
@@ -457,12 +459,16 @@ __device__ void block_deltaMinMax_compress(
     const unsigned_data_type abs_forward_diff = abs(static_cast<signed_data_type>(next - prev));
     const unsigned_data_type abs_reverse_diff = width - abs_forward_diff;
 
-    if(abs_reverse_diff < abs_forward_diff)
-      if( next + shift < prev + shift)
-          output_buffer[element_idx] = width + next - prev;
-      else
+    if (abs_reverse_diff < abs_forward_diff){
+      if (static_cast<unsigned_data_type>(next + shift)
+          < static_cast<unsigned_data_type>(prev + shift)) {
+        output_buffer[element_idx] = width + next - prev;
+        printf("< %d =  %d - %d\n", output_buffer[element_idx], next , prev);
+      } else {
         output_buffer[element_idx] = -width + next - prev;
-    else
+        printf("> %d =  %d - %d\n", output_buffer[element_idx], next , prev);
+      }
+    } else
       output_buffer[element_idx] = next - prev;
   }
   if (threadIdx.x == 0) {
