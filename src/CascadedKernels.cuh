@@ -463,10 +463,10 @@ __device__ void block_deltaMinMax_compress(
       if (static_cast<unsigned_data_type>(next + shift)
           < static_cast<unsigned_data_type>(prev + shift)) {
         output_buffer[element_idx] = width + next - prev;
-        printf("< %d =  %d - %d\n", output_buffer[element_idx], next , prev);
+        //printf("< %d =  %d - %d\n", output_buffer[element_idx], next , prev);
       } else {
         output_buffer[element_idx] = -width + next - prev;
-        printf("> %d =  %d - %d\n", output_buffer[element_idx], next , prev);
+        //printf("> %d =  %d - %d\n", output_buffer[element_idx], next , prev);
       }
     } else
       output_buffer[element_idx] = next - prev;
