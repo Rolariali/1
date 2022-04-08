@@ -445,7 +445,7 @@ __device__ void block_deltaMinMax_compress(
   max_value = for_ptr[_MAX_VAL_POSITION];
   min_value = for_ptr[_MIN_VAL_POSITION];
   const unsigned_data_type width = max_value - min_value + 1;
-  const unsigned_data_type shift = max_value < min_value  ? -max_value : 0;
+  const unsigned_data_type shift = max_value < min_value  ? -min_value : 0;
   if (threadIdx.x == 0)
     printf("shift: %u\n", shift);
 
