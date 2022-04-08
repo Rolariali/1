@@ -514,7 +514,7 @@ struct DeltaSum
         s_delta = -(abs(s_delta) % this->width);
         result = first + s_delta;
         if(static_cast<unsigned_data_type>(first - this->min_value)
-            <= static_cast<unsigned_data_type>(-s_delta)){
+            < static_cast<unsigned_data_type>(-s_delta)){
           result = this->max_value + (s_delta + 1) - (first - this->min_value);
 //          printf("> %d = %d + %d\n", result, first, s_delta);
         }
