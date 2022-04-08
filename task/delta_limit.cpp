@@ -313,7 +313,7 @@ void test_stair_case(const data_type start, const int step,
   printf("delta for %s:\n", name);
   printf("input data(size:%zu) : ", input.size());
   for (auto el : input)
-    std::cout << el << ":";
+    std::cout << (int)el << ":";
 //    printf("%u:", el);
   printf("\n");
   size = test_predefined_cases<data_type>(input, rle, delta, bp);
@@ -324,5 +324,9 @@ void test_stair_case(const data_type start, const int step,
 
 int main()
 {
-  test_stair_case<uint8_t>(0, 20, 120, 20, "u8 20");
+  test_stair_case<uint8_t>(0, 20, 120, 2000, "u8 20");
+  test_stair_case<uint8_t>(100, 20, 119, 2001, "u8 119");
+  test_stair_case<uint8_t>(220, 20, 119, 2001, "u8 220");
+  test_stair_case<uint8_t>(220, -20, 119, 2001, "u8 -20 220");
+  test_stair_case<uint8_t>(60, -20, 119, 2001, "u8 60 -20");
 }
