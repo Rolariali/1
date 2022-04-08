@@ -633,7 +633,7 @@ __device__ void block_deltaMinMax_decompress(
 
     if (idx < input_num_elements) {
       const data_type r = ops.add2first(first, output_val);
-//      printf("# %d = %d - %d\n", idx, r, output_val);
+      // printf("# r: %d * a: %d \t\ti: %u\n", r, output_val, idx );
       output_buffer[idx] = r;
     }
 
