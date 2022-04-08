@@ -530,8 +530,8 @@ struct DeltaSum
         extend_signed_sum_type result = static_cast<signed_data_type>(left)
                                         + static_cast<signed_data_type>(rigth);
         result %= this->width;
-        printf("$ %d = %d + %d\n", result, static_cast<signed_data_type>(left)
-                                               , static_cast<signed_data_type>(rigth));
+//        printf("$ %d = %d + %d\n", result, static_cast<signed_data_type>(left)
+//                                               , static_cast<signed_data_type>(rigth));
         return static_cast<extend_signed_sum_type>(result);
       }
 
