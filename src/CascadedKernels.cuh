@@ -541,62 +541,6 @@ struct DeltaSum
         return static_cast<extend_signed_sum_type>(result);
       }
 
-/*
-      template <typename signedT>
-        __host__ __device__ __forceinline__ signedT w2min(){
-          return - static_cast<signedT>(this->width_2);
-        }
-
-        template <typename signedT>
-        __host__ __device__ __forceinline__ signedT w2max(){
-          return static_cast<signedT>(this->width_2);
-        }
-  __host__ __device__ __forceinline__ T v(const T &left, const T &rigth) const
-      {
-        using unsigned_data_type = std::make_unsigned_t<T>;
-        using signed_data_type = std::make_signed_t<T>;
-        const signed_data_type s_rigth = static_cast<signed_data_type>(rigth);
-        const signed_data_type s_left = static_cast<signed_data_type>(left);
-
-        signed_data_type result = rigth + left;
-
-        if(s_left < 0 ) {
-          if (s_rigth <= this->w2min<signed_data_type>() - s_left) {
-            result = s_rigth + s_left + this->width;
-          }
-        } else {
-          if (this->w2ax<signed_data_type>() - s_left <= s_rigth) {
-            result = s_rigth + s_left - this->width;
-          }
-        }
-
-        return 1;
-      }
-
-  __host__ __device__ __forceinline__ T sss(const T &prev, const T &delta) const
-  {
-      using unsigned_data_type = std::make_unsigned_t<T>;
-      using signed_data_type = std::make_signed_t<T>;
-      const signed_data_type s_delta = static_cast<signed_data_type>(delta);
-
-      printf("# %u + %u\n", prev, delta);
-      return prev;
-      T result = prev + delta;
-
-      if(0 < s_delta){
-        if(static_cast<unsigned_data_type>(this->width - s_delta)
-            <= static_cast<unsigned_data_type>(prev - this->min_value))
-          result = this->min_value + (s_delta - 1) - (this->max_value - prev);
-        }
-      else if(s_delta < 0){
-          if(static_cast<unsigned_data_type>(prev - this->min_value)
-              <= static_cast<unsigned_data_type>(-s_delta))
-            result = this->max_value + (s_delta + 1) - (prev - this->min_value);
-        }
-        printf("# %d = %d + %d\n", result, prev, s_delta);
-      return result;
-  }
-      */
 };
 
 
