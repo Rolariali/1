@@ -629,7 +629,7 @@ __device__ void block_deltaMinMax_decompress(
     BlockScan(temp_storage)
         .ExclusiveScan(
             input_val, output_val, initial_value, ops, aggregate);
-    initial_value += aggregate;
+    initial_value = ops(initial_value, aggregate);
 
     if (idx < input_num_elements) {
       const data_type r = ops.add2first(first, output_val);
