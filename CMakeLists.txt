@@ -10,6 +10,7 @@ option(BUILD_TESTS "Build unit and end-to-end tests." OFF)
 option(BUILD_BENCHMARKS "Build benchmarks." OFF)
 option(BUILD_EXAMPLES "Build examples." OFF)
 option(BUILD_STATIC "Build a static library." OFF)
+option(WW "warn suspend." OFF)
 
 set(CMAKE_CXX_STANDARD 14)
 set(CMAKE_CUDA_STANDARD 14)
@@ -21,6 +22,10 @@ include(GNUInstallDirs)
 list( APPEND CMAKE_MODULE_PATH
   ${CMAKE_SOURCE_DIR}/cmake
 )
+
+if(WW)
+  add_definitions(-w)
+endif()
 
 if(CLION)
 
