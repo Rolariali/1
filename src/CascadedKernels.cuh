@@ -514,7 +514,7 @@ struct DeltaSum
     this->min_value = min_value;
     this->max_value = max_value;
     this->width = max_value - min_value + 1;
-    this->width2 = this->width/2 + this->width%2;
+    this->width2 = this->width/2; // + this->width%2;
     using unsigned_data_type = std::make_unsigned_t<T>;
 
     if (threadIdx.x == 0) {
