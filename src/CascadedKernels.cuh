@@ -472,7 +472,7 @@ __device__ void block_deltaMinMax_compress(
       output_buffer[element_idx] = next - prev;
   }
   if (threadIdx.x == 0) {
-    printf("find %d, %d, %d\n", input_buffer[0], min_value, max_value);
+    printf("first %d, min %d, max %d\n", input_buffer[0], min_value, max_value);
     printf("w: %u\n", width);
     delta_header_chunk->first = input_buffer[0];
     delta_header_chunk->min_value = min_value;
