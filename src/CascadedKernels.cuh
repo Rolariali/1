@@ -488,11 +488,13 @@ struct DeltaSum
   T min_value;
   T max_value;
   T width;
+  extend_signed_sum_type width2;
 
   __host__ __device__ __forceinline__ DeltaSum(T min_value, T max_value){
     this->min_value = min_value;
     this->max_value = max_value;
     this->width = max_value - min_value + 1;
+    this->width2 = this->width/2 + this->width%2;
     using unsigned_data_type = std::make_unsigned_t<T>;
 
     if (threadIdx.x == 0) {
@@ -529,7 +531,23 @@ struct DeltaSum
       return result;
     }
 
-//    template <typename extend_signed_sum_type>
+    __host__ __device__ __forceinline__ T operator()(const T &left, const T &rigth) const
+    {
+      using signed_data_type = std::make_signed_t<T>;
+      extend_signed_sum_type result = static_cast<signed_data_type>(left)
+                                      + static_cast<signed_data_type>(rigth);
+      result %= this->width;
+      if(this->width2 < result)
+        result -= this->width;
+      else if(result < -this->width2)
+        result += this->width;
+
+      //        printf("$ %d = %d + %d\n", result, static_cast<signed_data_type>(left)
+      //                                               , static_cast<signed_data_type>(rigth));
+      return static_cast<T>(result);
+    }
+
+/*
   __host__ __device__ __forceinline__ T operator()(const T &left, const T &rigth) const
       {
         using signed_data_type = std::make_signed_t<T>;
@@ -540,7 +558,7 @@ struct DeltaSum
 //                                               , static_cast<signed_data_type>(rigth));
         return static_cast<extend_signed_sum_type>(result);
       }
-
+*/
 };
 
 
