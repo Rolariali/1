@@ -330,8 +330,7 @@ int main()
   test_stair_case<uint8_t>(220, 20, 119, 115, "u8 220, 20, 119, 115");
 
   test_stair_case<uint8_t>(1, 1, 254, 333, "u8 1, 1, 254, 333");
-  test_stair_case<uint8_t>(1, -1, 254, 222, "u8 1, -1, 254, 222");
-  test_stair_case<uint8_t>(1, -1, 254, 666, "u8 1, -1, 254, 666");
+  test_stair_case<uint8_t>(254, -2, 254, 222, "u8 1, -1, 254, 222");
 
   test_stair_case<uint8_t>(220, -20, 120, 222, "u8 220, -20, 120, 222");
   test_stair_case<uint8_t>(220, -20, 119, 2001, "u8 220, -20, 119, 2001");
