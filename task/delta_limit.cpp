@@ -324,16 +324,18 @@ void test_stair_case(const data_type start, const int step,
 
 int main()
 {
-  test_stair_case<uint8_t>(0, 20, 120, 2000, "u8 20");
-  test_stair_case<uint8_t>(200, 20, 120, 2000, "u8 200");
-  test_stair_case<uint8_t>(100, 20, 119, 2001, "u8 119");
-  test_stair_case<uint8_t>(220, 20, 119, 115, "u8 220");
+  test_stair_case<uint8_t>(0, 20, 120, 2000, "u8 0, 20, 120, 2000");
+  test_stair_case<uint8_t>(200, 20, 120, 2000, "u8 200, 20, 120, 2000");
+  test_stair_case<uint8_t>(100, 20, 119, 2001, "u8 100, 20, 119, 2001");
+  test_stair_case<uint8_t>(220, 20, 119, 115, "u8 220, 20, 119, 115");
 
-  test_stair_case<uint8_t>(1, 1, 240, 130, "u8 220");
+  test_stair_case<uint8_t>(1, 1, 254, 333, "u8 1, 1, 254, 333");
+  test_stair_case<uint8_t>(1, -1, 254, 222, "u8 1, -1, 254, 222");
+  test_stair_case<uint8_t>(1, -1, 254, 666, "u8 1, -1, 254, 666");
 
-  test_stair_case<uint8_t>(220, -20, 120, 222, "u8 -20 220");
-  test_stair_case<uint8_t>(220, -20, 119, 2001, "u8 -20 220");
-  test_stair_case<uint8_t>(60, -20, 119, 2001, "u8 60 -20");
+  test_stair_case<uint8_t>(220, -20, 120, 222, "u8 220, -20, 120, 222");
+  test_stair_case<uint8_t>(220, -20, 119, 2001, "u8 220, -20, 119, 2001");
+  test_stair_case<uint8_t>(60, -20, 119, 2001, "u8 60, -20, 119, 2001");
 
   printf("\ndone\n");
 }
