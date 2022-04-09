@@ -329,12 +329,31 @@ int main()
   test_stair_case<uint8_t>(100, 20, 119, 2001, "u8 100, 20, 119, 2001");
   test_stair_case<uint8_t>(220, 20, 119, 115, "u8 220, 20, 119, 115");
 
-  test_stair_case<uint8_t>(1, 1, 254, 333, "u8 1, 1, 254, 333");
-  test_stair_case<uint8_t>(254, -2, 254, 222, "u8 1, -1, 254, 222");
+  test_stair_case<uint8_t>(1, 1, 254, 3333, "u8 1, 1, 254, 3333");
+  test_stair_case<uint8_t>(0, 1, 254, 1333, "u8 0, 1, 254, 1333");
 
+  test_stair_case<uint8_t>(250, 1, 127+7, 2222, "u8 250, 1, 127+7, 2222");
+  test_stair_case<uint8_t>(255, 1, 127+2, 2222, "u8 250, 1, 127+3, 2222");
+
+  test_stair_case<uint8_t>(128, 1, 255, 2550, "u8 128, 1, 255, 2550");
+
+  test_stair_case<uint8_t>(127, 1, 129, 2550, "u8 127, 1, 129, 2550");
+
+
+
+  test_stair_case<uint8_t>(127, -1, 255, 2220, "u8 127, -1, 255, 2220");
+  test_stair_case<uint8_t>(128, -1, 128+1, 2220, "u8 128, -1, 128+1, 2220");
+
+  test_stair_case<uint8_t>(0, -1, 128+1, 2220, "u8 0, -1, 128+1, 2220");
+
+  test_stair_case<uint8_t>(255, -1, 255, 2220, "u8 255, -1, 255, 2220");
+
+
+  test_stair_case<uint8_t>(254, -2, 254, 222, "u8 254, -2, 254, 222");
   test_stair_case<uint8_t>(220, -20, 120, 222, "u8 220, -20, 120, 222");
   test_stair_case<uint8_t>(220, -20, 119, 2001, "u8 220, -20, 119, 2001");
   test_stair_case<uint8_t>(60, -20, 119, 2001, "u8 60, -20, 119, 2001");
+
 
   printf("\ndone\n");
 }
