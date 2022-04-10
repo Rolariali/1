@@ -299,6 +299,8 @@ size_t test_predefined_cases(std::vector<data_type> input0_host,int rle, int del
   return compressed_bytes_host[0];
 }
 
+bool one_only = false;
+
 template <typename data_type>
 void test_stair_case(const data_type start, const int step,
                      const data_type base, const size_t min_count, const char* name){
@@ -322,7 +324,8 @@ void test_stair_case(const data_type start, const int step,
     printf("result compressed size: %zu\n", size);
     printf("\n====================================================\n");
 
-    break;
+    if(one_only)
+      break;
   }
 }
 
@@ -380,11 +383,110 @@ void test_i8(){
   test_stair_case<int8_t>(-127, -12, 24, 20, "i8 -127, -12, 24, 20");
 }
 
+void test_u16(){
+
+  test_stair_case<uint16_t>(0, 200, 0xFFFF - 1, 2000, "u16");
+  test_stair_case<uint16_t>(0, 211, 0xFFFF - 1, 2000, "u16");
+  test_stair_case<uint16_t>(0x7FFF, 444, 0xFFFF - 1, 2000, "u16");
+  test_stair_case<uint16_t>(0x7FFF + 1, 900, 0xFFFF - 1, 2000, "u16");
+  test_stair_case<uint16_t>(0x8FFF, 333, 0xFFFF - 1, 2000, "u16");
+  test_stair_case<uint16_t>(0xFFFF, 333, 0xFFFF - 1, 2000, "u16");
+  test_stair_case<uint16_t>(0, 200, 0xFFF - 1, 2000, "u16");
+  test_stair_case<uint16_t>(0, 211, 0xF00F - 1, 2000, "u16");
+
+
+  test_stair_case<uint16_t>(0xFFFF, -333, 0xFFFF - 1, 2000, "u16");
+  test_stair_case<uint16_t>(0xFFFF, -333, 0xF2F - 1, 2000, "u16");
+  test_stair_case<uint16_t>(0xFFFF, -1, 0xFF, 2000, "u16");
+  test_stair_case<uint16_t>(0x7FFF, -1, 0xFF, 2000, "u16");
+  test_stair_case<uint16_t>(0x7FFF + 1, -1, 0xFF, 2000, "u16");
+  test_stair_case<uint16_t>(0x7FFF + 1, -1, 0xFF, 2000, "u16");
+  test_stair_case<uint16_t>(0, -1, 0xFFF, 2000, "u16");
+  test_stair_case<uint16_t>(0, -111, 0xFF, 2000, "u16");
+}
+
+
+void test_i16(){
+
+  test_stair_case<int16_t>(0, 200, 0xFFFF - 1, 2000, "u16");
+  test_stair_case<int16_t>(0, 211, 0xFFFF - 1, 2000, "u16");
+  test_stair_case<int16_t>(0x7FFF, 444, 0xFFFF - 1, 2000, "u16");
+  test_stair_case<int16_t>(0x7FFF + 1, 900, 0xFFFF - 1, 2000, "u16");
+  test_stair_case<int16_t>(0x8FFF, 333, 0xFFFF - 1, 2000, "u16");
+  test_stair_case<int16_t>(0xFFFF, 333, 0xFFFF - 1, 2000, "u16");
+  test_stair_case<int16_t>(0, 200, 0xFFF - 1, 2000, "u16");
+  test_stair_case<int16_t>(0, 211, 0xF00F - 1, 2000, "u16");
+
+
+  test_stair_case<int16_t>(0xFFFF, -333, 0xFFFF - 1, 2000, "u16");
+  test_stair_case<int16_t>(0xFFFF, -333, 0xF2F - 1, 2000, "u16");
+  test_stair_case<int16_t>(0xFFFF, -1, 0xFF, 2000, "u16");
+  test_stair_case<int16_t>(0x7FFF, -1, 0xFF, 2000, "u16");
+  test_stair_case<int16_t>(0x7FFF + 1, -1, 0xFF, 2000, "u16");
+  test_stair_case<int16_t>(0x7FFF + 1, -1, 0xFF, 2000, "u16");
+  test_stair_case<int16_t>(0, -1, 0xFFF, 2000, "u16");
+  test_stair_case<int16_t>(0, -111, 0xFF, 2000, "u16");
+}
+
+void test_i32(){
+
+  test_stair_case<int32_t>(0, 2000, 0xFFFFFFFF - 1, 2000, "i32");
+  test_stair_case<int32_t>(0, 211, 0xFFFFFFFF - 1, 2000, "i32");
+  test_stair_case<int32_t>(0x7FFF, 444, 0xFFFFFFFF - 1, 2000, "i32");
+  test_stair_case<int32_t>(0x7FFF + 1, 900, 0xFFFFFFFF - 1, 2000, "i32");
+  test_stair_case<int32_t>(0x8FFF, 3330, 0xFFFFFF - 1, 2000, "i32");
+  test_stair_case<int32_t>(0xFFFF, 3330, 0xFFFFF - 1, 2000, "i32");
+  test_stair_case<int32_t>(0, 200, 0xFFFFF - 1, 2000, "i32");
+  test_stair_case<int32_t>(0, 211, 0xFFFF - 1, 2000, "i32");
+
+
+  test_stair_case<int32_t>(0xFFFF, -333, 0xFFFF - 1, 2000, "i32");
+  test_stair_case<int32_t>(0xFFFF, -333, 0xF2F - 1, 2000, "i32");
+  test_stair_case<int32_t>(0xFFFF, -1, 0xFF, 2000, "i32");
+  test_stair_case<int32_t>(0x7FFF, -1, 0xFF, 2000, "i32");
+  test_stair_case<int32_t>(0x7FFF + 1, -1, 0xFF, 2000, "i32");
+  test_stair_case<int32_t>(0x7FFF + 1, -1, 0xFF, 2000, "i32");
+  test_stair_case<int32_t>(0, -1, 0xFFF, 2000, "i32");
+  test_stair_case<int32_t>(0, -111, 0xFF, 2000, "i32");
+}
+
+
+
+void test_u32(){
+
+  test_stair_case<uint32_t>(0, 2000, 0xFFFFFFFF - 1, 2000, "u32");
+  test_stair_case<uint32_t>(0, 211, 0xFFFFFFFF - 1, 2000, "u32");
+  test_stair_case<uint32_t>(0x7FFF, 444, 0xFFFFFFFF - 1, 2000, "u32");
+  test_stair_case<uint32_t>(0x7FFF + 1, 900, 0xFFFFFFFF - 1, 2000, "u32");
+  test_stair_case<uint32_t>(0x8FFF, 3330, 0xFFFFFF - 1, 2000, "u32");
+  test_stair_case<uint32_t>(0xFFFF, 3330, 0xFFFFF - 1, 2000, "u32");
+  test_stair_case<uint32_t>(0, 200, 0xFFFFF - 1, 2000, "u32");
+  test_stair_case<uint32_t>(0, 211, 0xFFFF - 1, 2000, "u32");
+
+
+  test_stair_case<uint32_t>(0xFFFF, -333, 0xFFFF - 1, 2000, "u32");
+  test_stair_case<uint32_t>(0xFFFF, -333, 0xF2F - 1, 2000, "u32");
+  test_stair_case<uint32_t>(0xFFFF, -1, 0xFF, 2000, "u32");
+  test_stair_case<uint32_t>(0x7FFF, -1, 0xFF, 2000, "u32");
+  test_stair_case<uint32_t>(0x7FFF + 1, -1, 0xFF, 2000, "u32");
+  test_stair_case<uint32_t>(0x7FFF + 1, -1, 0xFF, 2000, "u32");
+  test_stair_case<uint32_t>(0, -1, 0xFFF, 2000, "u32");
+  test_stair_case<uint32_t>(0, -111, 0xFF, 2000, "u32");
+}
+
 int main()
 {
+  one_only = true;
 
   test_i8();
-  //  test_u8();
+  test_u8();
+
+
+  test_u16();
+  test_i16();
+
+  test_i32();
+  test_u32();
 
   printf("\ndone\n");
 }
