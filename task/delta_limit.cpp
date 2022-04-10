@@ -312,7 +312,7 @@ void test_stair_case(const data_type start, const int step,
   for (int i = min_count; i < 4040; i++) {
     input.push_back(start + (i*step) % base);
     printf("\n====================================================\n");
-    printf("delta for %s:\n", name);
+    printf("delta for %s: stair test \n", name);
     printf("input data(size:%zu) : ", input.size());
     for (auto el : input)
       std::cout << (int)el << ":";
@@ -321,12 +321,12 @@ void test_stair_case(const data_type start, const int step,
     size = test_predefined_cases<data_type>(input, rle, delta, bp);
     printf("result compressed size: %zu\n", size);
     printf("\n====================================================\n");
+
+    break;
   }
 }
 
-
-int main()
-{
+void test_u8(){
   test_stair_case<uint8_t>(0, 20, 120, 20, "u8 0, 20, 120, 20");
   test_stair_case<uint8_t>(200, 20, 120, 20, "u8 200, 20, 120, 20");
   test_stair_case<uint8_t>(100, 20, 119, 20, "u8 100, 20, 119, 20");
@@ -344,19 +344,47 @@ int main()
 
 
 
-  test_stair_case<uint8_t>(127, -1, 255, 2220, "u8 127, -1, 255, 2220");
-  test_stair_case<uint8_t>(128, -1, 128+1, 2220, "u8 128, -1, 128+1, 2220");
+  test_stair_case<uint8_t>(127, -1, 255, 20, "u8 127, -1, 255, 2220");
+  test_stair_case<uint8_t>(128, -1, 128+1, 20, "u8 128, -1, 128+1, 2220");
 
-  test_stair_case<uint8_t>(0, -1, 128+1, 2220, "u8 0, -1, 128+1, 2220");
+  test_stair_case<uint8_t>(0, -1, 128+1, 20, "u8 0, -1, 128+1, 2220");
 
-  test_stair_case<uint8_t>(255, -1, 255, 2220, "u8 255, -1, 255, 2220");
+  test_stair_case<uint8_t>(255, -1, 255, 20, "u8 255, -1, 255, 2220");
 
 
-  test_stair_case<uint8_t>(254, -2, 254, 222, "u8 254, -2, 254, 222");
-  test_stair_case<uint8_t>(220, -20, 120, 222, "u8 220, -20, 120, 222");
-  test_stair_case<uint8_t>(220, -20, 119, 2001, "u8 220, -20, 119, 2001");
-  test_stair_case<uint8_t>(60, -20, 119, 2001, "u8 60, -20, 119, 2001");
+  test_stair_case<uint8_t>(254, -2, 254, 20, "u8 254, -2, 254, 222");
+  test_stair_case<uint8_t>(220, -20, 120, 20, "u8 220, -20, 120, 222");
+  test_stair_case<uint8_t>(220, -20, 119, 20, "u8 220, -20, 119, 2001");
+  test_stair_case<uint8_t>(60, -20, 119, 20, "u8 60, -20, 119, 2001");
+}
 
+void test_i8(){
+  test_stair_case<int8_t>(0, 1, 254, 20, "i8 0, 1, 254, 20");
+  test_stair_case<int8_t>(127, 1, 254, 20, "i8 127, 1, 254, 20");
+  test_stair_case<int8_t>(-128, 1, 254, 20, "i8 -128, 1, 254, 20");
+  test_stair_case<int8_t>(-127, 1, 254, 20, "i8");
+
+  test_stair_case<int8_t>(0, -1, 254, 20, "i8 0, -1, 254, 20");
+  test_stair_case<int8_t>(127, -1, 254, 20, "i8 127, -1, 254, 20");
+  test_stair_case<int8_t>(-128, -1, 254, 20, "i8 -128, -1, 254, 20");
+  test_stair_case<int8_t>(-127, -1, 254, 20, "i8 -127, -1, 254, 20");
+
+  test_stair_case<int8_t>(0, +20, 201, 20, "i8 0, +20, 201, 20");
+  test_stair_case<int8_t>(127, 3, 254, 20, "i8 127, 3, 254, 20");
+  test_stair_case<int8_t>(-128, 6, 214, 20, "i8 -128, 6, 214, 20");
+  test_stair_case<int8_t>(-127, 11, 111, 20, "i8 -127, 11, 111, 20");
+
+  test_stair_case<int8_t>(0, -4, 25, 20, "i8 0, -4, 25, 20");
+  test_stair_case<int8_t>(127, -5, 21, 20, "i8 127, -5, 21, 20");
+  test_stair_case<int8_t>(-128, -3, 24, 20, "i8 -128, -3, 24, 20");
+  test_stair_case<int8_t>(-127, -12, 24, 20, "i8 -127, -12, 24, 20");
+}
+
+int main()
+{
+
+  test_i8();
+  //  test_u8();
 
   printf("\ndone\n");
 }
