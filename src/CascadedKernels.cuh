@@ -594,18 +594,6 @@ struct DeltaSum
       return static_cast<T>(result);
     }
 
-/*
-  __host__ __device__ __forceinline__ T operator()(const T &left, const T &rigth) const
-      {
-        using signed_data_type = std::make_signed_t<T>;
-        extend_signed_sum_type result = static_cast<signed_data_type>(left)
-                                        + static_cast<signed_data_type>(rigth);
-        result %= this->width;
-//        printf("$ %d = %d + %d\n", result, static_cast<signed_data_type>(left)
-//                                               , static_cast<signed_data_type>(rigth));
-        return static_cast<extend_signed_sum_type>(result);
-      }
-*/
 };
 
 
