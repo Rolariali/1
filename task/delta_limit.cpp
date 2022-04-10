@@ -301,43 +301,46 @@ size_t test_predefined_cases(std::vector<data_type> input0_host,int rle, int del
 
 template <typename data_type>
 void test_stair_case(const data_type start, const int step,
-                     const data_type base, const size_t count, const char* name){
+                     const data_type base, const size_t min_count, const char* name){
   size_t size;
   int rle = 0;  int delta = 1;   int bp = 0;
 
   std::vector<data_type> input;
-  for (int i = 0; i < count; i++)
+  for (int i = 0; i < min_count; i++)
     input.push_back(start + (i*step) % base);
 
-  printf("\n====================================================\n");
-  printf("delta for %s:\n", name);
-  printf("input data(size:%zu) : ", input.size());
-  for (auto el : input)
-    std::cout << (int)el << ":";
-//    printf("%u:", el);
-  printf("\n");
-  size = test_predefined_cases<data_type>(input, rle, delta, bp);
-  printf("result compressed size: %zu\n", size);
-  printf("\n====================================================\n");
+  for (int i = min_count; i < 4040; i++) {
+    input.push_back(start + (i*step) % base);
+    printf("\n====================================================\n");
+    printf("delta for %s:\n", name);
+    printf("input data(size:%zu) : ", input.size());
+    for (auto el : input)
+      std::cout << (int)el << ":";
+    //    printf("%u:", el);
+    printf("\n");
+    size = test_predefined_cases<data_type>(input, rle, delta, bp);
+    printf("result compressed size: %zu\n", size);
+    printf("\n====================================================\n");
+  }
 }
 
 
 int main()
 {
-  test_stair_case<uint8_t>(0, 20, 120, 2000, "u8 0, 20, 120, 2000");
-  test_stair_case<uint8_t>(200, 20, 120, 2000, "u8 200, 20, 120, 2000");
-  test_stair_case<uint8_t>(100, 20, 119, 2001, "u8 100, 20, 119, 2001");
-  test_stair_case<uint8_t>(220, 20, 119, 115, "u8 220, 20, 119, 115");
+  test_stair_case<uint8_t>(0, 20, 120, 20, "u8 0, 20, 120, 20");
+  test_stair_case<uint8_t>(200, 20, 120, 20, "u8 200, 20, 120, 20");
+  test_stair_case<uint8_t>(100, 20, 119, 20, "u8 100, 20, 119, 20");
+  test_stair_case<uint8_t>(220, 20, 119, 20, "u8 220, 20, 119, 20");
 
-  test_stair_case<uint8_t>(1, 1, 254, 3333, "u8 1, 1, 254, 3333");
-  test_stair_case<uint8_t>(0, 1, 254, 1333, "u8 0, 1, 254, 1333");
+  test_stair_case<uint8_t>(1, 1, 254, 20, "u8 1, 1, 254, 20");
+  test_stair_case<uint8_t>(0, 1, 254, 20, "u8 0, 1, 254, 20");
 
-  test_stair_case<uint8_t>(250, 1, 127+7, 2222, "u8 250, 1, 127+7, 2222");
-  test_stair_case<uint8_t>(255, 1, 127+2, 2222, "u8 250, 1, 127+3, 2222");
+  test_stair_case<uint8_t>(250, 1, 127+7, 20, "u8 250, 1, 127+7, 20");
+  test_stair_case<uint8_t>(255, 1, 127+2, 20, "u8 250, 1, 127+3, 20");
 
-  test_stair_case<uint8_t>(128, 1, 255, 2550, "u8 128, 1, 255, 2550");
+  test_stair_case<uint8_t>(128, 1, 255, 20, "u8 128, 1, 255, 20");
 
-  test_stair_case<uint8_t>(127, 1, 129, 2550, "u8 127, 1, 129, 2550");
+  test_stair_case<uint8_t>(127, 1, 129, 20, "u8 127, 1, 129, 20");
 
 
 
