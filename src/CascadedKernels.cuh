@@ -520,11 +520,12 @@ struct DeltaSum
     this->width = max_value - min_value + 1;
 //    this->width2 = this->width/2; // + this->width%2;
 //    using signed_data_type = std::make_signed_t<T>;
-    this->high_bound = std::numeric_limits<SignedT>::max();
     this->low_bound = std::numeric_limits<SignedT>::min();
+    this->high_bound = std::numeric_limits<SignedT>::max();
 
     if (threadIdx.x == 0) {
       printf("DeltaSum %d = %d - %d\n", width, max_value, min_value);
+      printf("Bound %d - %d\n", this->low_bound, this->high_bound);
     }
   }
 
@@ -591,6 +592,8 @@ struct DeltaSum
       }
 
       result %= this->width;
+//      printf("$ %d = %d + %d\n", result, static_cast<signed_data_type>(left)
+//           , static_cast<signed_data_type>(rigth));
       return static_cast<T>(result);
     }
 
