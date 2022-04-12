@@ -432,6 +432,13 @@ void test_i32(){
 
   test_stair_case<int32_t>(0, 2000, 0xFFFFFFFF - 1, 2000, "i32");
   test_stair_case<int32_t>(0, 211, 0xFFFFFFFF - 1, 2000, "i32");
+
+  test_stair_case<uint16_t>(0x7FFF, 999, 0xFFFF - 1, 333, "u16");
+  test_stair_case<uint16_t>(198, 654, 0xFFFF - 1, 101, "u16");
+  test_stair_case<uint16_t>(198, 654*2, 0xFFFF - 1, 51, "u16");
+  test_stair_case<uint16_t>(198, 654*4, 0xFFFF - 1, 33, "u16");
+  test_stair_case<uint16_t>(200, 20000, 0xFFFF - 1, 2, "u16");
+
   test_stair_case<int32_t>(0x7FFF, 444, 0xFFFFFFFF - 1, 2000, "i32");
   test_stair_case<int32_t>(0x7FFF + 1, 900, 0xFFFFFFFF - 1, 2000, "i32");
   test_stair_case<int32_t>(0x8FFF, 3330, 0xFFFFFF - 1, 2000, "i32");
@@ -453,6 +460,8 @@ void test_i32(){
 
 
 void test_u32(){
+
+  test_stair_case<int32_t>(0, 2000, 0xFFFFFFFF - 2, 2, "i32");
 
   test_stair_case<uint32_t>(0, 2000, 0xFFFFFFFF - 1, 2000, "u32");
   test_stair_case<uint32_t>(0, 211, 0xFFFFFFFF - 1, 2000, "u32");
