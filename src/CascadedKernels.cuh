@@ -518,8 +518,6 @@ struct DeltaSum
     this->max_value = max_value;
 
     this->width = max_value - min_value + 1;
-//    this->width2 = this->width/2; // + this->width%2;
-//    using signed_data_type = std::make_signed_t<T>;
     this->low_bound = std::numeric_limits<SignedT>::min();
     this->high_bound = std::numeric_limits<SignedT>::max();
 
@@ -561,12 +559,11 @@ struct DeltaSum
 
     __host__ __device__ __forceinline__ T operator()(const T &left, const T &rigth) const
     {
-      using signed_data_type = std::make_signed_t<T>;
 
-      const signed_data_type s_left = static_cast<signed_data_type>(left);
-      const signed_data_type s_rigth = static_cast<signed_data_type>(rigth);
+      const SignedT s_left = static_cast<SignedT>(left);
+      const SignedT s_rigth = static_cast<SignedT>(rigth);
 
-      signed_data_type result = s_left + s_rigth;
+      SignedT result = s_left + s_rigth;
 
       if(s_left < 0){
         if(s_rigth < this->low_bound - s_left)
@@ -577,8 +574,8 @@ struct DeltaSum
       }
 
       result %= this->width;
-//      printf("$ %d = %d + %d\n", result, static_cast<signed_data_type>(left)
-//           , static_cast<signed_data_type>(rigth));
+//      printf("$ %d = %d + %d\n", result, static_cast<SignedT>(left)
+//           , static_cast<SignedT>(rigth));
       return static_cast<T>(result);
     }
 
