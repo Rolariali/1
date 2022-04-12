@@ -526,6 +526,7 @@ struct DeltaSum
     if (threadIdx.x == 0) {
       printf("DeltaSum %d = %d - %d\n", width, max_value, min_value);
       printf("Bound %d - %d\n", this->low_bound, this->high_bound);
+      printf("is same %d\n", std::is_same<T, SignedT>::value);
     }
   }
 
@@ -599,7 +600,9 @@ __device__ void block_deltaMinMax_decompress(
   data_type initial_value = 0;
   const data_type first = delta_header_chunk->first;
 
-  DeltaSum<data_type, std::make_signed_t<data_type>> ops(delta_header_chunk->min_value, delta_header_chunk->max_value);
+  using signed_data_type = std::make_signed_t<data_type>;
+
+  DeltaSum<data_type, signed_data_type> ops(delta_header_chunk->min_value, delta_header_chunk->max_value);
 
   for (int round = 0; round < num_rounds; round++) {
     const size_type idx = round * threadblock_size + threadIdx.x;
