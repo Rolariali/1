@@ -502,18 +502,18 @@ __device__ void block_deltaMinMax_compress(
 /**
  * \brief delta sum functor
  */
-template <typename T, typename SignedT >
+template <typename UnsignedT, typename SignedT>
 struct DeltaSum
 {
-  T min_value;
-  T max_value;
-  T width;
+  UnsignedT min_value;
+  UnsignedT max_value;
+  UnsignedT width;
 
   SignedT high_bound;
   SignedT low_bound;
 //  extend_signed_sum_type width2;
 
-  __host__ __device__ __forceinline__ DeltaSum(T min_value, T max_value){
+  __host__ __device__ __forceinline__ DeltaSum(UnsignedT min_value, UnsignedT max_value){
     this->min_value = min_value;
     this->max_value = max_value;
 
@@ -524,31 +524,29 @@ struct DeltaSum
     if (threadIdx.x == 0) {
       printf("DeltaSum %d = %d - %d\n", width, max_value, min_value);
       printf("Bound %d - %d\n", this->low_bound, this->high_bound);
-      printf("is same %d\n", std::is_same<T, SignedT>::value);
     }
   }
 
-  __host__ __device__ __forceinline__ T add2first(const T &first, const T &delta) const
+  __host__ __device__ __forceinline__ UnsignedT add2first(const UnsignedT &first, const UnsignedT &delta) const
     {
-      using unsigned_data_type = std::make_unsigned_t<T>;
-      using signed_data_type = std::make_signed_t<T>;
+      using signed_data_type = std::make_signed_t<UnsignedT>;
       signed_data_type s_delta = static_cast<signed_data_type>(delta);
 
-      T result; // = first + delta;
+      UnsignedT result; // = first + delta;
 //      printf("@ %d = %d + %d\n", result, first, delta);
       if(0 <= s_delta){
         s_delta = s_delta % this->width;
         result = first + s_delta;
-        if(static_cast<unsigned_data_type>(this->width - s_delta)
-            <= static_cast<unsigned_data_type>(first - this->min_value)){
+        if(static_cast<UnsignedT>(this->width - s_delta)
+            <= static_cast<UnsignedT>(first - this->min_value)){
           result = this->min_value + (s_delta - 1) - (this->max_value - first);
 //          printf("< %d = %d - %d\n", result, first, s_delta);
         }
       } else if(s_delta < 0) {
         s_delta = -(abs(s_delta) % this->width);
         result = first + s_delta;
-        if(static_cast<unsigned_data_type>(first - this->min_value)
-            < static_cast<unsigned_data_type>(-s_delta)){
+        if(static_cast<UnsignedT>(first - this->min_value)
+            < static_cast<UnsignedT>(-s_delta)){
           result = this->max_value + (s_delta + 1) + (first - this->min_value);
 //          printf("> %d = %d + %d\n", result, first, s_delta);
         }
@@ -557,9 +555,16 @@ struct DeltaSum
       return result;
     }
 
-    __host__ __device__ __forceinline__ T operator()(const T &left, const T &rigth) const
-    {
+    __host__ __device__ __forceinline__ SignedT mod(const SignedT &val, const UnsignedT &base) const{
+      UnsignedT tmp = abs(val);
+      tmp %= base;
+      if(val < 0)
+        return -tmp;
+      return tmp;
+    }
 
+    __host__ __device__ __forceinline__ UnsignedT operator()(const UnsignedT &left, const UnsignedT &rigth) const
+    {
       const SignedT s_left = static_cast<SignedT>(left);
       const SignedT s_rigth = static_cast<SignedT>(rigth);
 
@@ -573,10 +578,10 @@ struct DeltaSum
           result = s_left + s_rigth - this->width;
       }
 
-      result %= this->width;
+      result = this->mod(result, this->width);//cast sign
 //      printf("$ %d = %d + %d\n", result, static_cast<SignedT>(left)
 //           , static_cast<SignedT>(rigth));
-      return static_cast<T>(result);
+      return static_cast<UnsignedT>(result);
     }
 
 };
@@ -597,9 +602,10 @@ __device__ void block_deltaMinMax_decompress(
   data_type initial_value = 0;
   const data_type first = delta_header_chunk->first;
 
+  using unsigned_data_type = data_type;
   using signed_data_type = std::make_signed_t<data_type>;
 
-  DeltaSum<data_type, signed_data_type> ops(delta_header_chunk->min_value, delta_header_chunk->max_value);
+  DeltaSum<unsigned_data_type, signed_data_type> ops(delta_header_chunk->min_value, delta_header_chunk->max_value);
 
   for (int round = 0; round < num_rounds; round++) {
     const size_type idx = round * threadblock_size + threadIdx.x;
