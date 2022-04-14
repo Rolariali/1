@@ -490,7 +490,6 @@ int main()
   test_i8();
   test_u8();
 
-
   test_u16();
   test_i16();
 
