@@ -311,7 +311,9 @@ void test_stair_case(const data_type start, const int step,
   for (int i = 0; i < min_count; i++)
     input.push_back(start + (i*step) % base);
 
-  for (int i = min_count; i < 4040; i++) {
+  const size_t _max_count = 4096 / sizeof(data_type);
+
+  for (size_t i = min_count; i < _max_count; i++) {
     input.push_back(start + (i*step) % base);
     printf("\n====================================================\n");
     printf("delta for %s: stair test \n", name);
