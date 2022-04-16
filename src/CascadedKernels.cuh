@@ -449,13 +449,16 @@ __device__ void block_deltaMinMax_compress(
   if (threadIdx.x == 0)
     printf("shift: %u\n", shift);
 
-  if(width == 0)
+  if(width == 0) {
+    if (threadIdx.x == 0)
+      printf("default compress sum\n");
     for (size_type element_idx = threadIdx.x; element_idx < input_size - 1;
          element_idx += blockDim.x) {
       output_buffer[element_idx]
           = input_buffer[element_idx + 1] - input_buffer[element_idx];
     }
-  else
+    else
+  }
   for (size_type element_idx = threadIdx.x; element_idx < input_size - 1;
        element_idx += blockDim.x) {
 
@@ -596,6 +599,8 @@ __device__ void block_deltaMinMax_decompress(
 
   DeltaSum<unsigned_data_type, signed_data_type> ops(delta_header_chunk->min_value, delta_header_chunk->max_value);
   if(ops.width == 0){
+    if (threadIdx.x == 0)
+      printf("default sum\n");
     for (int round = 0; round < num_rounds; round++) {
       const size_type idx = round * threadblock_size + threadIdx.x;
 
