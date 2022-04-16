@@ -457,8 +457,7 @@ __device__ void block_deltaMinMax_compress(
       output_buffer[element_idx]
           = input_buffer[element_idx + 1] - input_buffer[element_idx];
     }
-    else
-  }
+  } else
   for (size_type element_idx = threadIdx.x; element_idx < input_size - 1;
        element_idx += blockDim.x) {
 
