@@ -449,6 +449,13 @@ __device__ void block_deltaMinMax_compress(
   if (threadIdx.x == 0)
     printf("shift: %u\n", shift);
 
+  if(width == 0)
+    for (size_type element_idx = threadIdx.x; element_idx < input_size - 1;
+         element_idx += blockDim.x) {
+      output_buffer[element_idx]
+          = input_buffer[element_idx + 1] - input_buffer[element_idx];
+    }
+  else
   for (size_type element_idx = threadIdx.x; element_idx < input_size - 1;
        element_idx += blockDim.x) {
 
@@ -494,7 +501,6 @@ struct DeltaSum
 
   SignedT high_bound;
   SignedT low_bound;
-//  extend_signed_sum_type width2;
 
   __host__ __device__ __forceinline__ DeltaSum(UnsignedT min_value, UnsignedT max_value){
     this->min_value = min_value;
@@ -589,7 +595,31 @@ __device__ void block_deltaMinMax_decompress(
   using signed_data_type = std::make_signed_t<data_type>;
 
   DeltaSum<unsigned_data_type, signed_data_type> ops(delta_header_chunk->min_value, delta_header_chunk->max_value);
+  if(ops.width == 0){
+    for (int round = 0; round < num_rounds; round++) {
+      const size_type idx = round * threadblock_size + threadIdx.x;
 
+      data_type input_val = 0;
+      if (idx < input_num_elements)
+        input_val = input_buffer[idx];
+
+      data_type output_val;
+      data_type aggregate;
+      BlockScan(temp_storage)
+          .ExclusiveScan(
+              input_val, output_val, initial_value, cub::Sum(), aggregate);
+      initial_value += aggregate;
+
+      if (idx < input_num_elements)
+        output_buffer[idx] = output_val;
+
+      __syncthreads();
+    }
+
+    if (threadIdx.x == 0)
+      output_buffer[input_num_elements] = initial_value;
+    return;
+  }
   for (int round = 0; round < num_rounds; round++) {
     const size_type idx = round * threadblock_size + threadIdx.x;
 
