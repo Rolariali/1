@@ -20,7 +20,7 @@ size_t max_compressed_size(size_t uncompressed_size)
   return (uncompressed_size + 3) / 4 * 4 + 4;
 }
 
-
+bool print_diff = false;
 /**
  * Verify the number of decompressed bytes match the number of the uncompressed
  * bytes.
@@ -67,9 +67,10 @@ void verify_decompressed_output(
         cudaMemcpyDeviceToHost));
     printf("\nverify:\n");
     for (size_t element_idx = 0; element_idx < num_elements; element_idx++) {
-//      printf("%u\t%d == %d\n", element_idx,
-//             decompressed_data_host[element_idx],
-//                              uncompressed_data_host[partition_idx][element_idx]);
+      if(print_diff)
+        printf("%u\t%d == %d\n", element_idx,
+               decompressed_data_host[element_idx],
+                                uncompressed_data_host[partition_idx][element_idx]);
       REQUIRE(
           decompressed_data_host[element_idx]
           == uncompressed_data_host[partition_idx][element_idx]);
