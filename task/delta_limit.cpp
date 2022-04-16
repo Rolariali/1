@@ -302,8 +302,10 @@ size_t test_predefined_cases(std::vector<data_type> input0_host,int rle, int del
 bool one_only = false;
 
 template <typename data_type>
-void test_stair_case(const data_type start, const int step,
+void test_stair_case(const data_type start, const int64_t step,
                      const data_type base, const size_t min_count, const char* name){
+  
+  std::cout << start << " | " << step << " | " << base << " | " << min_count << " | " << name << std::endl; 
   size_t size;
   int rle = 0;  int delta = 1;   int bp = 0;
 
@@ -487,6 +489,72 @@ void test_u32(){
   test_stair_case<uint32_t>(0, -111, 0xFF, 20, "u32");
 }
 
+#define STRINGIZING(x) #x
+#define STR(x) STRINGIZING(x)
+#define FILE_LINE __FILE__ ":" STR(__LINE__)
+
+void test_u64(){
+  using T = uint64_t;
+  using unsignedT = std::make_unsigned_t<T>;
+  using signedT = std::make_signed_t<T>;
+  std::cout << FILE_LINE << typeid(T).name() << std::endl;
+  const T _maxU = std::numeric_limits<unsignedT>::max();
+  const T _minU = std::numeric_limits<unsignedT>::min();
+  const T _maxS = std::numeric_limits<signedT>::max();
+  const T _minS = std::numeric_limits<signedT>::min();
+
+  test_stair_case<T>(_minU, _maxU /20, _maxU, 2, FILE_LINE);
+
+  test_stair_case<T>(_minU, _maxU /20, _maxU - 1, 2, FILE_LINE);
+  test_stair_case<T>(_minU, _maxU /555, _maxU - 1, 2, FILE_LINE);
+  test_stair_case<T>(_minS, _maxS /15, _maxU - 1, 2, FILE_LINE);
+  test_stair_case<T>(_minS + 1, _maxS/100, _maxU - 1, 2, FILE_LINE);
+  test_stair_case<T>(_minS + 1, _maxS/100, _maxU - 1, 2, FILE_LINE);
+  test_stair_case<T>(_minS + 1, _maxS/33, _maxU - 1, 2, FILE_LINE);
+  test_stair_case<T>(_minS, _maxS/11, _maxS - 1, 2, FILE_LINE);
+  test_stair_case<T>(_minU, _maxS/33, _maxS - 1, 2, FILE_LINE);
+
+  test_stair_case<T>(_maxU, -_maxS/90, _maxS/22, 2, FILE_LINE);
+  test_stair_case<T>(_maxU, _maxS/999, _maxS - 1, 2, FILE_LINE);
+  test_stair_case<T>(_maxU, -1, _maxS/9, 2, FILE_LINE);
+  test_stair_case<T>(_maxU, -1, _maxS/9000, 2, FILE_LINE);
+  test_stair_case<T>(_maxU + 1, -1, _maxS/900000, 2, FILE_LINE);
+  test_stair_case<T>(_maxU + 1, -1, _maxS/9000, 2, FILE_LINE);
+  test_stair_case<T>(_minU, -1, _maxS/9, 2, FILE_LINE);
+  test_stair_case<T>(_minU, _minS/60, _maxS, 2, FILE_LINE);
+}
+
+void test_i64(){
+  using T = uint64_t;
+  using unsignedT = std::make_unsigned_t<T>;
+  using signedT = std::make_signed_t<T>;
+  std::cout << FILE_LINE << typeid(T).name() << std::endl;
+  const T _maxU = std::numeric_limits<unsignedT>::max();
+  const T _minU = std::numeric_limits<unsignedT>::min();
+  const T _maxS = std::numeric_limits<signedT>::max();
+  const T _minS = std::numeric_limits<signedT>::min();
+
+  test_stair_case<T>(_minU, _maxU /20, _maxU, 2, FILE_LINE);
+
+  test_stair_case<T>(_minU, _maxU /20, _maxU - 1, 2, FILE_LINE);
+  test_stair_case<T>(_minU, _maxU /555, _maxU - 1, 2, FILE_LINE);
+  test_stair_case<T>(_minS, _maxS /15, _maxU - 1, 2, FILE_LINE);
+  test_stair_case<T>(_minS + 1, _maxS/100, _maxU - 1, 2, FILE_LINE);
+  test_stair_case<T>(_minS + 1, _maxS/100, _maxU - 1, 2, FILE_LINE);
+  test_stair_case<T>(_minS + 1, _maxS/33, _maxU - 1, 2, FILE_LINE);
+  test_stair_case<T>(_minS, _maxS/11, _maxS - 1, 2, FILE_LINE);
+  test_stair_case<T>(_minU, _maxS/33, _maxS - 1, 2, FILE_LINE);
+
+  test_stair_case<T>(_maxU, -_maxS/90, _maxS/22, 2, FILE_LINE);
+  test_stair_case<T>(_maxU, _maxS/999, _maxS - 1, 2, FILE_LINE);
+  test_stair_case<T>(_maxU, -1, _maxS/9, 2, FILE_LINE);
+  test_stair_case<T>(_maxU, -1, _maxS/9000, 2, FILE_LINE);
+  test_stair_case<T>(_maxU + 1, -1, _maxS/900000, 2, FILE_LINE);
+  test_stair_case<T>(_maxU + 1, -1, _maxS/9000, 2, FILE_LINE);
+  test_stair_case<T>(_minU, -1, _maxS/9, 2, FILE_LINE);
+  test_stair_case<T>(_minU, _minS/60, _maxS, 2, FILE_LINE);
+}
+
 int main()
 {
   one_only = true;
@@ -499,6 +567,9 @@ int main()
 
   test_i32();
   test_u32();
+
+  test_i64();
+  test_u64();
 
   printf("\ndone\n");
 }
