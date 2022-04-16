@@ -457,8 +457,6 @@ __device__ void block_deltaMinMax_compress(
     //todo:
     // long long llabs( long long n );
     const unsigned_data_type abs_forward_way = abs(static_cast<signed_data_type>(next - prev));
-//    const unsigned_data_type abs_way_by_max_value = abs(static_cast<signed_data_type>(width + next - prev));
-//    const unsigned_data_type abs_way_by_min_value = abs(static_cast<signed_data_type>(-width + next - prev));
 
     data_type result = next - prev;
 
@@ -469,27 +467,12 @@ __device__ void block_deltaMinMax_compress(
         //printf("< %d =  %d - %d\n", output_buffer[element_idx], next , prev);
       }
 
-//    if(abs_way_by_min_value < abs_way_by_max_value)
-//      reverse_result = -width + next - prev;
 //    printf("rev: %u <\t %u \t %u\n", abs_way_by_min_value, abs_way_by_max_value, reverse_result);
     if(abs(static_cast<signed_data_type>(reverse_result)) < abs_forward_way)
       result = reverse_result;
 
 //    printf("$resu: %u |\t %u\n", result, reverse_result);
     output_buffer[element_idx] = result;
-
-//    return ;
-//          if (abs_reverse_diff < abs_forward_diff){
-//      if (static_cast<unsigned_data_type>(next + shift)
-//          < static_cast<unsigned_data_type>(prev + shift)) {
-//        output_buffer[element_idx] = width + next - prev;
-//        //printf("< %d =  %d - %d\n", output_buffer[element_idx], next , prev);
-//      } else {
-//        output_buffer[element_idx] = -width + next - prev;
-//        //printf("> %d =  %d - %d\n", output_buffer[element_idx], next , prev);
-//      }
-//    } else
-//      output_buffer[element_idx] = next - prev;
   }
   if (threadIdx.x == 0) {
     printf("first %d, min %d, max %d\n", input_buffer[0], min_value, max_value);
