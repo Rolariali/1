@@ -21,6 +21,8 @@ size_t max_compressed_size(size_t uncompressed_size)
 }
 
 bool print_diff = false;
+bool one_only = false;
+bool verbose = false;
 /**
  * Verify the number of decompressed bytes match the number of the uncompressed
  * bytes.
@@ -65,7 +67,8 @@ void verify_decompressed_output(
         decompressed_ptrs_host[partition_idx],
         uncompressed_bytes_host[partition_idx],
         cudaMemcpyDeviceToHost));
-    printf("\nverify:\n");
+    if(print_diff)
+      printf("\nverify:\n");
     for (size_t element_idx = 0; element_idx < num_elements; element_idx++) {
       if(print_diff)
         printf("%u\t%d == %d\n", element_idx,
@@ -181,7 +184,8 @@ size_t test_predefined_cases(std::vector<data_type> input0_host,int rle, int del
 
   for(int i=0; i < batch_size; i++) {
     size_t _size = compressed_bytes_host[i];
-    printf("output compressed data(size:%zu): ", _size);
+    if(verbose)
+      printf("\noutput compressed data(size:%zu): ", _size);
 
     std::vector<data_type> compressed_data_host(_size/sizeof(data_type) + 8);
     CUDA_CHECK(cudaMemcpy(
@@ -190,10 +194,13 @@ size_t test_predefined_cases(std::vector<data_type> input0_host,int rle, int del
         _size - 0,
         cudaMemcpyDeviceToHost));
 
-    for (auto el : compressed_data_host) {
-      printf("%d:", el);
+    if(verbose)
+      for (auto el : compressed_data_host) {
+//        printf("%d:", el);
+          std::cout << el << ":";
     }
-    printf("\n");
+    if(verbose)
+      printf("\n");
   }
 
   // Check uncompressed bytes stored in the compressed buffer
@@ -282,7 +289,8 @@ size_t test_predefined_cases(std::vector<data_type> input0_host,int rle, int del
       uncompressed_bytes_host);
 
   // Cleanup
-  printf("cleanup\n\n");
+  if(verbose)
+    printf("cleanup\n\n");
 
   CUDA_CHECK(cudaFree(input0_device));
   CUDA_CHECK(cudaFree(uncompressed_ptrs_device));
@@ -300,15 +308,15 @@ size_t test_predefined_cases(std::vector<data_type> input0_host,int rle, int del
   return compressed_bytes_host[0];
 }
 
-bool one_only = false;
 
 template <typename data_type>
 void test_stair_case(const data_type start, const int64_t step,
-                     const data_type base, const size_t min_count, const char* name){
+                     const data_type base, const size_t min_count, const char* t_name){
   
-  std::cout << start << " | " << step << " | " << base << " | " << min_count << " | " << name << std::endl; 
   size_t size;
   int rle = 0;  int delta = 1;   int bp = 0;
+
+  std::cout << start << " | " << step << " | " << base << " | " << min_count << " | " << t_name << std::endl;
 
   std::vector<data_type> input;
   for (int i = 0; i < min_count; i++)
@@ -318,17 +326,21 @@ void test_stair_case(const data_type start, const int64_t step,
 
   for (size_t i = min_count; i < _max_count; i++) {
     input.push_back(start + (i*step) % base);
-    printf("\n====================================================\n");
-    printf("delta for %s: stair test \n", name);
-    printf("input data(size:%zu) : ", input.size());
-    for (auto el : input)
-      std::cout << (int)el << ":";
-    //    printf("%u:", el);
-    printf("\n");
-    size = test_predefined_cases<data_type>(input, rle, delta, bp);
-    printf("result compressed size: %zu\n", size);
-    printf("\n====================================================\n");
+    if(verbose) {
+      std::cout << start << " | " << step << " | " << base << " | " << min_count << " | " << t_name << std::endl;
+      printf("\n====================================================\n");
+      printf("delta for %s: stair test \n", t_name);
+      printf("input data(size:%zu) : ", input.size());
+    }
+    if(verbose)
+      for (auto el : input)
+        std::cout << (int)el << ":";
 
+    size = test_predefined_cases<data_type>(input, rle, delta, bp);
+    if(verbose) {
+      printf("result compressed size: %zu\n", size);
+      printf("\n====================================================\n");
+    }
     if(one_only)
       break;
   }
@@ -490,87 +502,98 @@ void test_u32(){
   test_stair_case<uint32_t>(0, -111, 0xFF, 20, "u32");
 }
 
-#define STRINGIZING(x) #x
-#define STR(x) STRINGIZING(x)
-#define FILE_LINE __FILE__ ":" STR(__LINE__)
 
-void test_u64(){
-  using T = uint64_t;
+template <typename T>
+void _test_stait_template(const char * name){
   using unsignedT = std::make_unsigned_t<T>;
   using signedT = std::make_signed_t<T>;
-  std::cout << FILE_LINE << typeid(T).name() << std::endl;
+  std::cout << "test type " << name << " / " << typeid(T).name() << std::endl;
   const T _maxU = std::numeric_limits<unsignedT>::max();
   const T _minU = std::numeric_limits<unsignedT>::min();
   const T _maxS = std::numeric_limits<signedT>::max();
   const T _minS = std::numeric_limits<signedT>::min();
+  const size_t start_count = 2;
 
-  test_stair_case<T>(_minU, _maxU /20, _maxU, 2, FILE_LINE);
 
-  test_stair_case<T>(_minU, _maxU /20, _maxU - 1, 2, FILE_LINE);
-  test_stair_case<T>(_minU, _maxU /555, _maxU - 1, 2, FILE_LINE);
-  test_stair_case<T>(_minS, _maxS /15, _maxU - 1, 2, FILE_LINE);
-  test_stair_case<T>(_minS + 1, _maxS/100, _maxU - 1, 2, FILE_LINE);
-  test_stair_case<T>(_minS + 1, _maxS/100, _maxU - 1, 2, FILE_LINE);
-  test_stair_case<T>(_minS + 1, _maxS/33, _maxU - 1, 2, FILE_LINE);
-  test_stair_case<T>(_minS, _maxS/11, _maxS - 1, 2, FILE_LINE);
-  test_stair_case<T>(_minU, _maxS/33, _maxS - 1, 2, FILE_LINE);
+  test_stair_case<T>(0, 1, 100, start_count, name);
 
-  test_stair_case<T>(_maxU, -_maxS/90, _maxS/22, 2, FILE_LINE);
-  test_stair_case<T>(_maxU, _maxS/999, _maxS - 1, 2, FILE_LINE);
-  test_stair_case<T>(_maxU, -1, _maxS/9, 2, FILE_LINE);
-  test_stair_case<T>(_maxU, -1, _maxS/9000, 2, FILE_LINE);
-  test_stair_case<T>(_maxU + 1, -1, _maxS/900000, 2, FILE_LINE);
-  test_stair_case<T>(_maxU + 1, -1, _maxS/9000, 2, FILE_LINE);
-  test_stair_case<T>(_minU, -1, _maxS/9, 2, FILE_LINE);
-  test_stair_case<T>(_minU, _minS/60, _maxS, 2, FILE_LINE);
+  test_stair_case<T>(_minU, _maxU /20, _maxU, start_count, name);
+
+  test_stair_case<T>(_minU, _maxU /20, _maxU - 1, start_count, name);
+  test_stair_case<T>(_minU, _maxU /555, _maxU - 1, start_count, name);
+  test_stair_case<T>(_minS, _maxS /15, _maxU - 1, start_count, name);
+  test_stair_case<T>(_minS + 1, _maxS/100, _maxU - 1, start_count, name);
+  test_stair_case<T>(_minS + 1, _maxS/100, _maxU - 1, start_count, name);
+  test_stair_case<T>(_minS + 1, _maxS/33, _maxU - 1, start_count, name);
+  test_stair_case<T>(_minS, _maxS/11, _maxS - 1, start_count, name);
+  test_stair_case<T>(_minU, _maxS/33, _maxS - 1, start_count, name);
+
+  test_stair_case<T>(_maxU, -40, _maxS/22, start_count, name);
+  test_stair_case<T>(_maxU, 499, _maxS - 1, start_count, name);
+  test_stair_case<T>(_maxU, -1, 4, start_count, name);
+  test_stair_case<T>(_maxU, -1, 112, start_count, name);
+  test_stair_case<T>(_maxU + 1, -1, 50, start_count, name);
+  test_stair_case<T>(_maxU + 1, -1, 112, start_count, name);
+  test_stair_case<T>(_minU, -1, 4, start_count, name);
+  test_stair_case<T>(_minU, _minS/60, _maxS, start_count, name);
 }
 
-void test_i64(){
+void _test_i8(){
+  using T = int8_t;
+  _test_stait_template<T>("int8_t");
+}
+
+void _test_u8(){
+  using T = uint8_t;
+  _test_stait_template<T>("uint8_t");
+}
+
+void _test_i16(){
+  using T = int16_t;
+  _test_stait_template<T>("int16_t");
+}
+
+void _test_u16(){
+  using T = uint16_t;
+  _test_stait_template<T>("uint16_t");
+}
+
+void _test_i32(){
+  using T = int32_t;
+  _test_stait_template<T>("int32_t");
+}
+
+void _test_u32(){
+  using T = uint32_t;
+  _test_stait_template<T>("uint32_t");
+}
+
+void _test_u64(){
   using T = uint64_t;
-  using unsignedT = std::make_unsigned_t<T>;
-  using signedT = std::make_signed_t<T>;
-  std::cout << FILE_LINE << typeid(T).name() << std::endl;
-  const T _maxU = std::numeric_limits<unsignedT>::max();
-  const T _minU = std::numeric_limits<unsignedT>::min();
-  const T _maxS = std::numeric_limits<signedT>::max();
-  const T _minS = std::numeric_limits<signedT>::min();
+  _test_stait_template<T>("uint64_t");
+}
 
-  test_stair_case<T>(_minU, _maxU /20, _maxU, 2, FILE_LINE);
-
-  test_stair_case<T>(_minU, _maxU /20, _maxU - 1, 2, FILE_LINE);
-  test_stair_case<T>(_minU, _maxU /555, _maxU - 1, 2, FILE_LINE);
-  test_stair_case<T>(_minS, _maxS /15, _maxU - 1, 2, FILE_LINE);
-  test_stair_case<T>(_minS + 1, _maxS/100, _maxU - 1, 2, FILE_LINE);
-  test_stair_case<T>(_minS + 1, _maxS/100, _maxU - 1, 2, FILE_LINE);
-  test_stair_case<T>(_minS + 1, _maxS/33, _maxU - 1, 2, FILE_LINE);
-  test_stair_case<T>(_minS, _maxS/11, _maxS - 1, 2, FILE_LINE);
-  test_stair_case<T>(_minU, _maxS/33, _maxS - 1, 2, FILE_LINE);
-
-  test_stair_case<T>(_maxU, -_maxS/90, _maxS/22, 2, FILE_LINE);
-  test_stair_case<T>(_maxU, _maxS/999, _maxS - 1, 2, FILE_LINE);
-  test_stair_case<T>(_maxU, -1, _maxS/9, 2, FILE_LINE);
-  test_stair_case<T>(_maxU, -1, _maxS/9000, 2, FILE_LINE);
-  test_stair_case<T>(_maxU + 1, -1, _maxS/900000, 2, FILE_LINE);
-  test_stair_case<T>(_maxU + 1, -1, _maxS/9000, 2, FILE_LINE);
-  test_stair_case<T>(_minU, -1, _maxS/9, 2, FILE_LINE);
-  test_stair_case<T>(_minU, _minS/60, _maxS, 2, FILE_LINE);
+void _test_i64(){
+  using T = int64_t;
+  _test_stait_template<T>("uint64_t");
 }
 
 int main()
 {
-  one_only = true;
+   one_only = true;
+   print_diff = false;
+   verbose = false;
+  _test_i8();
+  _test_u8();
 
-  test_i8();
-  test_u8();
+  _test_u16();
+  _test_i16();
 
-  test_u16();
-  test_i16();
+  _test_i32();
+  _test_u32();
 
-  test_i32();
-  test_u32();
-
-  test_i64();
-  test_u64();
+  _test_i64();
+  _test_u64();
 
   printf("\ndone\n");
 }
