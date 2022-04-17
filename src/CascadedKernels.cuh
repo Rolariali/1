@@ -578,82 +578,6 @@ struct DeltaSum
 };
 
 
-template <typename data_type, typename size_type, int threadblock_size>
-__device__ void block_deltaMinMax_decompress(
-    const data_type* input_buffer,
-    DeltaHeader<data_type>* delta_header_chunk,
-    size_type input_num_elements,
-    data_type* output_buffer)
-{
-  typedef cub::BlockScan<data_type, threadblock_size> BlockScan;
-  __shared__ typename BlockScan::TempStorage temp_storage;
-
-  const int num_rounds = roundUpDiv(input_num_elements, threadblock_size);
-
-  data_type initial_value = 0;
-  const data_type first = delta_header_chunk->first;
-
-  using unsigned_data_type = data_type;
-  using signed_data_type = std::make_signed_t<data_type>;
-
-  DeltaSum<unsigned_data_type, signed_data_type> ops(delta_header_chunk->min_value, delta_header_chunk->max_value);
-  if(ops.width == 0){
-    if (threadIdx.x == 0)
-      printf("default sum\n");
-    for (int round = 0; round < num_rounds; round++) {
-      const size_type idx = round * threadblock_size + threadIdx.x;
-
-      data_type input_val = 0;
-      if (idx < input_num_elements)
-        input_val = input_buffer[idx];
-
-      data_type output_val;
-      data_type aggregate;
-      BlockScan(temp_storage)
-          .ExclusiveScan(
-              input_val, output_val, initial_value, cub::Sum(), aggregate);
-      initial_value += aggregate;
-
-      if (idx < input_num_elements)
-        output_buffer[idx] = output_val;
-
-      __syncthreads();
-    }
-
-    if (threadIdx.x == 0)
-      output_buffer[input_num_elements] = initial_value;
-    return;
-  }
-  for (int round = 0; round < num_rounds; round++) {
-    const size_type idx = round * threadblock_size + threadIdx.x;
-
-    data_type input_val = 0;
-    if (idx < input_num_elements)
-      input_val = input_buffer[idx];
-
-    data_type output_val;
-    data_type aggregate;
-    BlockScan(temp_storage)
-        .ExclusiveScan(
-            input_val, output_val, initial_value, ops, aggregate);
-    initial_value = ops(initial_value, aggregate);
-
-    if (idx < input_num_elements) {
-      const data_type r = ops.add2first(first, output_val);
-      // printf("# r: %d * a: %d \t\ti: %u\n", r, output_val, idx );
-      output_buffer[idx] = r;
-    }
-
-    __syncthreads();
-  }
-
-  if (threadIdx.x == 0) {
-    const data_type r = ops.add2first(first, initial_value);
-//    printf("# end %d - %d\n", r, initial_value);
-    output_buffer[input_num_elements] = r;
-  }
-}
-
 /**
  * Perform delta decompression on a single threadblock.
  *
@@ -702,6 +626,68 @@ __device__ void block_delta_decompress(
   if (threadIdx.x == 0)
     output_buffer[input_num_elements] = initial_value;
 }
+
+
+template <typename data_type, typename size_type, int threadblock_size>
+__device__ void block_deltaMinMax_decompress(
+    const data_type* input_buffer,
+    DeltaHeader<data_type>* delta_header_chunk,
+    size_type input_num_elements,
+    data_type* output_buffer)
+{
+  typedef cub::BlockScan<data_type, threadblock_size> BlockScan;
+  __shared__ typename BlockScan::TempStorage temp_storage;
+
+  const int num_rounds = roundUpDiv(input_num_elements, threadblock_size);
+
+  data_type initial_value = 0;
+  const data_type first = delta_header_chunk->first;
+
+  using unsigned_data_type = data_type;
+  using signed_data_type = std::make_signed_t<data_type>;
+
+  DeltaSum<unsigned_data_type, signed_data_type> ops(delta_header_chunk->min_value, delta_header_chunk->max_value);
+  if(ops.width == 0){
+    if (threadIdx.x == 0)
+      printf("default sum\n");
+    block_delta_decompress<data_type, size_type, threadblock_size>(
+        input_buffer,
+        first,
+        input_num_elements,
+        output_buffer);
+
+    return;
+  }
+  for (int round = 0; round < num_rounds; round++) {
+    const size_type idx = round * threadblock_size + threadIdx.x;
+
+    data_type input_val = 0;
+    if (idx < input_num_elements)
+      input_val = input_buffer[idx];
+
+    data_type output_val;
+    data_type aggregate;
+    BlockScan(temp_storage)
+        .ExclusiveScan(
+            input_val, output_val, initial_value, ops, aggregate);
+    initial_value = ops(initial_value, aggregate);
+
+    if (idx < input_num_elements) {
+      const data_type r = ops.add2first(first, output_val);
+      // printf("# r: %d * a: %d \t\ti: %u\n", r, output_val, idx );
+      output_buffer[idx] = r;
+    }
+
+    __syncthreads();
+  }
+
+  if (threadIdx.x == 0) {
+    const data_type r = ops.add2first(first, initial_value);
+//    printf("# end %d - %d\n", r, initial_value);
+    output_buffer[input_num_elements] = r;
+  }
+}
+
 
 /**
  * Helper function to calculate the frame of reference and bitwidth in
