@@ -635,16 +635,10 @@ __device__ void block_deltaMinMax_decompress(
     size_type input_num_elements,
     data_type* output_buffer)
 {
-  typedef cub::BlockScan<data_type, threadblock_size> BlockScan;
-  __shared__ typename BlockScan::TempStorage temp_storage;
-
-  const int num_rounds = roundUpDiv(input_num_elements, threadblock_size);
-
-  data_type initial_value = 0;
-  const data_type first = delta_header_chunk->first;
-
   using unsigned_data_type = data_type;
   using signed_data_type = std::make_signed_t<data_type>;
+
+  const data_type first = delta_header_chunk->first;
 
   DeltaSum<unsigned_data_type, signed_data_type> ops(delta_header_chunk->min_value, delta_header_chunk->max_value);
   if(ops.width == 0){
@@ -658,6 +652,12 @@ __device__ void block_deltaMinMax_decompress(
 
     return;
   }
+  typedef cub::BlockScan<data_type, threadblock_size> BlockScan;
+  __shared__ typename BlockScan::TempStorage temp_storage;
+
+  const int num_rounds = roundUpDiv(input_num_elements, threadblock_size);
+  data_type initial_value = 0;
+
   for (int round = 0; round < num_rounds; round++) {
     const size_type idx = round * threadblock_size + threadIdx.x;
 
