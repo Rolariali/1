@@ -86,10 +86,11 @@ struct DeltaHeader
  * is guaranteed to be a multiple of the data type size, and a multiple of 4.
  */
 template <typename data_type>
-__device__ int get_chunk_metadata_size(int num_RLEs, int num_deltas)
+__device__ int get_chunk_metadata_size(const int num_RLEs, const int num_deltas, const bool is_m2_deltas_mode)
 {
-  return roundUpTo(4 + 4 * (num_RLEs + 1), sizeof(data_type))
-         + roundUpTo(sizeof(DeltaHeader<data_type>) * num_deltas, 4);
+  return roundUpTo(4 + 4 * (num_RLEs + 1), sizeof(data_type)) +
+   is_m2_deltas_mode ? roundUpTo(sizeof(DeltaHeader<data_type>) * num_deltas, 4) :
+             roundUpTo(sizeof(data_type) * num_deltas, 4);
 }
 
 template <typename T>
@@ -99,6 +100,20 @@ constexpr __host__ __device__ DeltaHeader<T>* getDeltaHeaderPtr
   void* ptr = chunk_metadata + 1 + num_RLEs + 1;
   return reinterpret_cast<DeltaHeader<T>*>(
       roundUpTo(reinterpret_cast<uintptr_t>(ptr), sizeof(T)));
+}
+
+constexpr __host__ __device__ uint8_t encode_delta_option(const int num_deltas, const bool is_m2delta_mode){
+  // num_deltas don't more 127
+  assert(num_deltas & 0x80 != 0x80);
+  return static_cast<uint8_t>(is_m2delta_mode) << 15 | (num_deltas & 0x7F);
+}
+
+constexpr __host__ __device__ int get_num_deltas(const uint8_t delta_option){
+  return delta_option & 0x7F;
+}
+
+constexpr __host__ __device__ bool get_m2mdeltas_mode(const uint8_t delta_option){
+  return static_cast<bool>(delta_option & 0x80);
 }
 
 template <typename data_type, typename size_type,
@@ -414,7 +429,7 @@ __device__ void block_delta_compress(
 }
 
 template <typename data_type, typename size_type, int threadblock_size>
-__device__ void block_deltaMinMax_compress(
+__device__ void block_m2delta_compress(
     const data_type* input_buffer,
     size_type input_size,
     DeltaHeader<data_type>* delta_header_chunk,
@@ -577,7 +592,6 @@ struct DeltaSum
 
 };
 
-
 /**
  * Perform delta decompression on a single threadblock.
  *
@@ -629,7 +643,7 @@ __device__ void block_delta_decompress(
 
 
 template <typename data_type, typename size_type, int threadblock_size>
-__device__ void block_deltaMinMax_decompress(
+__device__ void block_m2delta_decompress(
     const data_type* input_buffer,
     DeltaHeader<data_type>* delta_header_chunk,
     size_type input_num_elements,
@@ -1133,7 +1147,7 @@ __device__ void do_cascaded_compression_kernel(
   __shared__ uint32_t
       chunk_metadata[max_chunk_metadata_size / sizeof(uint32_t)];
   const int chunk_metadata_size = get_chunk_metadata_size<data_type>(
-      comp_opts.num_RLEs, comp_opts.num_deltas);
+      comp_opts.num_RLEs, comp_opts.num_deltas, comp_opts.is_m2_deltas_mode);
   assert(chunk_metadata_size <= max_chunk_metadata_size);
 
   // Pointer to the delta section of chunk metadata in shared memory. Padding
@@ -1141,11 +1155,10 @@ __device__ void do_cascaded_compression_kernel(
   // Explanation of the math here: from the start of a chunk metadata, we need
   // to skip the size of the chunk (4B), and (num_RLEs + 1) RLE offsets
   // (4B each) to get to the start of the delta header.
-//  data_type* const delta_header = roundUpToAlignment<data_type>(
-//      chunk_metadata + 1 + comp_opts.num_RLEs + 1);
-  DeltaHeader<data_type>* delta_header = getDeltaHeaderPtr<data_type>(
-                                             chunk_metadata, comp_opts.num_RLEs
-                                             );
+  data_type* const delta_header = comp_opts.is_m2_deltas_mode ? nullptr :
+    roundUpToAlignment<data_type>(chunk_metadata + 1 + comp_opts.num_RLEs + 1);
+  DeltaHeader<data_type>* m2delta_header = comp_opts.is_m2_deltas_mode ?
+    getDeltaHeaderPtr<data_type>(chunk_metadata, comp_opts.num_RLEs) : nullptr;
 
 
   // Number of output elements for the RLE layer
@@ -1218,6 +1231,7 @@ __device__ void do_cascaded_compression_kernel(
 
       int rle_remaining = comp_opts.num_RLEs;
       int delta_remaining = comp_opts.num_deltas;
+      const bool is_m2_deltas_mode = comp_opts.is_m2_deltas_mode;
 
       data_type* shared_input_buffer = shared_element_buffer_0;
       data_type* shared_output_buffer = shared_element_buffer_1;
@@ -1267,30 +1281,19 @@ __device__ void do_cascaded_compression_kernel(
           rle_remaining--;
         }
 
-        if (delta_remaining > 0) {
-          block_deltaMinMax_compress<data_type, size_type, threadblock_size>(
-              shared_input_buffer,
-              num_elements_current_chunk,
-              &delta_header[comp_opts.num_deltas - delta_remaining],
-              shared_output_buffer
-              );
-          // Run Delta
-//          block_delta_compress<data_type, size_type>(
-//              shared_input_buffer,
-//              num_elements_current_chunk,
-//              shared_output_buffer);
-//
-//          if (threadIdx.x == 0) {
-//            delta_header[comp_opts.num_deltas - delta_remaining].first
-//                = shared_input_buffer[0];
-//            printf("delta: %u %u %u %u %u %u %u %u %u %u\n",
-//                   (uint8_t)shared_output_buffer[0], (uint8_t)shared_output_buffer[1],
-//                   (uint8_t)shared_output_buffer[2], (uint8_t)shared_output_buffer[3],
-//                   (uint8_t)shared_output_buffer[4], (uint8_t)shared_output_buffer[5],
-//                   (uint8_t)shared_output_buffer[6], (uint8_t)shared_output_buffer[7],
-//                   (uint8_t)shared_output_buffer[8], (uint8_t)shared_output_buffer[9]
-//                   );
-//          }
+        if (delta_remaining > 0){
+          if(is_m2_deltas_mode)
+            block_m2delta_compress<data_type, size_type, threadblock_size>(
+                shared_input_buffer,
+                num_elements_current_chunk,
+                &m2delta_header[comp_opts.num_deltas - delta_remaining],
+                shared_output_buffer
+                );
+          else  // Run Delta
+            block_delta_compress<data_type, size_type>(
+                shared_input_buffer,
+                num_elements_current_chunk,
+                shared_output_buffer);
 
           // Revert the role of input and ouput buffer
           auto temp_ptr = shared_output_buffer;
@@ -1364,7 +1367,7 @@ __device__ void do_cascaded_compression_kernel(
 
       if (use_compression) {
         partition_metadata_ptr[0] = comp_opts.num_RLEs;
-        partition_metadata_ptr[1] = comp_opts.num_deltas;
+        partition_metadata_ptr[1] = encode_delta_option(comp_opts.num_deltas, comp_opts.is_m2_deltas_mode);
         partition_metadata_ptr[2] = comp_opts.use_bp;
         compressed_bytes[partition_idx]
             = reinterpret_cast<uintptr_t>(current_output_ptr)
@@ -1530,7 +1533,8 @@ __device__ void cascaded_decompression_fcn(
     const uint8_t* partition_metadata_ptr
         = reinterpret_cast<const uint8_t*>(partition_start_ptr);
     int num_RLEs = partition_metadata_ptr[0];
-    int num_deltas = partition_metadata_ptr[1];
+    int num_deltas = get_num_deltas(partition_metadata_ptr[1]);
+    const bool is_m2delta_mode = get_m2mdeltas_mode(partition_metadata_ptr[1]);;
     int bitpacking = partition_metadata_ptr[2];
 
     // Max number of RLE layers is 7
@@ -1583,11 +1587,10 @@ __device__ void cascaded_decompression_fcn(
 
     // Start location of the first elements of delta layers in shared memory
     // storage of chunk metadata.
-//    const data_type* const delta_header
-//        = roundUpToAlignment<data_type>(chunk_metadata + 1 + num_RLEs + 1);
-    DeltaHeader<data_type>* delta_header = getDeltaHeaderPtr<data_type>(
-        chunk_metadata, num_RLEs
-    );
+    const data_type* const delta_header = is_m2delta_mode ? nullptr :
+         roundUpToAlignment<data_type>(chunk_metadata + 1 + num_RLEs + 1);
+    DeltaHeader<data_type>* m2delta_header = is_m2delta_mode ?
+        getDeltaHeaderPtr<data_type>(chunk_metadata, num_RLEs) : nullptr;
 
     // `chunk_ptr` points to the start location of the current chunk in global
     // memory. Here we initialize it to the start location of the first chunk.
@@ -1599,7 +1602,7 @@ __device__ void cascaded_decompression_fcn(
     while (chunk_ptr < partition_end_ptr) {
       // Load chunk metadata to the shared memory storage
       const int chunk_metadata_size
-          = get_chunk_metadata_size<data_type>(num_RLEs, num_deltas);
+          = get_chunk_metadata_size<data_type>(num_RLEs, num_deltas, is_m2delta_mode);
       if (chunk_ptr + chunk_metadata_size / 4 > partition_end_ptr) {
         // Compressed buffer does not have enough space for the current chunk
         // metadata. This means the compressed data is corrupt, so we report
@@ -1664,16 +1667,18 @@ __device__ void cascaded_decompression_fcn(
            layer_idx++) {
         if (delta_remaining > 0 && delta_remaining >= rle_remaining) {
           // Decompress the delta layer
-          block_deltaMinMax_decompress<data_type, size_type, threadblock_size>(
-                            shared_input_buffer,
-                            &delta_header[delta_remaining - 1],
-                            num_elements,
-                            shared_output_buffer);
-//          block_delta_decompress<data_type, size_type, threadblock_size>(
-//              shared_input_buffer,
-//              delta_header[delta_remaining - 1].first,
-//              num_elements,
-//              shared_output_buffer);
+          if(is_m2delta_mode)
+            block_m2delta_decompress<data_type, size_type, threadblock_size>(
+                shared_input_buffer,
+                &m2delta_header[delta_remaining - 1],
+                num_elements,
+                shared_output_buffer);
+          else
+            block_delta_decompress<data_type, size_type, threadblock_size>(
+                shared_input_buffer,
+                delta_header[delta_remaining - 1],
+                num_elements,
+                shared_output_buffer);
           __syncthreads();
 
           // Revert the role of input and ouput buffer

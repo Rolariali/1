@@ -93,6 +93,8 @@ typedef struct
    */
   int num_deltas;
 
+  bool is_m2_deltas_mode;
+
   /**
    * @brief Whether or not to bitpack the final layers.
    */
@@ -101,7 +103,7 @@ typedef struct
 
 // Default options for batched compression
 static const nvcompBatchedCascadedOpts_t nvcompBatchedCascadedDefaultOpts
-    = {4096, NVCOMP_TYPE_INT, 2, 1, 1};
+    = {4096, NVCOMP_TYPE_INT, 2, 1, false, 1};
 
 /**
  * @brief Get temporary space required for compression.
