@@ -338,6 +338,15 @@ void test_stair_case(const data_type start, const int64_t step,
 
     size = test_predefined_cases<data_type>(input, rle, delta, false, bp);
     size = test_predefined_cases<data_type>(input, rle, delta, true, bp);
+    rle = 0;   delta = 1;    bp = 1;
+    size = test_predefined_cases<data_type>(input, rle, delta, false, bp);
+    size = test_predefined_cases<data_type>(input, rle, delta, true, bp);
+    rle = 1;   delta = 1;    bp = 1;
+    size = test_predefined_cases<data_type>(input, rle, delta, false, bp);
+    size = test_predefined_cases<data_type>(input, rle, delta, true, bp);
+    rle = 2;   delta = 1;    bp = 1;
+    size = test_predefined_cases<data_type>(input, rle, delta, false, bp);
+    size = test_predefined_cases<data_type>(input, rle, delta, true, bp);
     if(verbose) {
       printf("result compressed size: %zu\n", size);
       printf("\n====================================================\n");
