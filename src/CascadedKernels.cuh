@@ -89,8 +89,10 @@ template <typename data_type>
 __device__ int get_chunk_metadata_size(const int num_RLEs, const int num_deltas, const bool is_m2_deltas_mode)
 {
   return roundUpTo(4 + 4 * (num_RLEs + 1), sizeof(data_type)) +
-   is_m2_deltas_mode ? roundUpTo(sizeof(DeltaHeader<data_type>) * num_deltas, 4) :
-             roundUpTo(sizeof(data_type) * num_deltas, 4);
+   (
+     is_m2_deltas_mode ? roundUpTo(sizeof(DeltaHeader<data_type>) * num_deltas, 4) :
+     roundUpTo(sizeof(data_type) * num_deltas, 4)
+             );
 }
 
 template <typename T>
