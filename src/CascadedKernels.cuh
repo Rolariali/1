@@ -104,7 +104,7 @@ constexpr __host__ __device__ DeltaHeader<T>* getDeltaHeaderPtr
 
 constexpr __host__ __device__ uint8_t encode_delta_option(const int num_deltas, const bool is_m2delta_mode){
   // num_deltas don't more 127
-  assert(num_deltas & 0x80 != 0x80);
+  assert(num_deltas < 0x80);
   return static_cast<uint8_t>(is_m2delta_mode) << 15 | (num_deltas & 0x7F);
 }
 
