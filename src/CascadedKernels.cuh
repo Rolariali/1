@@ -1289,11 +1289,17 @@ __device__ void do_cascaded_compression_kernel(
                 &m2delta_header[comp_opts.num_deltas - delta_remaining],
                 shared_output_buffer
                 );
-          else  // Run Delta
+          else { // Run Delta
             block_delta_compress<data_type, size_type>(
                 shared_input_buffer,
                 num_elements_current_chunk,
                 shared_output_buffer);
+
+            if (threadIdx.x == 0) {
+              delta_header[comp_opts.num_deltas - delta_remaining]
+                  = shared_input_buffer[0];
+            }
+          }
 
           // Revert the role of input and ouput buffer
           auto temp_ptr = shared_output_buffer;
