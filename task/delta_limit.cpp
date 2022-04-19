@@ -82,7 +82,7 @@ void verify_decompressed_output(
 }
 
 template <typename data_type>
-size_t test_predefined_cases(std::vector<data_type> input0_host,int rle, int delta, int bp)
+size_t test_predefined_cases(std::vector<data_type> input0_host, const int rle, const int delta, const bool m2_delta_mode, const int bp)
 {
 
   void* input0_device;
@@ -145,7 +145,7 @@ size_t test_predefined_cases(std::vector<data_type> input0_host,int rle, int del
   // Launch batched compression
 
   nvcompBatchedCascadedOpts_t comp_opts
-      = {batch_size, nvcomp::TypeOf<data_type>(), rle, delta, bp};
+      = {batch_size, nvcomp::TypeOf<data_type>(), rle, delta, m2_delta_mode, bp};
 
   auto status = nvcompBatchedCascadedCompressAsync(
       uncompressed_ptrs_device,
@@ -336,7 +336,8 @@ void test_stair_case(const data_type start, const int64_t step,
       for (auto el : input)
         std::cout << (int)el << ":";
 
-    size = test_predefined_cases<data_type>(input, rle, delta, bp);
+    size = test_predefined_cases<data_type>(input, rle, delta, false, bp);
+    size = test_predefined_cases<data_type>(input, rle, delta, true, bp);
     if(verbose) {
       printf("result compressed size: %zu\n", size);
       printf("\n====================================================\n");
