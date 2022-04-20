@@ -82,26 +82,60 @@ void verify_decompressed_output(
 }
 
 template <typename data_type>
+size_t device_data_init(std::vector<data_type> input_host, void*& input_device){
+  CUDA_CHECK(
+      cudaMalloc(&input_device, input_host.size() * sizeof(data_type)));
+  CUDA_CHECK(cudaMemcpy(
+      input_device,
+      input_host.data(),
+      input_host.size() * sizeof(data_type),
+      cudaMemcpyHostToDevice));
+}
+
+const size_t _MAX_SIZE_BYTES = 4096;
+
+template <typename data_type>
 size_t test_predefined_cases(std::vector<data_type> input0_host, const int rle, const int delta, const bool m2_delta_mode, const int bp)
 {
+  const size_t _MAX_SIZE = _MAX_SIZE_BYTES/sizeof(data_type);
+  const size_t _HALF_MAX_SIZE = _MAX_SIZE/2 - 1;
+
+  const size_t input0_size = input0_host.size();
+  size_t input1_size = (input0_size*2)% _HALF_MAX_SIZE + (input0_size*2 + 111)% _HALF_MAX_SIZE;
+  size_t input2_size = (input0_size*3)% _HALF_MAX_SIZE + (input0_size*3 + 333)% _HALF_MAX_SIZE;
+
+  // printf("sizes %zu %zu %zu \n", input0_size, input1_size, input2_size);
+
+  std::vector<data_type> input1_host(input1_size);
+  std::vector<data_type> input2_host(input2_size);
+
+  for(int i=0; i<input1_size; i++){
+    auto v = input0_host[i % input0_size];
+    input1_host[i] = v*2;
+  }
+
+  for(int i=0; i<input2_size; i++){
+    auto v = input0_host[i % input0_size];
+    input2_host[i] = v*3 - v%2;
+  }
 
   void* input0_device;
-  CUDA_CHECK(
-      cudaMalloc(&input0_device, input0_host.size() * sizeof(data_type)));
-  CUDA_CHECK(cudaMemcpy(
-      input0_device,
-      input0_host.data(),
-      input0_host.size() * sizeof(data_type),
-      cudaMemcpyHostToDevice));
+  void* input1_device;
+  void* input2_device;
 
-  // Copy uncompressed pointers and sizes to device memory
+  device_data_init(input0_host, input0_device);
+  device_data_init(input1_host, input1_device);
+  device_data_init(input2_host, input2_device);
 
   std::vector<void*> uncompressed_ptrs_host
-      = {input0_device};
+      = {input0_device, input1_device, input2_device};
   std::vector<size_t> uncompressed_bytes_host
-      = {input0_host.size() * sizeof(data_type)
-      };
+      = {input0_host.size() * sizeof(data_type),
+         input1_host.size() * sizeof(data_type),
+         input2_host.size() * sizeof(data_type)};
   const size_t batch_size = uncompressed_ptrs_host.size();
+
+  // Copy uncompressed pointers and sizes to device memory
 
   void** uncompressed_ptrs_device;
   CUDA_CHECK(cudaMalloc(&uncompressed_ptrs_device, sizeof(void*) * batch_size));
@@ -185,7 +219,7 @@ size_t test_predefined_cases(std::vector<data_type> input0_host, const int rle, 
   for(int i=0; i < batch_size; i++) {
     size_t _size = compressed_bytes_host[i];
     if(verbose)
-      printf("\noutput compressed data(size:%zu): ", _size);
+      printf("\noutput %d compressed data(size:%zu): ", i, _size);
 
     std::vector<data_type> compressed_data_host(_size/sizeof(data_type) + 8);
     CUDA_CHECK(cudaMemcpy(
@@ -277,7 +311,7 @@ size_t test_predefined_cases(std::vector<data_type> input0_host, const int rle, 
   // Verify decompression outputs match the original uncompressed data
 
   std::vector<const data_type*> uncompressed_data_host
-      = {input0_host.data()};
+      = {input0_host.data(), input1_host.data(), input2_host.data()};
 
   verify_decompressed_sizes(
       batch_size, decompressed_bytes_device, uncompressed_bytes_host);
@@ -293,6 +327,8 @@ size_t test_predefined_cases(std::vector<data_type> input0_host, const int rle, 
     printf("cleanup\n\n");
 
   CUDA_CHECK(cudaFree(input0_device));
+  CUDA_CHECK(cudaFree(input1_device));
+  CUDA_CHECK(cudaFree(input2_device));
   CUDA_CHECK(cudaFree(uncompressed_ptrs_device));
   CUDA_CHECK(cudaFree(uncompressed_bytes_device));
   for (void* const& ptr : compressed_ptrs_host)
@@ -590,7 +626,7 @@ void _test_i64(){
 
 int main()
 {
-   one_only = true;
+   one_only = false;
    print_diff = false;
    verbose = false;
   _test_i8();
