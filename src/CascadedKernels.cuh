@@ -463,12 +463,12 @@ __device__ void block_m2delta_compress(
   min_value = for_ptr[_MIN_VAL_POSITION];
   const unsigned_data_type width = max_value - min_value + 1;
   const unsigned_data_type shift = max_value < min_value  ? -min_value : 0;
-  if (threadIdx.x == 0)
-    printf("shift: %u\n", shift);
+//  if (threadIdx.x == 0)
+//    printf("shift: %u\n", shift);
 
   if(width == 0) {
-    if (threadIdx.x == 0)
-      printf("default compress sum\n");
+//    if (threadIdx.x == 0)
+//      printf("default compress sum\n");
     for (size_type element_idx = threadIdx.x; element_idx < input_size - 1;
          element_idx += blockDim.x) {
       output_buffer[element_idx]
@@ -501,8 +501,8 @@ __device__ void block_m2delta_compress(
     output_buffer[element_idx] = result;
   }
   if (threadIdx.x == 0) {
-    printf("first %d, min %d, max %d\n", input_buffer[0], min_value, max_value);
-    printf("w: %u\n", width);
+//    printf("first %d, min %d, max %d\n", input_buffer[0], min_value, max_value);
+//    printf("w: %u\n", width);
     delta_header_chunk->first = input_buffer[0];
     delta_header_chunk->min_value = min_value;
     delta_header_chunk->max_value = max_value;
@@ -529,10 +529,10 @@ struct DeltaSum
     this->low_bound = std::numeric_limits<SignedT>::min();
     this->high_bound = std::numeric_limits<SignedT>::max();
 
-    if (threadIdx.x == 0) {
-      printf("DeltaSum %d = %d - %d\n", width, max_value, min_value);
-      printf("Bound %d - %d\n", this->low_bound, this->high_bound);
-    }
+//    if (threadIdx.x == 0) {
+//      printf("DeltaSum %d = %d - %d\n", width, max_value, min_value);
+//      printf("Bound %d - %d\n", this->low_bound, this->high_bound);
+//    }
   }
 
   __host__ __device__ __forceinline__ UnsignedT add2first(const UnsignedT &first, const UnsignedT &delta) const
@@ -658,8 +658,8 @@ __device__ void block_m2delta_decompress(
 
   DeltaSum<unsigned_data_type, signed_data_type> ops(delta_header_chunk->min_value, delta_header_chunk->max_value);
   if(ops.width == 0){
-    if (threadIdx.x == 0)
-      printf("default sum\n");
+//    if (threadIdx.x == 0)
+//      printf("default sum\n");
     block_delta_decompress<data_type, size_type, threadblock_size>(
         input_buffer,
         first,
@@ -812,8 +812,8 @@ __device__ void block_bitpack(
   auto for_ptr = reinterpret_cast<data_type*>(output);
   uint32_t* current_ptr = roundUpToAlignment<uint32_t>(for_ptr + 1);
 
-  if (threadIdx.x == 0)
-    printf("size_type is size_t %d \n", std::is_same<size_type, size_t>::value);
+//  if (threadIdx.x == 0)
+//    printf("size_type is size_t %d \n", std::is_same<size_type, size_t>::value);
 
   get_for_bitwidth<data_type, size_type, threadblock_size>(
       input, num_elements, for_ptr, current_ptr);
@@ -823,11 +823,11 @@ __device__ void block_bitpack(
   const data_type frame_of_reference = *for_ptr;
   const uint32_t bitwidth = (*current_ptr & 0xFFFF0000) >> 16;
 
-  if (threadIdx.x == 0) {
-      printf("block_bitpack num_elements %u\n", num_elements);
-    printf("bitwidth %u frame_of_reference %d \n",
-           bitwidth, frame_of_reference);
-  }
+//  if (threadIdx.x == 0) {
+//      printf("block_bitpack num_elements %u\n", num_elements);
+//    printf("bitwidth %u frame_of_reference %d \n",
+//           bitwidth, frame_of_reference);
+//  }
 
   current_ptr = reinterpret_cast<uint32_t*>(
       roundUpToAlignment<data_type>(current_ptr + 1));
@@ -992,8 +992,7 @@ __device__ BlockIOStatus block_write(
 
   const size_type padded_out_bytes = roundUpTo(*out_bytes, sizeof(uint32_t));
   if (output + padded_out_bytes / sizeof(uint32_t) > output_limit) {
-    if (threadIdx.x == 0)
-      printf("BlockIOStatus::out_of_bound !\n");
+//    if (threadIdx.x == 0)  printf("BlockIOStatus::out_of_bound !\n");
       return BlockIOStatus::out_of_bound;
   }
 
