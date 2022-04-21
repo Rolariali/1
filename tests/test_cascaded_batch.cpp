@@ -965,7 +965,7 @@ void test_bitpack_compress(const size_t data_size, const size_t expect_comp_size
   // Launch batched compression
 
   nvcompBatchedCascadedOpts_t comp_opts
-      = {batch_size, nvcomp::TypeOf<data_type>(), 0, 0, 1};
+      = {batch_size, nvcomp::TypeOf<data_type>(), 0, 0, false, 1};
 
   auto status = nvcompBatchedCascadedCompressAsync(
       uncompressed_ptrs_device,
