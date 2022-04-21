@@ -1,4 +1,4 @@
-file(GLOB EXAMPLE_SOURCES *.cpp *.c)
+file(GLOB EXAMPLE_SOURCES *cascaded*.cpp *cascaded*.c)
 
 if(CMAKE_OLD_CUDA_PACKAGE)
   include_directories(/usr/local/cuda/include)
