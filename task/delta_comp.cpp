@@ -108,6 +108,7 @@ std::vector<T> data_stair( const T start, const int64_t step,
   for (int i = 0; i < min_count; i++)
     input.push_back(start + (i*step) % base);
 
+  printf("in(%zu): ", input.size());
   for (auto el : input)
     std::cout << (int)el << ":";
 
@@ -131,16 +132,16 @@ void stair_delta_bp_test(const T start, const int64_t step,
 
   using data_type = T;
 
-    auto input = data_stair<data_type>(0, 1, 32, 5000);
-    opt.is_m2_deltas_mode = false;
-    size_common_delta = test_cascaded<data_type>(input, opt, expect_size_common_delta);
-    printf("size_common_delta: %zu\n", size_common_delta);
+  auto input = data_stair<data_type>(start, step, base, min_count);
+  opt.is_m2_deltas_mode = false;
+  size_common_delta = test_cascaded<data_type>(input, opt, expect_size_common_delta);
+  printf("size_common_delta: %zu\n", size_common_delta);
 
-    opt.is_m2_deltas_mode = true;
-    size_m2_delta = test_cascaded<data_type>(input, opt, expect_size_m2_delta);
-    printf("size_m2_delta: %zu\n", size_m2_delta);
+  opt.is_m2_deltas_mode = true;
+  size_m2_delta = test_cascaded<data_type>(input, opt, expect_size_m2_delta);
+  printf("size_m2_delta: %zu\n", size_m2_delta);
 
-    REQUIRE(size_m2_delta < size_common_delta);
+  REQUIRE(size_m2_delta < size_common_delta);
 }
 #include <limits>
 
@@ -172,7 +173,8 @@ int main()
 {
 
   test_unsigned<uint8_t>("uint8_t", 0, 0);
-
-
+  test_unsigned<uint16_t>("uint16_t", 0, 0);
+  test_unsigned<uint32_t>("uint32_t", 0, 0);
+  test_unsigned<uint64_t>("uint64_t", 0, 0);
 
 }
