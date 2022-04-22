@@ -113,6 +113,8 @@ std::vector<T> data_stair( const T start, const int64_t step,
     std::cout << (int)el << ":";
 
   std::cout << std::endl;
+
+  return input;
 }
 
 template <typename T>
