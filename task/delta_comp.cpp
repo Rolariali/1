@@ -133,11 +133,6 @@ void stair_delta_bp_test(const T start, const int64_t step,
 
   auto input = data_stair<data_type>(start, step, base, min_count);
   opt.is_m2_deltas_mode = false;
-  printf("@@ %zu %zu\n\n",  input.size(), min_count);
-  for (auto el : input)
-    std::cout << (int16_t )el << ".";
-
-
   size_common_delta = test_cascaded<data_type>(input, opt);
   printf("size_common_delta: %zu\n", size_common_delta);
   REQUIRE(expect_size_common_delta == size_common_delta);
@@ -162,7 +157,7 @@ void test_unsigned(const char * name,
   const T _minU = std::numeric_limits<unsignedT>::min();
   const T _maxS = std::numeric_limits<signedT>::max();
   const T _minS = std::numeric_limits<signedT>::min();
-  const size_t count = 101;
+  const size_t count = 5000;
   const T base = 32;
 
   stair_delta_bp_test<T>(_minU, 1, base, count, expect_size_common_delta, expect_size_m2_delta);
@@ -177,11 +172,11 @@ void test_unsigned(const char * name,
 
 int main()
 {
-
+  // 5000 count
   test_unsigned<uint8_t>("uint8_t", 3952, 200);
-  test_unsigned<uint16_t>("uint16_t", 0, 0);
-  test_unsigned<uint32_t>("uint32_t", 0, 0);
-  test_unsigned<uint64_t>("uint64_t", 0, 0);
+  test_unsigned<uint16_t>("uint16_t", 4004, 264);
+  test_unsigned<uint32_t>("uint32_t", 4108, 396);
+  test_unsigned<uint64_t>("uint64_t", 4488, 896);
 
     printf("\ndone\n");
 }
