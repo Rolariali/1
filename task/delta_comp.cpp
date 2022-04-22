@@ -27,7 +27,9 @@ using namespace nvcomp;
 
 
 template <typename T>
-size_t test_cascaded(const std::vector<T>& input, const nvcompBatchedCascadedOpts_t opt)
+size_t test_cascaded(const std::vector<T>& input,
+                     const nvcompBatchedCascadedOpts_t opt,
+                     const size_t expect_size)
 {
   // create GPU only input buffer
   T* d_in_data;
@@ -56,6 +58,8 @@ size_t test_cascaded(const std::vector<T>& input, const nvcompBatchedCascadedOpt
   CUDA_CHECK(cudaStreamSynchronize(stream));
 
   size_t comp_out_bytes = manager.get_compressed_output_size(d_comp_out);
+
+//  REQUIRE(expect_size == comp_out_bytes);
 
   cudaFree(d_in_data);
 
@@ -97,8 +101,10 @@ size_t test_cascaded(const std::vector<T>& input, const nvcompBatchedCascadedOpt
 }
 
 template <typename T>
-void data_stair(std::vector<T>& input, const T start, const int64_t step,
+std::vector<T> data_stair( const T start, const int64_t step,
                    const T  base, const size_t min_count ){
+
+  std::vector<T> input;
   for (int i = 0; i < min_count; i++)
     input.push_back(start + (i*step) % base);
 
@@ -108,16 +114,65 @@ void data_stair(std::vector<T>& input, const T start, const int64_t step,
   std::cout << std::endl;
 }
 
+template <typename T>
+void stair_delta_bp_test(const T start, const int64_t step,
+                         const T  base, const size_t min_count,
+                         const size_t expect_size_common_delta,
+                         const size_t expect_size_m2_delta){
+  size_t size_common_delta = 0;
+  size_t size_m2_delta = 0;
+  nvcompBatchedCascadedOpts_t opt = nvcompBatchedCascadedDefaultOpts;
+  opt.num_RLEs = 0;
+  opt.use_bp = 1;
+  opt.num_deltas = 1;
+
+  std::cout << start << " | " << step << " | " << base << " | " << min_count << " | "
+            << expect_size_common_delta << " | " <<  expect_size_m2_delta  << std::endl;
+
+  using data_type = T;
+
+    auto input = data_stair<data_type>(0, 1, 32, 5000);
+    opt.is_m2_deltas_mode = false;
+    size_common_delta = test_cascaded<data_type>(input, opt, expect_size_common_delta);
+    printf("size_common_delta: %zu\n", size_common_delta);
+
+    opt.is_m2_deltas_mode = true;
+    size_m2_delta = test_cascaded<data_type>(input, opt, expect_size_m2_delta);
+    printf("size_m2_delta: %zu\n", size_m2_delta);
+
+    REQUIRE(size_m2_delta < size_common_delta);
+}
+#include <limits>
+
+template <typename T>
+void test_unsigned(const char * name,
+                   const size_t expect_size_common_delta,
+                   const size_t expect_size_m2_delta){
+  using unsignedT = std::make_unsigned_t<T>;
+  using signedT = std::make_signed_t<T>;
+  std::cout << "test type " << name << " / " << typeid(T).name() << std::endl;
+  const T _maxU = std::numeric_limits<unsignedT>::max();
+  const T _minU = std::numeric_limits<unsignedT>::min();
+  const T _maxS = std::numeric_limits<signedT>::max();
+  const T _minS = std::numeric_limits<signedT>::min();
+  const size_t count = 100;
+  const T base = 32;
+
+  stair_delta_bp_test<T>(_minU, 1, base, count, expect_size_common_delta, expect_size_m2_delta);
+  stair_delta_bp_test<T>(_maxS - base/2, 1, base, count, expect_size_common_delta, expect_size_m2_delta);
+  stair_delta_bp_test<T>(_maxS - base/2, 1, base, count, expect_size_common_delta, expect_size_m2_delta);
+
+  stair_delta_bp_test<T>(_minU + base/2, -1, base, count, expect_size_common_delta, expect_size_m2_delta);
+  stair_delta_bp_test<T>(base, -1, base, count, expect_size_common_delta, expect_size_m2_delta);
+  stair_delta_bp_test<T>(_minS + base/2, -1, base, count, expect_size_common_delta, expect_size_m2_delta);
+}
+
+
 int main()
 {
-  using data_type = uint8_t;
 
-  size_t size = 0;
-  nvcompBatchedCascadedOpts_t opt = nvcompBatchedCascadedDefaultOpts;
+  test_unsigned<uint8_t>("uint8_t", 0, 0);
 
-  std::vector<data_type>  input;
-  data_stair<data_type>(input, 0, 1, 32, 40);
-  opt.num_RLEs = 0; opt.num_deltas = 1; opt.is_m2_deltas_mode = 0; opt.use_bp = 1;
-  size = test_cascaded<data_type>(input, opt);
-  printf("size: %zu\n", size);
+
+
 }
