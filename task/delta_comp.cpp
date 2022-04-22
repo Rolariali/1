@@ -28,8 +28,7 @@ using namespace nvcomp;
 
 template <typename T>
 size_t test_cascaded(const std::vector<T>& input,
-                     const nvcompBatchedCascadedOpts_t opt,
-                     const size_t expect_size)
+                     const nvcompBatchedCascadedOpts_t opt)
 {
   // create GPU only input buffer
   T* d_in_data;
@@ -58,8 +57,6 @@ size_t test_cascaded(const std::vector<T>& input,
   CUDA_CHECK(cudaStreamSynchronize(stream));
 
   size_t comp_out_bytes = manager.get_compressed_output_size(d_comp_out);
-
-//  REQUIRE(expect_size == comp_out_bytes);
 
   cudaFree(d_in_data);
 
@@ -108,11 +105,11 @@ std::vector<T> data_stair( const T start, const int64_t step,
   for (int i = 0; i < min_count; i++)
     input.push_back(start + (i*step) % base);
 
-  printf("in(%zu): ", input.size());
-  for (auto el : input)
-    std::cout << (int)el << ":";
-
-  std::cout << std::endl;
+//  printf("in(%zu): ", input.size());
+//  for (auto el : input)
+//    std::cout << (int)el << ":";
+//
+//  std::cout << std::endl;
 
   return input;
 }
@@ -136,12 +133,19 @@ void stair_delta_bp_test(const T start, const int64_t step,
 
   auto input = data_stair<data_type>(start, step, base, min_count);
   opt.is_m2_deltas_mode = false;
-  size_common_delta = test_cascaded<data_type>(input, opt, expect_size_common_delta);
+  printf("@@ %zu %zu\n\n",  input.size(), min_count);
+  for (auto el : input)
+    std::cout << (int16_t )el << ".";
+
+
+  size_common_delta = test_cascaded<data_type>(input, opt);
   printf("size_common_delta: %zu\n", size_common_delta);
+  REQUIRE(expect_size_common_delta == size_common_delta);
 
   opt.is_m2_deltas_mode = true;
-  size_m2_delta = test_cascaded<data_type>(input, opt, expect_size_m2_delta);
+  size_m2_delta = test_cascaded<data_type>(input, opt);
   printf("size_m2_delta: %zu\n", size_m2_delta);
+  REQUIRE(expect_size_m2_delta == size_m2_delta);
 
   REQUIRE(size_m2_delta < size_common_delta);
 }
@@ -158,7 +162,7 @@ void test_unsigned(const char * name,
   const T _minU = std::numeric_limits<unsignedT>::min();
   const T _maxS = std::numeric_limits<signedT>::max();
   const T _minS = std::numeric_limits<signedT>::min();
-  const size_t count = 100;
+  const size_t count = 101;
   const T base = 32;
 
   stair_delta_bp_test<T>(_minU, 1, base, count, expect_size_common_delta, expect_size_m2_delta);
@@ -174,9 +178,10 @@ void test_unsigned(const char * name,
 int main()
 {
 
-  test_unsigned<uint8_t>("uint8_t", 0, 0);
+  test_unsigned<uint8_t>("uint8_t", 3952, 200);
   test_unsigned<uint16_t>("uint16_t", 0, 0);
   test_unsigned<uint32_t>("uint32_t", 0, 0);
   test_unsigned<uint64_t>("uint64_t", 0, 0);
 
+    printf("\ndone\n");
 }
