@@ -23,8 +23,8 @@ add_executable(delta_comp delta_comp.cpp)
 target_link_libraries(delta_comp PRIVATE ${CUDA_ART} nvcomp)
 
 
-#add_library(compress SHARED shared.cpp)
-#target_link_libraries(compress PRIVATE ${CUDA_ART} nvcomp)
+add_library(compress SHARED shared.cpp)
+target_link_libraries(compress PRIVATE ${CUDA_ART} nvcomp)
 
 #add_executable(q_cascade cascade.cpp
 #        #        CascadeWrapper.cpp
