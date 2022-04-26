@@ -92,7 +92,7 @@ size_t test_cascaded(const std::vector<T>& input,
   // create GPU only input buffer
   T* d_in_data;
   const size_t in_bytes = sizeof(T) * input.size();
-  printf("in_bytes %zu\n", in_bytes);
+//  printf("in_bytes %zu\n", in_bytes);
   CUDA_CHECK(cudaMalloc((void**)&d_in_data, in_bytes));
   CUDA_CHECK(
       cudaMemcpy(d_in_data, input.data(), in_bytes, cudaMemcpyHostToDevice));
@@ -163,13 +163,14 @@ size_t _nv_compress(const uint8_t* data, const size_t size,
   const data_type * cast_data = reinterpret_cast<const data_type *>(data);
 
   std::vector<data_type> input(cast_data, cast_data + size);
+  /*
   printf("opt: %d, %d, %d, %d\n\n", rle, delta, m2_delta_mode, bp);
   printf("input(%zu): ", input.size());
   for(auto el: input)
     printf("%u:", el);
 
   printf("\n");
-
+*/
   nvcompBatchedCascadedOpts_t opt = nvcompBatchedCascadedDefaultOpts;
   opt.num_RLEs = rle;
   opt.num_deltas = delta;
