@@ -159,12 +159,13 @@ size_t test_cascaded(const std::vector<T>& input,
 
 template <typename data_type>
 size_t _nv_compress(const uint8_t* data, const size_t size,
-                    const int rle, const int delta, const bool m2_delta_mode, const int bp){
+                    const int rle, const int delta, const bool m2_delta_mode,
+                    const int bp, const int chunk_size){
   const data_type * cast_data = reinterpret_cast<const data_type *>(data);
 
   std::vector<data_type> input(cast_data, cast_data + size);
   /*
-  printf("opt: %d, %d, %d, %d\n\n", rle, delta, m2_delta_mode, bp);
+  printf("opt: %d, %d, %d, %d\n\n", rle, delta, m2_delta_mode, bp, chunk_size);
   printf("input(%zu): ", input.size());
   for(auto el: input)
     printf("%u:", el);
@@ -172,6 +173,7 @@ size_t _nv_compress(const uint8_t* data, const size_t size,
   printf("\n");
 */
   nvcompBatchedCascadedOpts_t opt = nvcompBatchedCascadedDefaultOpts;
+  opt.chunk_size = chunk_size;
   opt.num_RLEs = rle;
   opt.num_deltas = delta;
   opt.is_m2_deltas_mode = m2_delta_mode;
@@ -186,17 +188,18 @@ extern "C" {
 #endif
 
 size_t nv_compress(const uint8_t* data, const size_t size, const uint8_t bytes,
-                   const int rle, const int delta, const bool m2_delta_mode, const int bp){
+                   const int rle, const int delta, const bool m2_delta_mode,
+                   const int bp, const int chunk_size){
 
   switch (bytes) {
     case 1:
-      return _nv_compress<uint8_t>(data, size, rle, delta, m2_delta_mode, bp);
+      return _nv_compress<uint8_t>(data, size, rle, delta, m2_delta_mode, bp, chunk_size);
     case 2:
-      return _nv_compress<uint16_t>(data, size, rle, delta, m2_delta_mode, bp);
+      return _nv_compress<uint16_t>(data, size, rle, delta, m2_delta_mode, bp, chunk_size);
     case 4:
-      return _nv_compress<uint8_t>(data, size, rle, delta, m2_delta_mode, bp);
+      return _nv_compress<uint8_t>(data, size, rle, delta, m2_delta_mode, bp, chunk_size);
     case 8:
-      return _nv_compress<uint16_t>(data, size, rle, delta, m2_delta_mode, bp);
+      return _nv_compress<uint16_t>(data, size, rle, delta, m2_delta_mode, bp, chunk_size);
   }
 }
 
