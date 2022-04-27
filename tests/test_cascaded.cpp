@@ -83,6 +83,7 @@ void test_cascaded(const std::vector<T>& input, nvcompType_t data_type)
 
   nvcompBatchedCascadedOpts_t options = nvcompBatchedCascadedDefaultOpts;
   options.type = data_type;
+  options.num_RLEs = 0;
   CascadedManager manager{options, stream};
   auto comp_config = manager.configure_compression(in_bytes);
 
@@ -236,6 +237,41 @@ TEST_CASE("comp/decomp cascaded-none-aligned-sizes", "[nvcomp][small]")
   };
   for (auto size : input_sizes) {
     std::vector<uint8_t> input = buildRuns<uint8_t>(1, size);
+    for (auto type : data_types ) {
+      test_cascaded(input, type);
+    }
+  }
+}
+
+template <typename T>
+std::vector<T> buildRunsPsedoRandom(const size_t numRuns, const size_t runSize)
+{
+  std::vector<T> input;
+  T val;
+  for (size_t i = 1; i < numRuns; i++) {
+    for (size_t j = 1; j < runSize; j++) {
+      val = val + i + j;
+      input.push_back(static_cast<T>(val));
+    }
+  }
+
+  return input;
+}
+
+TEST_CASE("comp/decomp 111", "[nvcomp][small]222")
+{
+//  std::vector<size_t> input_sizes; //= { 1, 33, 1021 };
+
+  std::vector<nvcompType_t> data_types = {
+      NVCOMP_TYPE_CHAR,
+      NVCOMP_TYPE_SHORT,
+      NVCOMP_TYPE_INT,
+      NVCOMP_TYPE_LONGLONG,
+  };
+  for (size_t input_sizes=0; input_sizes < 50000; input_sizes +=60) {
+    input_sizes %= 49000;
+    printf("input_sizes %zu\n", input_sizes);
+    std::vector<uint8_t> input = buildRunsRandom<uint8_t>(1, input_sizes);
     for (auto type : data_types ) {
       test_cascaded(input, type);
     }
