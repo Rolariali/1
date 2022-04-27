@@ -271,7 +271,7 @@ TEST_CASE("comp/decomp 111", "[nvcomp][small]222")
   for (size_t input_sizes=0; input_sizes < 50000; input_sizes +=60) {
     input_sizes %= 49000;
     printf("input_sizes %zu\n", input_sizes);
-    std::vector<uint8_t> input = buildRunsRandom<uint8_t>(1, input_sizes);
+    std::vector<uint8_t> input = buildRunsPsedoRandom<uint8_t>(1, input_sizes);
     for (auto type : data_types ) {
       test_cascaded(input, type);
     }
