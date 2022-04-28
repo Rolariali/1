@@ -21,7 +21,7 @@ function(add_unit_test test_file)
   add_test(NAME ${test_name} COMMAND ${test_name})
 endfunction()
 
-file(GLOB tests *_test.cpp)
+#file(GLOB tests *_test.cpp)
 
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}")
 

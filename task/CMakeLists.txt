@@ -10,8 +10,8 @@ if(CMAKE_OLD_CUDA_PACKAGE)
     set(CUDA_ART "/usr/local/cuda/lib64/libcudart.so")
 endif()
 
-add_executable(q_test selector_test.cpp)
-target_link_libraries(q_test PRIVATE ${CUDA_ART} nvcomp)
+#add_executable(q_test selector_test.cpp)
+#target_link_libraries(q_test PRIVATE ${CUDA_ART} nvcomp)
 
 #add_executable(q_cascade cascade.cpp
 #        #        CascadeWrapper.cpp
