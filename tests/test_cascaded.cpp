@@ -258,6 +258,8 @@ std::vector<T> buildRunsPsedoRandom(const size_t numRuns, const size_t runSize)
   return input;
 }
 
+#include <thread>
+
 TEST_CASE("comp/decomp 111", "[nvcomp][small]222")
 {
 //  std::vector<size_t> input_sizes; //= { 1, 33, 1021 };
@@ -268,6 +270,7 @@ TEST_CASE("comp/decomp 111", "[nvcomp][small]222")
       NVCOMP_TYPE_INT,
       NVCOMP_TYPE_LONGLONG,
   };
+  int i = 0;
   for (size_t input_sizes=0; input_sizes < 50000; input_sizes +=60) {
     input_sizes %= 49000;
     printf("input_sizes %zu\n", input_sizes);
@@ -275,5 +278,14 @@ TEST_CASE("comp/decomp 111", "[nvcomp][small]222")
     for (auto type : data_types ) {
       test_cascaded(input, type);
     }
+    printf("sleep 2s, ");
+    std::this_thread::sleep_for(2000ms);
+    i++;
+    if(i == 100){
+      i = 0;
+      printf("sleep 20s");
+      std::this_thread::sleep_for(20000ms);
+    }
+
   }
 }
