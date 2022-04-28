@@ -260,7 +260,7 @@ std::vector<T> buildRunsPsedoRandom(const size_t numRuns, const size_t runSize)
 
 #include <thread>
 
-TEST_CASE("comp/decomp 111", "[nvcomp][small]222")
+TEST_CASE("comp/decomp memory use stat", "[nvcomp][small]memory")
 {
 //  std::vector<size_t> input_sizes; //= { 1, 33, 1021 };
 
@@ -287,5 +287,30 @@ TEST_CASE("comp/decomp 111", "[nvcomp][small]222")
       std::this_thread::sleep_for(20000ms);
     }
 
+  }
+}
+
+TEST_CASE("simple memory", "simple memory")
+{
+  using T = int64_t;
+  std::vector<T> input(0xFFFF, 3);
+  while(1) {
+    // create GPU only input buffer
+    T* d_in_data;
+    const size_t in_bytes = sizeof(T) * input.size();
+    CUDA_CHECK(cudaMalloc((void**)&d_in_data, in_bytes));
+    CUDA_CHECK(
+        cudaMemcpy(d_in_data, input.data(), in_bytes, cudaMemcpyHostToDevice));
+    std::this_thread::sleep_for(1000ms);
+    T* copied = 0;
+    CUDA_CHECK(cudaMalloc(&copied, in_bytes));
+    CUDA_CHECK(
+        cudaMemcpy(copied, d_in_data, in_bytes, cudaMemcpyDeviceToDevice));
+    std::this_thread::sleep_for(1000ms);
+    cudaFree(d_in_data);
+    std::this_thread::sleep_for(1000ms);
+    cudaFree(copied);
+    std::this_thread::sleep_for(1000ms);
+    printf("@..");
   }
 }
