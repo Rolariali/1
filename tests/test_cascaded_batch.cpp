@@ -896,14 +896,23 @@ void test_out_of_bound(int use_bp)
   CUDA_CHECK(cudaFree(decompression_statuses));
 }
 
+/*
+ * This test case the correctness of batched cascaded compressor and decompressor
+ * on wide range predefined integers. The test case uses 1 bitpacking only. For wide range
+ * integer data like int8_t: 127, -128, 127… or uint8_t: 0, 255, 0 …
+ * we can bit-pack data with a bitwidth 1 if we process the integers in two types,
+ * using sign type and unsigned type. It first compresses the data, compares
+ * the compressed size with the expected size and verifies the compressed buffers.
+ * Then it decompresses the data and compares against the original values.
+ */
 template <typename data_type>
-void test_bitpack_compress(const size_t data_size, const size_t expect_comp_size)
+void test_wide_range_bp(const size_t num_generate_elements, const size_t expect_comp_size)
 {
   const data_type min_value = std::numeric_limits<data_type>::min();
   const data_type max_value = std::numeric_limits<data_type>::max();
 
   // Generate input data and copy it to device memory
-  std::vector<data_type> input0_host(data_size, min_value);
+  std::vector<data_type> input0_host(num_generate_elements, min_value);
   input0_host[0] = max_value;
 
   void* input0_device;
@@ -1197,21 +1206,20 @@ TEST_CASE("BatchedCascadedCompressor out-of-bound", "[nvcomp]")
   test_out_of_bound<uint64_t>(1);
 }
 
-TEST_CASE("BatchedCascadedCompressor BitPack for wide signed unsigned interval input data", "[nvcomp]")
+TEST_CASE("BatchedCascadedCompressor valid-compress-size-for-wide-range-integer-interval", "[nvcomp]")
 {
-  test_bitpack_compress<int8_t>(1000, 152);
-  test_bitpack_compress<uint8_t>(1000, 152);
-  test_bitpack_compress<int16_t>(1000, 152);
-  test_bitpack_compress<uint16_t>(1000, 152);
-  test_bitpack_compress<int32_t>(1000, 152);
-  test_bitpack_compress<uint32_t>(1000, 152);
-  test_bitpack_compress<int64_t>(500, 96);
-  test_bitpack_compress<uint64_t>(500, 96);
+  test_wide_range_bp<int8_t>(1000, 152);
+  test_wide_range_bp<uint8_t>(1000, 152);
+  test_wide_range_bp<int16_t>(1000, 152);
+  test_wide_range_bp<uint16_t>(1000, 152);
+  test_wide_range_bp<int32_t>(1000, 152);
+  test_wide_range_bp<uint32_t>(1000, 152);
+  test_wide_range_bp<int64_t>(500, 96);
+  test_wide_range_bp<uint64_t>(500, 96);
 }
 
-
 template <typename data_type>
-size_t device_data_init(std::vector<data_type> input_host, void*& input_device){
+void device_data_init(std::vector<data_type> input_host, void*& input_device){
   CUDA_CHECK(
       cudaMalloc(&input_device, input_host.size() * sizeof(data_type)));
   CUDA_CHECK(cudaMemcpy(
@@ -1232,8 +1240,6 @@ size_t test_predefined_stair_cases(std::vector<data_type> input0_host, const int
   const size_t input0_size = input0_host.size();
   size_t input1_size = (input0_size*2)% _HALF_MAX_SIZE + (input0_size*2 + 111)% _HALF_MAX_SIZE;
   size_t input2_size = (input0_size*3)% _HALF_MAX_SIZE + (input0_size*3 + 333)% _HALF_MAX_SIZE;
-
-  // printf("sizes %zu %zu %zu \n", input0_size, input1_size, input2_size);
 
   std::vector<data_type> input1_host(input1_size);
   std::vector<data_type> input2_host(input2_size);
@@ -1492,6 +1498,8 @@ void test_stair_case(const data_type start, const int64_t step,
     size = test_predefined_stair_cases<data_type>(input, rle, delta, true, bp);
   }
 }
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Woverflow"
 
 template <typename T>
 void _test_stair_template(const char * name){
@@ -1508,25 +1516,26 @@ void _test_stair_template(const char * name){
   test_stair_case<T>(0, 1, 100, start_count, name);
 
   test_stair_case<T>(_minU, _maxU /20, _maxU, start_count, name);
-
   test_stair_case<T>(_minU, _maxU /20, _maxU - 1, start_count, name);
   test_stair_case<T>(_minU, _maxU /555, _maxU - 1, start_count, name);
   test_stair_case<T>(_minS, _maxS /15, _maxU - 1, start_count, name);
-  test_stair_case<T>(_minS + 1, _maxS/100, _maxU - 1, start_count, name);
-  test_stair_case<T>(_minS + 1, _maxS/100, _maxU - 1, start_count, name);
-  test_stair_case<T>(_minS + 1, _maxS/33, _maxU - 1, start_count, name);
+  test_stair_case<T>(_minS - 1, _maxS/100, _maxU - 1, start_count, name);
+  test_stair_case<T>(_minS - 1, _maxS/100, _maxU - 1, start_count, name);
+  test_stair_case<T>(_minS - 1, _maxS/33, _maxU - 1, start_count, name);
   test_stair_case<T>(_minS, _maxS/11, _maxS - 1, start_count, name);
   test_stair_case<T>(_minU, _maxS/33, _maxS - 1, start_count, name);
 
-  test_stair_case<T>(_maxU, -40, _maxS/22, start_count, name);
+  test_stair_case<T>(_maxS, -40, _maxS/22, start_count, name);
   test_stair_case<T>(_maxU, 499, _maxS - 1, start_count, name);
-  test_stair_case<T>(_maxU, -1, 4, start_count, name);
-  test_stair_case<T>(_maxU, -1, 112, start_count, name);
-  test_stair_case<T>(_maxU + 1, -1, 50, start_count, name);
-  test_stair_case<T>(_maxU + 1, -1, 112, start_count, name);
-  test_stair_case<T>(_minU, -1, 4, start_count, name);
+  test_stair_case<T>(_maxS, -1, _maxS/11, start_count, name);
+  test_stair_case<T>(_maxU, -1, _maxS/100, start_count, name);
+  test_stair_case<T>(_maxS + 1, -1, _maxS/100, start_count, name);
+  test_stair_case<T>(_maxS + 1, -1, _maxS/100, start_count, name);
+  test_stair_case<T>(_minU, -1, _maxS/100, start_count, name);
   test_stair_case<T>(_minU, _minS/60, _maxS, start_count, name);
 }
+
+#pragma GCC diagnostic pop
 
 void _test_i8(){
   using T = int8_t;

@@ -118,6 +118,15 @@ constexpr __host__ __device__ bool get_m2mdeltas_mode(const uint8_t delta_option
   return static_cast<bool>(delta_option & 0x80);
 }
 
+/**
+ * Helper function to calculate maximum and minimum values for the input array.
+ * The function deals with the integers of array as with integers
+ * of processing_data_type type
+ *
+ * @param[in] input Array of size \p num_elements of the input elements.
+ * @param[out] min_ptr and max_ptr are pointers to the maximum and
+ * minimum calculated values for the input array.
+ */
 template <typename data_type, typename size_type,
           typename processing_data_type,
           int threadblock_size>
