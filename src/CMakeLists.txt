@@ -39,6 +39,8 @@ set_property(TARGET nvcomp PROPERTY POSITION_INDEPENDENT_CODE ON)
 set_property(TARGET nvcomp PROPERTY CUDA_ARCHITECTURES ${GPU_ARCHS})
 target_compile_options(nvcomp PRIVATE
     $<$<COMPILE_LANGUAGE:CUDA>:--expt-extended-lambda>)
+target_compile_options(nvcomp PRIVATE
+        $<$<COMPILE_LANGUAGE:CUDA>:--expt-relaxed-constexpr>)
 
 target_include_directories(nvcomp PUBLIC
     "$<BUILD_INTERFACE:${nvcomp_SOURCE_DIR}/include>")
