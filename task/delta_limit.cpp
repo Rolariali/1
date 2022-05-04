@@ -95,7 +95,7 @@ size_t device_data_init(std::vector<data_type> input_host, void*& input_device){
 const size_t _MAX_SIZE_BYTES = 4096;
 
 template <typename data_type>
-size_t test_predefined_cases(std::vector<data_type> input0_host, const int rle, const int delta, const bool m2_delta_mode, const int bp)
+size_t test_predefined_stair_cases(std::vector<data_type> input0_host, const int rle, const int delta, const bool m2_delta_mode, const int bp)
 {
   const size_t _MAX_SIZE = _MAX_SIZE_BYTES/sizeof(data_type);
   const size_t _HALF_MAX_SIZE = _MAX_SIZE/2 - 1;
@@ -372,17 +372,17 @@ void test_stair_case(const data_type start, const int64_t step,
       for (auto el : input)
         std::cout << (int)el << ":";
 
-    size = test_predefined_cases<data_type>(input, rle, delta, false, bp);
-    size = test_predefined_cases<data_type>(input, rle, delta, true, bp);
+    size = test_predefined_stair_cases<data_type>(input, rle, delta, false, bp);
+    size = test_predefined_stair_cases<data_type>(input, rle, delta, true, bp);
     rle = 0;   delta = 1;    bp = 1;
-    size = test_predefined_cases<data_type>(input, rle, delta, false, bp);
-    size = test_predefined_cases<data_type>(input, rle, delta, true, bp);
+    size = test_predefined_stair_cases<data_type>(input, rle, delta, false, bp);
+    size = test_predefined_stair_cases<data_type>(input, rle, delta, true, bp);
     rle = 1;   delta = 1;    bp = 1;
-    size = test_predefined_cases<data_type>(input, rle, delta, false, bp);
-    size = test_predefined_cases<data_type>(input, rle, delta, true, bp);
+    size = test_predefined_stair_cases<data_type>(input, rle, delta, false, bp);
+    size = test_predefined_stair_cases<data_type>(input, rle, delta, true, bp);
     rle = 2;   delta = 1;    bp = 1;
-    size = test_predefined_cases<data_type>(input, rle, delta, false, bp);
-    size = test_predefined_cases<data_type>(input, rle, delta, true, bp);
+    size = test_predefined_stair_cases<data_type>(input, rle, delta, false, bp);
+    size = test_predefined_stair_cases<data_type>(input, rle, delta, true, bp);
     if(verbose) {
       printf("result compressed size: %zu\n", size);
       printf("\n====================================================\n");
@@ -550,7 +550,7 @@ void test_u32(){
 
 
 template <typename T>
-void _test_stait_template(const char * name){
+void _test_stair_template(const char * name){
   using unsignedT = std::make_unsigned_t<T>;
   using signedT = std::make_signed_t<T>;
   std::cout << "test type " << name << " / " << typeid(T).name() << std::endl;
@@ -586,42 +586,42 @@ void _test_stait_template(const char * name){
 
 void _test_i8(){
   using T = int8_t;
-  _test_stait_template<T>("int8_t");
+  _test_stair_template<T>("int8_t");
 }
 
 void _test_u8(){
   using T = uint8_t;
-  _test_stait_template<T>("uint8_t");
+  _test_stair_template<T>("uint8_t");
 }
 
 void _test_i16(){
   using T = int16_t;
-  _test_stait_template<T>("int16_t");
+  _test_stair_template<T>("int16_t");
 }
 
 void _test_u16(){
   using T = uint16_t;
-  _test_stait_template<T>("uint16_t");
+  _test_stair_template<T>("uint16_t");
 }
 
 void _test_i32(){
   using T = int32_t;
-  _test_stait_template<T>("int32_t");
+  _test_stair_template<T>("int32_t");
 }
 
 void _test_u32(){
   using T = uint32_t;
-  _test_stait_template<T>("uint32_t");
+  _test_stair_template<T>("uint32_t");
 }
 
 void _test_u64(){
   using T = uint64_t;
-  _test_stait_template<T>("uint64_t");
+  _test_stair_template<T>("uint64_t");
 }
 
 void _test_i64(){
   using T = int64_t;
-  _test_stait_template<T>("uint64_t");
+  _test_stair_template<T>("uint64_t");
 }
 
 int main()

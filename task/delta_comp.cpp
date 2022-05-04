@@ -105,12 +105,6 @@ std::vector<T> data_stair( const T start, const int64_t step,
   for (int i = 0; i < min_count; i++)
     input.push_back(start + (i*step) % base);
 
-//  printf("in(%zu): ", input.size());
-//  for (auto el : input)
-//    std::cout << (int)el << ":";
-//
-//  std::cout << std::endl;
-
   return input;
 }
 
