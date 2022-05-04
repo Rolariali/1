@@ -162,11 +162,6 @@ __device__ inline void HlifCompressBatch(
 
   int initial_chunks = gridDim.x * chunks_per_block;
 
-  if (cg_group.thread_rank() == 0) {
-//    printf("this_ix_chunk %u num_chunks %u\n",
-//           this_ix_chunk, (uint32_t)compression_args.num_chunks);
-  }
-
   while (this_ix_chunk < compression_args.num_chunks) {
     size_t ix_decomp_start = this_ix_chunk * compression_args.uncomp_chunk_size;
     const uint8_t* this_decomp_buffer = compression_args.decomp_buffer + ix_decomp_start;
