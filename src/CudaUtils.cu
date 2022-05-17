@@ -42,6 +42,12 @@ std::string to_string(const void* const ptr)
 }
 } // namespace
 
+bool CudaUtils::error;
+
+bool get_error_and_clear(){
+  return CudaUtils::get_error_and_clear();
+}
+
 void CudaUtils::check(const cudaError_t err, const std::string& msg)
 {
   if (err != cudaSuccess) {
@@ -52,8 +58,9 @@ void CudaUtils::check(const cudaError_t err, const std::string& msg)
       errorStr += ": " + msg;
     }
     errorStr += ".";
-
-    throw std::runtime_error(errorStr);
+    printf("%s\n", errorStr.c_str());
+    error = true;
+//    throw std::runtime_error(errorStr);
   }
 }
 
