@@ -212,6 +212,11 @@ INPUT_VECTOR_TYPE input = {
     0,1,1,1,1,1,1,1,1,1,1,0,1,1,1,1,0,34,1,0,2,0,32,3,12,33,34,3,43,4,2,42,41,0,1,1,1,1,0,34,1,0,2,0,32,3,12,33,34,3,43,1,0,1,1,1,1,0,34,1,0,2,0,32,3,12,33,34,3,43,
 };
 
+void print_options(const nvcompBatchedCascadedOpts_t & options){
+  printf("chunk_size %zu, rle %d, delta %d, M2Mode %d, bp %d\n",
+         options.chunk_size, options.num_RLEs, options.num_deltas, options.is_m2_deltas_mode, options.use_bp);
+}
+
 int main()
 {
   size_t min_size = input.size()*2;
@@ -242,9 +247,9 @@ int main()
             // No delta mode without delta nums
             const int max_delta_mode = delta == 0 ? 1 : 2;
             for (int delta_mode = 0; delta_mode < max_delta_mode; delta_mode++) {
-              printf("\n");
-              printf("chunk_size %zu, rle %d, delta %d, M2Mode %d, bp %d ", chunk_size, rle, delta, delta_mode, bp);
               nvcompBatchedCascadedOpts_t options = {chunk_size, nvcomp::TypeOf<T>(), rle, delta, static_cast<bool>(delta_mode), bp};
+              printf("\n");
+              print_options(options);
               const size_t comp_size = compressor.compress_prepared_data(options);
               printf("comp size: %zu", comp_size);
               if(compressor.is_error_occur() || comp_size == _INVALID_SIZE) {
@@ -261,6 +266,7 @@ int main()
         }
   printf("\n");
   printf("min size %d\n", min_size);
+  print_options(min_options);
 
   const size_t comp_size = compressor.compress_prepared_data(min_options);
   printf("output compressed size: %zu\n", comp_size);
