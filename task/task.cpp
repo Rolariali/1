@@ -136,7 +136,7 @@ private:
     if(_d_size > relloc_size) // only up
       return true;
     uint8_t* tmp;
-    if (cudaSuccess != cudaMalloc(&_d_ptr, relloc_size)) {
+    if (cudaSuccess != cudaMalloc(&tmp, relloc_size)) {
       printf("can't cudaMalloc for GPU buffer");
       return false;
     }
@@ -224,7 +224,7 @@ int main()
   compressor.prepare_input_data(input);
 
   if(compressor.is_error_occur()){
-    printf("Preparing failed \n");
+    printf("Preparing failed \n"); //todo destructor of stream
     return -1;
   }
 
