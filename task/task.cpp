@@ -115,9 +115,9 @@ private:
         this->d_no_comp_data,
         _d_comp_data,
         decomp_config);
-    cudaStreamSynchronize(stream);
+    cudaStreamSynchronize(this->stream);
 
-    const cudaError_t err = cudaStreamSynchronize(stream);
+    const cudaError_t err = cudaStreamSynchronize(this->stream);
     if(cudaSuccess != err){
       this->set_error("cudaStreamSynchronize return code:");
       printf("%d\n", err);
