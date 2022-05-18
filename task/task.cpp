@@ -217,6 +217,8 @@ void print_options(const nvcompBatchedCascadedOpts_t & options){
          options.chunk_size, options.num_RLEs, options.num_deltas, options.is_m2_deltas_mode, options.use_bp);
 }
 
+
+
 int main()
 {
   size_t min_size = input.size()*2;
@@ -294,8 +296,12 @@ int main()
     printf("cudaStreamDestroy return error code: %d\n", err);
 
   // Verify correctness
-  assert(res == input);
-
+  assert(input.size() == res.size());
+  for (size_t element_idx = 0; element_idx < input.size(); element_idx++) {
+    printf("%u\t%d == %d\n", element_idx,
+           input[element_idx], res[element_idx]);
+    assert(input[element_idx] == res[element_idx]);
+  }
   printf("successfull\n");
 
   dummy.join();
