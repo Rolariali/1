@@ -155,14 +155,6 @@ private:
     if(d_comp_size > 0)   // avoid free invalid ref
       if (cudaSuccess != cudaFree(this->d_comp_data))
         printf("cudaFree call failed: %d\n", __LINE__);
-
-    /* may be to destroy the non-created stream but doc
-     * https://docs.nvidia.com/cuda/cuda-runtime-api/group__CUDART__STREAM.html#group__CUDART__STREAM_1gfda584f1788ca983cb21c5f4d2033a62
-     * does not appear to explicitly prohibit that
-     */
-    const cudaError_t err = cudaStreamDestroy(this->stream);
-    if(cudaSuccess != err)
-      printf("cudaStreamDestroy return error code: %d\n", err);
   }
 
   size_t try_compress(const nvcompBatchedCascadedOpts_t & options){
@@ -287,6 +279,10 @@ int main()
   std::vector<T> res(decomp_size);
   cudaMemcpy(
       &res[0], compressor.get_d_no_comp_data(), decomp_size * sizeof(T), cudaMemcpyDeviceToHost);
+
+  const cudaError_t err = cudaStreamDestroy(stream);
+  if(cudaSuccess != err)
+    printf("cudaStreamDestroy return error code: %d\n", err);
 
   // Verify correctness
   assert(res == input);
