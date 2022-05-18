@@ -212,6 +212,8 @@ INPUT_VECTOR_TYPE input = {
     0,1,1,1,1,1,1,1,1,1,1,0,1,1,1,1,0,34,1,0,2,0,32,3,12,33,34,3,43,4,2,42,41,0,1,1,1,1,0,34,1,0,2,0,32,3,12,33,34,3,43,1,0,1,1,1,1,0,34,1,0,2,0,32,3,12,33,34,3,43,
 };
 
+std::vector<T> results(input.size());
+
 void print_options(const nvcompBatchedCascadedOpts_t & options){
   printf("chunk_size %zu, rle %d, delta %d, M2Mode %d, bp %d\n",
          options.chunk_size, options.num_RLEs, options.num_deltas, options.is_m2_deltas_mode, options.use_bp);
@@ -284,23 +286,23 @@ int main()
    */
 
   const size_t decomp_size = compressor.decompress(compressor.get_d_comp_data());
-  // no check: if error was occurred then assert below failed
+
 
   // Copy result back to host
-  std::vector<T> res(decomp_size);
   cudaMemcpy(
-      &res[0], compressor.get_d_no_comp_data(), decomp_size * sizeof(T), cudaMemcpyDeviceToHost);
+      &results[0], compressor.get_d_no_comp_data(), decomp_size * sizeof(T), cudaMemcpyDeviceToHost);
 
   const cudaError_t err = cudaStreamDestroy(stream);
   if(cudaSuccess != err)
     printf("cudaStreamDestroy return error code: %d\n", err);
 
   // Verify correctness
-  assert(input.size() == res.size());
+  assert(decomp_size == results.size());
   for (size_t element_idx = 0; element_idx < input.size(); element_idx++) {
     printf("%u\t%d == %d\n", element_idx,
-           input[element_idx], res[element_idx]);
-    assert(input[element_idx] == res[element_idx]);
+           input[element_idx],
+        results[element_idx]);
+    assert(input[element_idx] == results[element_idx]);
   }
   printf("successfull\n");
 
