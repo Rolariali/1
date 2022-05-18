@@ -242,12 +242,15 @@ int main()
             // No delta mode without delta nums
             const int max_delta_mode = delta == 0 ? 1 : 2;
             for (int delta_mode = 0; delta_mode < max_delta_mode; delta_mode++) {
-              printf("chunk_size %zu, rle %d, delta %d, M2Mode %d, bp %d", chunk_size, rle, delta, delta_mode, bp);
+              printf("\n");
+              printf("chunk_size %zu, rle %d, delta %d, M2Mode %d, bp %d ", chunk_size, rle, delta, delta_mode, bp);
               nvcompBatchedCascadedOpts_t options = {chunk_size, nvcomp::TypeOf<T>(), rle, delta, static_cast<bool>(delta_mode), bp};
               const size_t comp_size = compressor.compress_prepared_data(options);
-              printf("comp size: %zu\n", comp_size);
-              if(compressor.is_error_occur() || comp_size == _INVALID_SIZE)
+              printf("comp size: %zu", comp_size);
+              if(compressor.is_error_occur() || comp_size == _INVALID_SIZE) {
+                printf(" error");
                 continue;
+              }
               if(min_size < comp_size)
                 continue;
 
@@ -256,7 +259,7 @@ int main()
             }
           }
         }
-
+  printf("\n");
   printf("min size %d\n", min_size);
 
   const size_t comp_size = compressor.compress_prepared_data(min_options);
@@ -286,6 +289,8 @@ int main()
 
   // Verify correctness
   assert(res == input);
+
+  printf("successfull\n");
 
   dummy.join();
 }
