@@ -33,13 +33,13 @@ class Compressor
   cudaStream_t stream;
 
 public:
-  Compressor():
+  Compressor(cudaStream_t _stream):
       d_no_comp_size(0),
       d_comp_size(0),
-      error(false)
+      error(false),
+      stream(_stream)
   {
-    if (cudaSuccess != cudaStreamCreate(&this->stream))
-      this->set_error("can't create GPU stream");
+
   }
 
   virtual ~Compressor(){
@@ -224,7 +224,10 @@ int main()
 {
   size_t min_size = input.size()*2;
   nvcompBatchedCascadedOpts_t min_options = {0, NVCOMP_TYPE_UCHAR, 0, 0, false, 0};
-  Compressor compressor;
+  cudaStream_t stream;
+  assert(cudaSuccess == cudaStreamCreate(&stream));
+
+  Compressor compressor(stream);
 
   compressor.prepare_input_data(input);
 
