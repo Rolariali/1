@@ -125,13 +125,6 @@ cudaError_t max_compress(cudaStream_t & stream, INPUT_VECTOR_TYPE & input, GPUbu
   print_options(min_options);
   CUDA_CHECK(nv_compress(stream, min_options, tmp, compress_data, comp_size));
 
-//  std::vector<uint8_t> t(1111);
-//  cudaMemcpy(
-//      t.data(), compress_data.ptr, comp_size, cudaMemcpyDeviceToHost);
-//  for(auto a: t)
-//    printf("%d:", a);
-//  printf("\n");
-
   return cudaSuccess;
 }
 
@@ -212,9 +205,6 @@ int main()
       printf("error cudaMemcpy: %d\n", err);
 
     for (size_t element_idx = 0; element_idx < input.size(); element_idx++) {
-//      printf("%u\t%d == %d\n", element_idx,
-//             input[element_idx],
-//             results[element_idx]);
       assert(input[element_idx] == results[element_idx]);
     }
 
