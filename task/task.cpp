@@ -21,7 +21,7 @@ using INPUT_VECTOR_TYPE = const std::vector<T>;
 #define CUDA_CHECK(cond)                                                       \
   do {                                                                         \
     cudaError_t err = (cond);                                                  \
-    if(err == cudaSuccess){ printf("Check " #cond " at %d failed.\n", __LINE__);  return cudaErrorUnknown; }   \
+    if(err != cudaSuccess){ printf("Check " #cond " at %d failed.\n", __LINE__);  return cudaErrorUnknown; }   \
   } while (false)
 
 static void print_options(const nvcompBatchedCascadedOpts_t & options){
