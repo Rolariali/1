@@ -12,6 +12,8 @@ option(BUILD_EXAMPLES "Build examples." OFF)
 option(BUILD_STATIC "Build a static library." OFF)
 option(WW "warn suspend." OFF)
 
+OPTION(TEST_TASK "compile the test task" ON)
+
 set(CMAKE_CXX_STANDARD 14)
 set(CMAKE_CUDA_STANDARD 14)
 set(CMAKE_CXX_EXTENSIONS OFF)
@@ -25,6 +27,10 @@ list( APPEND CMAKE_MODULE_PATH
 
 if(WW)
   add_definitions(-w)
+endif()
+
+if(TEST_TASK)
+  add_definitions(-DNO_CUDAUTIL_EXEPTION)
 endif()
 
 if(CLION)
