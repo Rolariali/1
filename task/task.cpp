@@ -117,7 +117,10 @@ cudaError_t max_compress(cudaStream_t & stream, INPUT_VECTOR_TYPE & input, GPUbu
           }
         }
       }
-
+  printf("\n");
+  printf("min compress size: %zu\n", min_size);
+  printf("min_options: ");
+  print_options(min_options);
   CUDA_CHECK(nv_compress(stream, min_options, tmp, compress_data,comp_size));
 
   return cudaSuccess;
@@ -181,8 +184,11 @@ int main()
       break;
     }
 
-    cudaMemcpy(
+    const cudaError_t err = cudaMemcpy(
         &results[0], tmp.ptr, output_size * sizeof(T), cudaMemcpyDeviceToHost);
+
+    if(err != cudaSuccess)
+      printf("error cudaMemcpy: %d\n", err);
 
     for (size_t element_idx = 0; element_idx < input.size(); element_idx++) {
 //      printf("%u\t%d == %d\n", element_idx,
