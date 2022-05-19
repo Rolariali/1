@@ -162,7 +162,7 @@ cudaError_t nv_decompress(cudaStream_t & stream, GPUbuffer & compress_data, GPUb
 
 
 static INPUT_VECTOR_TYPE input = {
-    0,1,1,1,1,1,1,1,1,1,1,0,1,1,1,1,0,34,1,0,2,0,32,3,12,33,34,3,43,4,2,42,41,0,1,1,1,1,0,34,1,0,2,0,32,3,12,33,34,3,43,1,0,1,1,1,1,0,34,1,0,2,0,32,3,12,33,34,3,43,
+#include "data.h"
 };
 
 static std::vector<T> results(input.size());
