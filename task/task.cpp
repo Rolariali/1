@@ -73,7 +73,7 @@ static cudaError_t nv_compress(cudaStream_t & stream, const nvcompBatchedCascade
   CUDA_CHECK(cudaStreamSynchronize(stream));
   CUDA_CHECK(nv_check_error_last_call_and_clear());
   const nvcompStatus_t status = *comp_config.get_status();
-  if(status == nvcompSuccess){
+  if(status != nvcompSuccess){
     printf("max_compress status result: %d\n", status);
     return cudaErrorUnknown;
   }
