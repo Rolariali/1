@@ -18,6 +18,8 @@ using namespace nvcomp;
 using T = uint8_t;
 using INPUT_VECTOR_TYPE = const std::vector<T>;
 
+const nvcompType_t _DATA_TYPE = NVCOMP_TYPE_UCHAR;
+
 #define CUDA_CHECK(cond)                                                       \
   do {                                                                         \
     cudaError_t err = (cond);                                                  \
@@ -103,7 +105,7 @@ cudaError_t max_compress(cudaStream_t & stream, INPUT_VECTOR_TYPE & input, GPUbu
           // No delta mode without delta nums
           const int max_delta_mode = delta == 0 ? 1 : 2;
           for (int delta_mode = 0; delta_mode < max_delta_mode; delta_mode++) {
-            const nvcompBatchedCascadedOpts_t options = {chunk_size, nvcomp::TypeOf<T>(), rle, delta, static_cast<bool>(delta_mode), bp};
+            const nvcompBatchedCascadedOpts_t options = {chunk_size, _DATA_TYPE, rle, delta, static_cast<bool>(delta_mode), bp};
             printf("\n");
             print_options(options);
 
@@ -134,7 +136,14 @@ cudaError_t max_compress(cudaStream_t & stream, INPUT_VECTOR_TYPE & input, GPUbu
 }
 
 cudaError_t nv_decompress(cudaStream_t & stream, GPUbuffer & compress_data, GPUbuffer & decompress_data, size_t & output_size){
-  CascadedManager manager{nvcompBatchedCascadedDefaultOpts, stream};
+  nvcompBatchedCascadedOpts_t options = nvcompBatchedCascadedDefaultOpts;
+  /*
+   * the decompression manager doesn't check the data type in the input stream
+   * https://github.com/NVIDIA/nvcomp/issues/63
+   */
+  options.type = _DATA_TYPE;
+
+  CascadedManager manager{options, stream};
   CUDA_CHECK(nv_check_error_last_call_and_clear());
   auto decomp_config = manager.configure_decompression(compress_data.ptr);
   CUDA_CHECK(nv_check_error_last_call_and_clear());
@@ -199,7 +208,6 @@ int main()
 
     const cudaError_t err = cudaMemcpy(
         &results[0], tmp.ptr, output_size * sizeof(T), cudaMemcpyDeviceToHost);
-
     if(err != cudaSuccess)
       printf("error cudaMemcpy: %d\n", err);
 
