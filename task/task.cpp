@@ -138,6 +138,12 @@ cudaError_t nv_decompress(cudaStream_t & stream, GPUbuffer & compress_data, GPUb
       compress_data.ptr,
       decomp_config);
   CUDA_CHECK(cudaStreamSynchronize(stream));
+  const nvcompStatus_t status = *decomp_config.get_status();
+  if(status != nvcompSuccess){
+    printf("decompress status result: %d\n", status);
+    return cudaErrorUnknown;
+  }
+
   CUDA_CHECK(nv_check_error_last_call_and_clear());
 
   output_size = decomp_config.decomp_data_size;
