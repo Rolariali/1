@@ -121,7 +121,14 @@ cudaError_t max_compress(cudaStream_t & stream, INPUT_VECTOR_TYPE & input, GPUbu
   printf("min compress size: %zu\n", min_size);
   printf("min_options: ");
   print_options(min_options);
-  CUDA_CHECK(nv_compress(stream, min_options, tmp, compress_data,comp_size));
+  CUDA_CHECK(nv_compress(stream, min_options, tmp, compress_data, comp_size));
+
+//  std::vector<uint8_t> t(1111);
+//  cudaMemcpy(
+//      t.data(), compress_data.ptr, comp_size, cudaMemcpyDeviceToHost);
+//  for(auto a: t)
+//    printf("%d:", a);
+//  printf("\n");
 
   return cudaSuccess;
 }
