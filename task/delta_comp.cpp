@@ -163,6 +163,10 @@ void test_unsigned(const char * name,
   stair_delta_bp_test<T>(_minS + base/2, -1, base, count, expect_size_common_delta, expect_size_m2_delta);
 }
 
+static void print_options(const nvcompBatchedCascadedOpts_t & options){
+  printf("chunk_size %zu, rle %d, delta %d, M2Mode %d, bp %d\n",
+         options.chunk_size, options.num_RLEs, options.num_deltas, options.is_m2_deltas_mode, options.use_bp);
+}
 
 int main()
 {
@@ -188,6 +192,7 @@ int main()
             auto input = data_stair<uint8_t>(0, 1, 222, 1111111);
             const nvcompBatchedCascadedOpts_t options = {chunk_size, NVCOMP_TYPE_UCHAR, rle, delta, static_cast<bool>(delta_mode), bp};
 
+            print_options(options);
             size_t size = test_cascaded<uint8_t>(input, options);
             printf("\nsize %zu\n", size);
           }
