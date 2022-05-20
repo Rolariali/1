@@ -167,10 +167,29 @@ void test_unsigned(const char * name,
 int main()
 {
   // 5000 count
-  test_unsigned<uint8_t>("uint8_t", 3952, 200);
-  test_unsigned<uint16_t>("uint16_t", 4004, 264);
-  test_unsigned<uint32_t>("uint32_t", 4108, 396);
-  test_unsigned<uint64_t>("uint64_t", 4488, 896);
+//  test_unsigned<uint8_t>("uint8_t", 3952, 200);
+//  test_unsigned<uint16_t>("uint16_t", 4004, 264);
+//  test_unsigned<uint32_t>("uint32_t", 4108, 396);
+//  test_unsigned<uint64_t>("uint64_t", 4488, 896);
 
+  // find max compressing scheme
+  for(size_t chunk_size = 512; chunk_size < 16384; chunk_size += 512)
+    for(int rle = 0; rle < 5; rle++)
+      for(int bp = 0; bp < 2; bp++) {
+        // No delta without BitPack
+        const int max_delta_num = bp == 0 ? 1 : 5;
+        for (int delta = 0; delta < max_delta_num; delta++) {
+          // No delta mode without delta nums
+          const int max_delta_mode = delta == 0 ? 1 : 2;
+          for (int delta_mode = 0; delta_mode < max_delta_mode; delta_mode++) {
+
+            auto input = data_stair<uint8_t>(0, 1, 222, 1111111);
+            const nvcompBatchedCascadedOpts_t options = {chunk_size, _DATA_TYPE, rle, delta, static_cast<bool>(delta_mode), bp};
+
+            size_t size = test_cascaded<uint8_t>(input, options);
+            printf("\nsize %zu\n", size);
+          }
+        }
+      }
     printf("\ndone\n");
 }
