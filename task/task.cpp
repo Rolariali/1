@@ -105,6 +105,8 @@ cudaError_t max_compress(cudaStream_t & stream, INPUT_VECTOR_TYPE & input, GPUbu
           // No delta mode without delta nums
           const int max_delta_mode = delta == 0 ? 1 : 2;
           for (int delta_mode = 0; delta_mode < max_delta_mode; delta_mode++) {
+            if((rle + bp + delta) == 0)
+              continue;
             const nvcompBatchedCascadedOpts_t options = {chunk_size, _DATA_TYPE, rle, delta, static_cast<bool>(delta_mode), bp};
             printf("\n");
             print_options(options);
@@ -208,7 +210,7 @@ int main()
       assert(input[element_idx] == results[element_idx]);
     }
 
-    printf("successfully compression and decompression!\n");
+    printf("\n\n successfully compression and decompression!\n");
   } while(false);
 
   free_gpu_buffer(compress_data);
