@@ -314,20 +314,7 @@ TEST_CASE("comp/decomp cascaded-none-aligned-sizes", "[nvcomp][small]")
   }
 }
 
-template <typename T>
-std::vector<T> buildRunsPsedoRandom(const size_t numRuns, const size_t runSize)
-{
-  std::vector<T> input;
-  T val;
-  for (size_t i = 1; i < numRuns; i++) {
-    for (size_t j = 1; j < runSize; j++) {
-      val = val + i + j;
-      input.push_back(static_cast<T>(val));
-    }
-  }
 
-  return input;
-}
 
 #include <thread>
 
@@ -390,6 +377,21 @@ TEST_CASE("simple memory", "simple memory")
 static void print_options(const nvcompBatchedCascadedOpts_t & options){
   printf("chunk_size %zu, rle %d, delta %d, M2Mode %d, bp %d\n",
          options.chunk_size, options.num_RLEs, options.num_deltas, 0, options.use_bp);
+}
+
+template <typename T>
+std::vector<T> buildRunsPsedoRandom(const size_t numRuns, const size_t runSize)
+{
+  std::vector<T> input;
+  T val;
+  for (size_t i = 1; i < numRuns; i++) {
+    for (size_t j = 1; j < runSize; j++) {
+      val = val + i + j;
+      input.push_back(static_cast<T>(val));
+    }
+  }
+
+  return input;
 }
 
 TEST_CASE("comp/decomp cascade find max", "cascade loop of max")
