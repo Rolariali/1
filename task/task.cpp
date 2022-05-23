@@ -77,7 +77,7 @@ static cudaError_t nv_compress(cudaStream_t & stream, const nvcompBatchedCascade
   const nvcompStatus_t status = *comp_config.get_status();
   if(status != nvcompSuccess){
     printf("max_compress status result: %d\n", status);
-    return cudaErrorUnknown;
+    return cudaErrorLaunchFailure;
   }
   comp_size = manager.get_compressed_output_size(compress_data.ptr);
   CUDA_CHECK(nv_check_error_last_call_and_clear());
@@ -111,7 +111,12 @@ cudaError_t max_compress(cudaStream_t & stream, INPUT_VECTOR_TYPE & input, GPUbu
             printf("\n");
             print_options(options);
 
-            CUDA_CHECK(nv_compress(stream, options, tmp, compress_data, comp_size));
+            const auto err = nv_compress(stream, options, tmp, compress_data, comp_size);
+            if(err == cudaErrorLaunchFailure) {
+              printf("Pass");
+              continue;
+            }
+            CUDA_CHECK(err);
             printf("max_compress size: %zu", comp_size);
             if(min_size < comp_size)
               continue;
