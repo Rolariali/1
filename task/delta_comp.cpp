@@ -175,7 +175,7 @@ int main()
 //  test_unsigned<uint16_t>("uint16_t", 4004, 264);
 //  test_unsigned<uint32_t>("uint32_t", 4108, 396);
 //  test_unsigned<uint64_t>("uint64_t", 4488, 896);
-
+  auto input = data_stair<uint8_t>(0, 1, 222, 1200000);
   // find max compressing scheme
   for(size_t chunk_size = 512; chunk_size < 16384; chunk_size += 512)
     for(int rle = 0; rle < 5; rle++)
@@ -189,7 +189,6 @@ int main()
             if((rle + bp + delta) == 0)
               continue;
 
-            auto input = data_stair<uint8_t>(0, 1, 222, 1111111);
             const nvcompBatchedCascadedOpts_t options = {chunk_size, NVCOMP_TYPE_UCHAR, rle, delta, static_cast<bool>(delta_mode), bp};
 
             print_options(options);
