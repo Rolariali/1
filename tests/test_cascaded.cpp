@@ -208,6 +208,21 @@ void test_cascaded_opt(const std::vector<T>& input, const nvcompBatchedCascadedO
   cudaStreamDestroy(stream);
 }
 
+template <typename T>
+std::vector<T> buildRunsPsedoRandom(const size_t numRuns, const size_t runSize)
+{
+  std::vector<T> input;
+  T val;
+  for (size_t i = 1; i < numRuns; i++) {
+    for (size_t j = 1; j < runSize; j++) {
+      val = val + i + j;
+      input.push_back(static_cast<T>(val));
+    }
+  }
+
+  return input;
+}
+
 } // namespace
 
 /******************************************************************************
@@ -379,38 +394,24 @@ static void print_options(const nvcompBatchedCascadedOpts_t & options){
          options.chunk_size, options.num_RLEs, options.num_deltas, 0, options.use_bp);
 }
 
-template <typename T>
-std::vector<T> buildRunsPsedoRandom(const size_t numRuns, const size_t runSize)
-{
-  std::vector<T> input;
-  T val;
-  for (size_t i = 1; i < numRuns; i++) {
-    for (size_t j = 1; j < runSize; j++) {
-      val = val + i + j;
-      input.push_back(static_cast<T>(val));
-    }
-  }
-
-  return input;
-}
-
 TEST_CASE("comp/decomp cascade find max", "cascade loop of max")
 {
-  std::vector<uint8_t> input = buildRunsPsedoRandom<uint8_t>(1000, 1000);
+  std::vector<uint8_t> input = buildRunsPsedoRandom<uint8_t>(1001, 1001);
   printf("input size: %zu\n", input.size());
 
-  for(size_t chunk_size = 512; chunk_size < 16384; chunk_size += 512)
-    for(int rle = 0; rle < 3; rle++)
+  for(int rle = 4; rle < 5; rle++)
+    for(size_t chunk_size = 4096; chunk_size < 16384; chunk_size += 512)
       for(int bp = 0; bp < 2; bp++) {
         // No delta without BitPack
         const int max_delta_num = bp == 0 ? 1 : 5;
         for (int delta = 0; delta < max_delta_num; delta++) {
           // No delta mode without delta nums
-          const int max_delta_mode = delta == 0 ? 1 : 2;
+          const int max_delta_mode = delta == 0 ? 1 : 1;
           for (int delta_mode = 0; delta_mode < max_delta_mode; delta_mode++) {
             if ((rle + bp + delta) == 0)
               continue;
-            const nvcompBatchedCascadedOpts_t options = {chunk_size, NVCOMP_TYPE_UCHAR, rle, delta, bp};
+            const nvcompBatchedCascadedOpts_t options = {chunk_size,
+                                                         NVCOMP_TYPE_UCHAR, rle, delta, bp};
             print_options(options);
             test_cascaded_opt(input, options);
           }
