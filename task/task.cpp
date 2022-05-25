@@ -94,7 +94,7 @@ cudaError_t max_compress(cudaStream_t & stream, INPUT_VECTOR_TYPE & input, GPUbu
 
   size_t min_size = SIZE_MAX;
   size_t comp_size = 0;
-  nvcompBatchedCascadedOpts_t min_options = {0, NVCOMP_TYPE_UCHAR, 0, 0, false, 0};
+  nvcompBatchedCascadedOpts_t min_options = {4096, NVCOMP_TYPE_UCHAR, 0, 0, false, 1};
 
   // find max compressing scheme
   for(size_t chunk_size = 512; chunk_size <= 16384; chunk_size += 512)
