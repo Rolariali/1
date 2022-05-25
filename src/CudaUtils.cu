@@ -50,6 +50,8 @@ cudaError_t nv_check_error_last_call_and_clear(){
     return cudaErrorUnknown;
   return cudaSuccess;
 }
+#else
+cudaError_t nv_check_error_last_call_and_clear(){ return  cudaSuccess;}
 #endif
 
 void CudaUtils::check(const cudaError_t err, const std::string& msg)
