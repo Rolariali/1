@@ -25,6 +25,8 @@ target_link_libraries(delta_comp PRIVATE ${CUDA_ART} nvcomp)
 add_executable(task task.cpp)
 target_link_libraries(task PRIVATE ${CUDA_ART} nvcomp)
 
+add_executable(task_test task_test.cpp)
+target_link_libraries(task_test PRIVATE ${CUDA_ART} nvcomp)
 
 add_library(compress SHARED shared.cpp)
 target_link_libraries(compress PRIVATE ${CUDA_ART} nvcomp)
