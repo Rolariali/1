@@ -7,7 +7,7 @@
 #include <vector>
 #include <iostream>
 #include <thread>
-using namespace std::chrono_literals;
+
 
 namespace nvcomp
 {
@@ -77,7 +77,7 @@ static cudaError_t nv_compress(cudaStream_t & stream, const nvcompBatchedCascade
   CUDA_CHECK(nv_check_error_last_call_and_clear());
   const nvcompStatus_t status = *comp_config.get_status();
   if(status != nvcompSuccess){
-    printf("max_compress status result: %d\n", status);
+    printf("cascade compress error status: %d\n", status);
     return cudaErrorLaunchFailure;
   }
   comp_size = manager.get_compressed_output_size(compress_data.ptr);
@@ -104,21 +104,20 @@ cudaError_t max_compress(cudaStream_t & stream, INPUT_VECTOR_TYPE & input, GPUbu
         const int max_delta_num = bp == 0 ? 1 : 5;
         for (int delta = 0; delta < max_delta_num; delta++) {
           // No delta mode without delta nums
-          const int max_delta_mode = delta == 0 ? 1 : 2;
+          const int max_delta_mode = delta == 0 ? 1 : 2; // Description of mode: https://github.com/NVIDIA/nvcomp/issues/61
           for (int delta_mode = 0; delta_mode < max_delta_mode; delta_mode++) {
             if((rle + bp + delta) == 0)
               continue;
             const nvcompBatchedCascadedOpts_t options = {chunk_size, _DATA_TYPE, rle, delta, static_cast<bool>(delta_mode), bp};
             printf("\n");
             print_options(options);
-            std::this_thread::sleep_for(1000ms);
             const auto err = nv_compress(stream, options, tmp, compress_data, comp_size);
             if(err == cudaErrorLaunchFailure) {
               printf("Pass");
               continue;
             }
             CUDA_CHECK(err);
-            printf("max_compress size: %zu", comp_size);
+            printf("compress size: %zu", comp_size);
             if(min_size <= comp_size)
               continue;
 
@@ -128,7 +127,7 @@ cudaError_t max_compress(cudaStream_t & stream, INPUT_VECTOR_TYPE & input, GPUbu
         }
       }
   printf("\n");
-  printf("min compress size: %zu\n", min_size);
+  printf("min compress size: %zu, ", min_size);
   printf("min_options: ");
   print_options(min_options);
   CUDA_CHECK(nv_compress(stream, min_options, tmp, compress_data, comp_size));
