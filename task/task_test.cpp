@@ -114,11 +114,18 @@ int main()
       typename std::conditional<sizeof(data_type) == 1, short, data_type>::type;
   std::uniform_int_distribution<safe_type> dist(
       0, std::numeric_limits<data_type>::max());
+#if 0
   std::vector<uint8_t> input = {
 #include "data.h"
   };
-//  for(int i=0; i < 1000*1000; i++)
-//    input.push_back(static_cast<uint8_t>(dist(random_generator)));
+
+ for(int i=1; i < 1000*1000; i++)
+  input[i] = static_cast<uint8_t>(dist(random_generator));
+#else
+  std::vector<uint8_t> input;
+  for(int i=0; i < 1000*1000; i++)
+    input.push_back(static_cast<uint8_t>(dist(random_generator)));
+#endif
 
   printf("size input %zu\n", input.size());
 
