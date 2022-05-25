@@ -10,7 +10,11 @@
 
 namespace nvcomp
 {
+#ifdef NO_CUDAUTIL_EXEPTION
+cudaError_t nv_check_error_last_call_and_clear(){return cudaSuccess;};
+#else
 cudaError_t nv_check_error_last_call_and_clear();
+#endif
 }
 
 using namespace nvcomp;

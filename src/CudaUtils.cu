@@ -41,10 +41,10 @@ std::string to_string(const void* const ptr)
   return oss.str();
 }
 } // namespace
-
+#ifdef NO_CUDAUTIL_EXEPTION
 bool CudaUtils::error;
 
-#ifdef NO_CUDAUTIL_EXEPTION
+
 cudaError_t nv_check_error_last_call_and_clear(){
   if(CudaUtils::check_error_last_call_and_clear())
     return cudaErrorUnknown;
