@@ -213,9 +213,7 @@ int main()
     if(err != cudaSuccess)
       printf("error cudaMemcpy: %d\n", err);
 
-    for (size_t element_idx = 0; element_idx < input.size(); element_idx++) {
-      assert(input[element_idx] == results[element_idx]);
-    }
+    assert(input == results);
 
     printf("\n\n successfully compression and decompression!\n");
   } while(false);
