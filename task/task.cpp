@@ -118,7 +118,7 @@ cudaError_t max_compress(cudaStream_t & stream, INPUT_VECTOR_TYPE & input, GPUbu
             }
             CUDA_CHECK(err);
             printf("max_compress size: %zu", comp_size);
-            if(min_size < comp_size)
+            if(min_size <= comp_size)
               continue;
 
             min_size = comp_size;
