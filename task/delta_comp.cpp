@@ -187,7 +187,7 @@ int main()
   std::uniform_int_distribution<safe_type> dist(
       0, std::numeric_limits<data_type>::max());
   std::vector<uint8_t> input;
-  for(int i=0; i < 12011; i++)
+  for(int i=0; i < 1000*1000; i++)
     input.push_back(static_cast<uint8_t>(dist(random_generator)));
 
   printf("size input %zu\n", input.size());
