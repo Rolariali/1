@@ -419,3 +419,29 @@ TEST_CASE("comp/decomp cascade find max", "cascade loop of max")
       }
 
 }
+/*
+ * test_cascaded is a Catch v2.1.0 host application.
+Run with -? for options
+
+-------------------------------------------------------------------------------
+                                                                                                                     comp/decomp cascade find max
+        -------------------------------------------------------------------------------
+        /content/v2.1/tests/test_cascaded.cpp:397
+                                    ...............................................................................
+
+        /content/v2.1/tests/test_cascaded.cpp:169: FAILED:
+    REQUIRE( err == cudaSuccess )
+        with expansion:
+    700 == 0
+
+               terminate called after throwing an instance of 'std::runtime_error'
+               what():  Encountered Cuda Error: 700: 'an illegal memory access was encountered'.
+               /content/v2.1/tests/test_cascaded.cpp:169: FAILED:
+    {Unknown expression after the reported line}
+    due to a fatal error condition:
+    SIGABRT - Abort (abnormal termination) signal
+
+    ===============================================================================
+        test cases:  1 |  0 passed | 1 failed
+        assertions: 93 | 91 passed | 2 failed
+ */
