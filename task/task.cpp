@@ -7,6 +7,7 @@
 #include <vector>
 #include <iostream>
 #include <thread>
+using namespace std::chrono_literals;
 
 namespace nvcomp
 {
@@ -110,7 +111,7 @@ cudaError_t max_compress(cudaStream_t & stream, INPUT_VECTOR_TYPE & input, GPUbu
             const nvcompBatchedCascadedOpts_t options = {chunk_size, _DATA_TYPE, rle, delta, static_cast<bool>(delta_mode), bp};
             printf("\n");
             print_options(options);
-
+            std::this_thread::sleep_for(1000ms);
             const auto err = nv_compress(stream, options, tmp, compress_data, comp_size);
             if(err == cudaErrorLaunchFailure) {
               printf("Pass");
@@ -177,7 +178,9 @@ static std::vector<T> results(input.size());
 int main()
 {
   cudaStream_t stream;
-  assert(cudaSuccess == cudaStreamCreate(&stream));
+  if(cudaSuccess != cudaStreamCreate(&stream)){
+    stream = 0;
+  }
 
   GPUbuffer compress_data{};
   GPUbuffer tmp{};
