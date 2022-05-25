@@ -97,15 +97,15 @@ cudaError_t max_compress(cudaStream_t & stream, INPUT_VECTOR_TYPE & input, GPUbu
   nvcompBatchedCascadedOpts_t min_options = {0, NVCOMP_TYPE_UCHAR, 0, 0, false, 0};
 
   // find max compressing scheme
-  for(size_t chunk_size = 512; chunk_size < 16384; chunk_size += 512)
-    for(int rle = 0; rle < 5; rle++)
-      for(int bp = 0; bp < 2; bp++) {
+  for(size_t chunk_size = 512; chunk_size <= 16384; chunk_size += 512)
+    for(int rle = 0; rle <= 3; rle++)
+      for(int bp = 0; bp <= 1; bp++) {
         // No delta without BitPack
-        const int max_delta_num = bp == 0 ? 1 : 5;
-        for (int delta = 0; delta < max_delta_num; delta++) {
+        const int max_delta_num = bp == 0 ? 1 : 4;
+        for (int delta = 0; delta <= max_delta_num; delta++) {
           // No delta mode without delta nums
-          const int max_delta_mode = delta == 0 ? 1 : 2; // Description of mode: https://github.com/NVIDIA/nvcomp/issues/61
-          for (int delta_mode = 0; delta_mode < max_delta_mode; delta_mode++) {
+          const int max_delta_mode = delta == 0 ? 0 : 1; // Description of mode: https://github.com/NVIDIA/nvcomp/issues/61
+          for (int delta_mode = 0; delta_mode <= max_delta_mode; delta_mode++) {
             if((rle + bp + delta) == 0)
               continue;
             const nvcompBatchedCascadedOpts_t options = {chunk_size, _DATA_TYPE, rle, delta, static_cast<bool>(delta_mode), bp};
