@@ -167,7 +167,7 @@ static void print_options(const nvcompBatchedCascadedOpts_t & options){
   printf("chunk_size %zu, rle %d, delta %d, M2Mode %d, bp %d\n",
          options.chunk_size, options.num_RLEs, options.num_deltas, options.is_m2_deltas_mode, options.use_bp);
 }
-
+#include <random>
 int main()
 {
   // 5000 count
@@ -175,7 +175,23 @@ int main()
 //  test_unsigned<uint16_t>("uint16_t", 4004, 264);
 //  test_unsigned<uint32_t>("uint32_t", 4108, 396);
 //  test_unsigned<uint64_t>("uint64_t", 4488, 896);
-  auto input = data_stair<uint8_t>(0, 1, 222, 1200000);
+//  auto input = data_stair<uint8_t>(0, 1, 222, 1200000);
+    using data_type = uint8_t;
+  std::random_device rd;
+  std::mt19937 random_generator(rd());
+  // int8_t and uint8_t specializations of std::uniform_int_distribution are
+  // non-standard, and aren't available on MSVC, so use short instead,
+  // but with the range limit of the smaller type, and then cast below.
+  using safe_type =
+      typename std::conditional<sizeof(data_type) == 1, short, data_type>::type;
+  std::uniform_int_distribution<safe_type> dist(
+      0, std::numeric_limits<data_type>::max());
+  std::vector<uint8_t> input;
+  for(int i=0; i < 12011; i++)
+    input.push_back(static_cast<uint8_t>(dist(random_generator)));
+
+  printf("size input %zu\n", input.size());
+
   // find max compressing scheme
   for(size_t chunk_size = 512; chunk_size < 16384; chunk_size += 512)
     for(int rle = 0; rle < 5; rle++)
