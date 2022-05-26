@@ -396,10 +396,14 @@ static void print_options(const nvcompBatchedCascadedOpts_t & options){
 
 TEST_CASE("comp/decomp cascade find max", "cascade loop of max")
 {
-  std::vector<uint8_t> input = buildRunsPsedoRandom<uint8_t>(1001, 1001);
+  std::vector<uint8_t> input = {
+#include "data.h"
+  };
+
+  //buildRunsPsedoRandom<uint8_t>(1001, 1001);
   printf("input size: %zu\n", input.size());
 
-  for(int rle = 4; rle < 5; rle++)
+  for(int rle = 0; rle < 4; rle++)
     for(size_t chunk_size = 4096; chunk_size < 16384; chunk_size += 512)
       for(int bp = 0; bp < 2; bp++) {
         // No delta without BitPack
@@ -444,4 +448,16 @@ Run with -? for options
     ===============================================================================
         test cases:  1 |  0 passed | 1 failed
         assertions: 93 | 91 passed | 2 failed
+ */
+
+//
+/*
+ * !wget https://developer.download.nvidia.com/compute/cuda/repos/ubuntu1804/x86_64/cuda-ubuntu1804.pin
+!sudo mv cuda-ubuntu1804.pin /etc/apt/preferences.d/cuda-repository-pin-600
+!wget https://developer.download.nvidia.com/compute/cuda/11.7.0/local_installers/cuda-repo-ubuntu1804-11-7-local_11.7.0-515.43.04-1_amd64.deb
+!sudo dpkg -i cuda-repo-ubuntu1804-11-7-local_11.7.0-515.43.04-1_amd64.deb
+!sudo cp /var/cuda-repo-ubuntu1804-11-7-local/cuda-*-keyring.gpg /usr/share/keyrings/
+
+ * ===============================================================================
+All tests passed (2496 assertions in 1 test case)
  */
