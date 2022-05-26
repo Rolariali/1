@@ -398,17 +398,20 @@ TEST_CASE("comp/decomp cascade find max", "cascade loop of max")
 {
   std::vector<uint8_t> input = {
 #include "data.h"
+      ,
+#include "data.h"
   };
 
   //buildRunsPsedoRandom<uint8_t>(1001, 1001);
   printf("input size: %zu\n", input.size());
 
-  for(int rle = 0; rle < 4; rle++)
-    for(size_t chunk_size = 4096; chunk_size < 16384; chunk_size += 512)
+//  All tests passed (9400 assertions in 1 test case)
+  for(int rle = 0; rle <= 5; rle++)
+    for(size_t chunk_size = 4096; chunk_size <= 16384; chunk_size += 512)
       for(int bp = 0; bp < 2; bp++) {
         // No delta without BitPack
         const int max_delta_num = bp == 0 ? 1 : 5;
-        for (int delta = 0; delta < max_delta_num; delta++) {
+        for (int delta = 0; delta <= max_delta_num; delta++) {
           // No delta mode without delta nums
           const int max_delta_mode = delta == 0 ? 1 : 1;
           for (int delta_mode = 0; delta_mode < max_delta_mode; delta_mode++) {
