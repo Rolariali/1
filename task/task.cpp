@@ -35,7 +35,7 @@ static void print_options(const nvcompBatchedCascadedOpts_t & options){
 
 struct GPUbuffer {
   uint8_t* ptr;
-  size_t size;
+  size_t size = 0;
 };
 
 
