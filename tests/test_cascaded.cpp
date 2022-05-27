@@ -97,6 +97,10 @@ void test_cascaded(const std::vector<T>& input, nvcompType_t data_type)
 
   CUDA_CHECK(cudaStreamSynchronize(stream));
 
+  const nvcompStatus_t status = *comp_config.get_status();
+  printf("comp_config.get_status %d\n", status);
+  REQUIRE(status == nvcompSuccess);
+
   size_t comp_out_bytes = manager.get_compressed_output_size(d_comp_out);
 
   cudaFree(d_in_data);
@@ -123,6 +127,10 @@ void test_cascaded(const std::vector<T>& input, nvcompType_t data_type)
       d_comp_out,
       decomp_config);
   CUDA_CHECK(cudaStreamSynchronize(stream));
+
+  const nvcompStatus_t statusd = *decomp_config.get_status();
+  printf("decomp_config.get_status %d\n", statusd);
+  REQUIRE(statusd == nvcompSuccess);
 
   // Copy result back to host
   std::vector<T> res(input.size());
