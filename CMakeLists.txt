@@ -30,7 +30,7 @@ if(WW)
 endif()
 
 if(TEST_TASK)
-  add_definitions(-DNO_CUDAUTIL_EXEPTION)
+#  add_definitions(-DNO_CUDAUTIL_EXEPTION)
 endif()
 
 if(CLION)
